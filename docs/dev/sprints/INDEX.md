@@ -5,6 +5,7 @@ This folder contains sprint planning and tracking for ag_foundation.
 ## Structure
 - **SPRINT_LOG.md** — central log for all sprints (single file, no per-sprint folders)
 - **SPRINT_PLAN_SPRINT01.md** — detailed plan for Sprint 01
+- **SPRINT_REPORT_SPRINT01.md** — Sprint 01 completion report
 - **PROCESS.md** — sprint cadence and process guidelines
 - `templates/` — sprint plan/report templates (for reference)
 
