@@ -51,4 +51,4 @@ This is the central log for all sprints. Each sprint gets a section below; we do
 Each sprint section should include:
 1. **Dates** and **Goal** (one sentence)
 2. **Targeted Backlog Items** table with status and PR links
-3. **Sprint Notes** with links to plan, report, and handoff outputs
+3. **Sprint Notes** with links to plan, report, and completion notes

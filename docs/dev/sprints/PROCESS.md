@@ -91,7 +91,7 @@ In `SPRINT_LOG.md`, update the sprint section with:
 ## Sprint quality gates (what "done" means)
 A sprint is "done" when:
 - all **P0 must** items are merged and verified
-- completion notes exist for merged PRs (in `/docs/dev/handoff/`)
+- completion notes exist for merged PRs (in `/docs/dev/backlog/completion/`)
 - sprint log section is updated with final status
 - no P0 bugs are left untracked
 

@@ -14,18 +14,18 @@ Ship the minimal end-to-end runtime so `ag run "<prompt>"` produces a persisted 
 ## Sprint structure (no per-sprint folders)
 - No per-sprint directories.
 - Sprint tracking lives in: `/docs/dev/sprints/SPRINT_LOG.md`
-- Engineer outputs (Jacob) live in: `/docs/dev/handoff/` (canonical)
+- Engineer outputs (Jacob) live in: `/docs/dev/backlog/completion/` (canonical)
 
-## Evidence & handoff rules (Sprint-level)
+## Evidence & completion rules (Sprint-level)
 - Each behavior PR must include:
   - Passing tests
   - At least one persisted RunTrace created by the PR
-  - A handoff note in `/docs/dev/handoff/` with:
+  - A completion note in `/docs/dev/backlog/completion/` with:
     - run_id(s)
     - how to reproduce
     - links to trace JSON files
 - Captured traces may be stored as files under:
-  - `/docs/dev/handoff/<PR-or-AF>/run_<run_id>_trace.json`
+  - `/docs/dev/backlog/completion/<PR-or-AF>/run_<run_id>_trace.json`
   - (in addition to being persisted in the workspace runtime storage)
 
 ## Scope (what we intend to ship)
@@ -42,7 +42,7 @@ Ship the minimal end-to-end runtime so `ag run "<prompt>"` produces a persisted 
 
 ## Definition of Done (Sprint-level)
 - [ ] All P0 items completed and merged (each via its own PR)
-- [ ] Evidence captured per PR (tests + persisted RunTrace + handoff note)
+- [ ] Evidence captured per PR (tests + persisted RunTrace + completion note)
 - [ ] Truthful UX validated by automated tests (CLI labels derived from RunTrace facts)
 - [ ] Sprint log updated in `/docs/dev/sprints/SPRINT_LOG.md`
 
