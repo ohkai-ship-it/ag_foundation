@@ -8,11 +8,11 @@ Status legend: Proposed → Ready → In Progress → Done (or Blocked / Dropped
 |---:|:--:|:--|---|---|---|
 | AF-0004 | P0 | Done | Sprint OS hygiene: sprint log + docs/dev pointers + handoff rules | Docs | Jeff |
 | AF-0010 | P0 | Done | Python project bootstrap (packaging + CLI stub + pytest) | Repo | Jacob |
-| AF-0005 | P0 | Ready | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Kernel | Jeff |
-| AF-0006 | P0 | Ready | Workspace + storage baseline (sqlite + filesystem) | Storage | Jacob |
-| AF-0007 | P0 | Ready | Core runtime skeleton v0 (interfaces + playbook + stub skills) | Kernel | Jacob |
-| AF-0008 | P0 | Ready | CLI v0: ag run + runs show --json, truthful labels, manual gate | CLI | Jacob |
-| AF-0009 | P1 | Ready | Artifact registry v0 + ag artifacts list | Storage | Jacob |
+| AF-0005 | P0 | Done | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Kernel | Jeff |
+| AF-0006 | P0 | Done | Workspace + storage baseline (sqlite + filesystem) | Storage | Jacob |
+| AF-0007 | P0 | Done | Core runtime skeleton v0 (interfaces + playbook + stub skills) | Kernel | Jacob |
+| AF-0008 | P0 | Done | CLI v0: ag run + runs show --json, truthful labels, manual gate | CLI | Jacob |
+| AF-0009 | P1 | Done | Artifact registry v0 + ag artifacts list | Storage | Jacob |
 
 ## Sprint 00 Items (Completed)
 
