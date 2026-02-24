@@ -14,7 +14,7 @@ This is the central log for all sprints. Each sprint gets a section below; we do
 |---:|:--:|---|:--:|---|
 | AF-0004 | P0 | Sprint OS hygiene: sprint log + docs/dev pointers + handoff rules | Done | — |
 | AF-0010 | P0 | Python project bootstrap (packaging + CLI stub + pytest) | Done | — |
-| AF-0005 | P0 | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Not Started | — |
+| AF-0005 | P0 | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Done | feat/contracts |
 | AF-0006 | P0 | Workspace + storage baseline (sqlite + filesystem) | Not Started | — |
 | AF-0007 | P0 | Core runtime skeleton v0 (interfaces + playbook + stub skills) | Not Started | — |
 | AF-0008 | P0 | CLI v0: ag run + runs show --json, truthful labels, manual gate | Not Started | — |
