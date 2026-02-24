@@ -96,13 +96,14 @@ class TestRunCommand:
     """Test ag run command options."""
 
     def test_run_with_prompt(self, monkeypatch):
-        """ag run with a prompt should work."""
+        """ag run with a prompt should work and show run summary."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
 
         result = runner.invoke(app, ["run", "Hello world"])
 
         assert result.exit_code == 0
-        assert "Hello world" in result.stdout
+        assert "Run completed" in result.stdout
+        assert "Status: success" in result.stdout
 
     def test_run_with_workspace_option(self, monkeypatch):
         """ag run --workspace should accept workspace option."""
