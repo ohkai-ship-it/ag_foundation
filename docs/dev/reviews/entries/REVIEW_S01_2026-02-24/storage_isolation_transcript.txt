@@ -1,0 +1,85 @@
+# Pass 4 — Storage & Workspace Isolation Audit
+# Date: 2026-02-24
+# Reviewer: Jacob
+
+## Setup
+AG_DEV=1 (manual mode enabled)
+
+---
+
+## Create Runs in Separate Workspaces
+
+### Run A (ws_a)
+> $env:AG_DEV = "1"; ag run --workspace ws_a --mode manual "hello ws_a"
+
+DEV MODE: manual (LLMs disabled)
+
+Run completed
+  Run ID: 252b0710-6053-4bd2-9d53-c3e21ee9eea2
+  Workspace: ws_a
+  Mode: manual
+  Status: success
+  Verifier: passed
+  Duration: unknown
+  Playbook: default_v0@1.0.0
+
+**run_id_a = 252b0710-6053-4bd2-9d53-c3e21ee9eea2**
+
+### Run B (ws_b)
+> $env:AG_DEV = "1"; ag run --workspace ws_b --mode manual "hello ws_b"
+
+DEV MODE: manual (LLMs disabled)
+
+Run completed
+  Run ID: 5899b64f-26a4-4d19-9cd1-7401afdc5a13
+  Workspace: ws_b
+  Mode: manual
+  Status: success
+  Verifier: passed
+  Duration: unknown
+  Playbook: default_v0@1.0.0
+
+**run_id_b = 5899b64f-26a4-4d19-9cd1-7401afdc5a13**
+
+---
+
+## Isolation Verification
+
+### List ws_a runs
+> ag runs list --workspace ws_a
+
+Runs in workspace 'ws_a'
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
+┃ Run ID          ┃ Status  ┃ Verifier ┃ Mode   ┃ Duration ┃ Started          ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
+│ 252b0710-605... │ success │ passed   │ manual │ unknown  │ 2026-02-24 22:09 │
+└─────────────────┴─────────┴──────────┴────────┴──────────┴──────────────────┘
+
+✅ PASS — Only run_a visible in ws_a (run_b NOT visible)
+
+### List ws_b runs
+> ag runs list --workspace ws_b
+
+Runs in workspace 'ws_b'
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
+┃ Run ID          ┃ Status  ┃ Verifier ┃ Mode   ┃ Duration ┃ Started          ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
+│ 5899b64f-26a... │ success │ passed   │ manual │ unknown  │ 2026-02-24 22:09 │
+└─────────────────┴─────────┴──────────┴────────┴──────────┴──────────────────┘
+
+✅ PASS — Only run_b visible in ws_b (run_a NOT visible)
+
+### Cross-workspace access (should fail)
+> ag runs show 252b0710-6053-4bd2-9d53-c3e21ee9eea2 --workspace ws_b
+
+Error: Run '252b0710-6053-4bd2-9d53-c3e21ee9eea2' not found in workspace 'ws_b'
+
+✅ PASS — Cross-workspace access correctly denied
+
+---
+
+## Result
+✅ PASS — Workspace isolation verified:
+- Runs are scoped to their workspace
+- Listing only shows workspace-specific runs
+- Cross-workspace access fails with clear error
