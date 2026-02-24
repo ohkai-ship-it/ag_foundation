@@ -25,11 +25,11 @@
 - None — all Sprint 01 items completed
 
 ## Evidence
-- Handoff notes:
-  - [2026-02-24_AF-0006_storage-baseline.md](../handoff/2026-02-24_AF-0006_storage-baseline.md)
-  - [2026-02-24_AF-0007_runtime-skeleton.md](../handoff/2026-02-24_AF-0007_runtime-skeleton.md)
-  - [2026-02-24_AF-0008_cli-v0-truthful.md](../handoff/2026-02-24_AF-0008_cli-v0-truthful.md)
-  - [2026-02-24_AF-0009_artifacts-v0.md](../handoff/2026-02-24_AF-0009_artifacts-v0.md)
+- Completion notes:
+  - [2026-02-24_AF-0006_storage-baseline.md](../backlog/completion/2026-02-24_AF-0006_storage-baseline.md)
+  - [2026-02-24_AF-0007_runtime-skeleton.md](../backlog/completion/2026-02-24_AF-0007_runtime-skeleton.md)
+  - [2026-02-24_AF-0008_cli-v0-truthful.md](../backlog/completion/2026-02-24_AF-0008_cli-v0-truthful.md)
+  - [2026-02-24_AF-0009_artifacts-v0.md](../backlog/completion/2026-02-24_AF-0009_artifacts-v0.md)
 - Branches pushed:
   - feat/contracts
   - feat/storage-baseline

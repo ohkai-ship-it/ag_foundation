@@ -23,7 +23,7 @@ This is the central log for all sprints. Each sprint gets a section below; we do
 ### Sprint Notes
 - Sprint plan: [SPRINT_PLAN_SPRINT01.md](SPRINT_PLAN_SPRINT01.md)
 - Sprint report: [SPRINT_REPORT_SPRINT01.md](SPRINT_REPORT_SPRINT01.md)
-- Handoff outputs: [/docs/dev/handoff/](../handoff/)
+- Completion notes: [/docs/dev/backlog/completion/](../backlog/completion/)
 
 ---
 

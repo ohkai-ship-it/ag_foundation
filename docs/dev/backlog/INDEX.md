@@ -24,3 +24,6 @@ Status legend: Proposed → Ready → In Progress → Done (or Blocked / Dropped
 
 ## Item Details
 See individual files in [items/](items/) for full acceptance criteria and implementation notes.
+
+## Completion Notes
+See [completion/](completion/) for detailed completion notes documenting what was implemented, test results, and acceptance criteria verification.
