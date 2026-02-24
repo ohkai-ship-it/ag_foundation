@@ -304,7 +304,55 @@ class V0Orchestrator:
         # Persist the trace
         self._recorder.record(trace)
 
+        # AF-0009: Create result artifact with step summaries
+        if steps:
+            result_content = self._build_result_artifact(trace, steps)
+            artifact_id = f"{run_id}-result"
+            self._recorder.register_artifact(
+                trace=trace,
+                artifact_id=artifact_id,
+                path="result.md",
+                content=result_content.encode("utf-8"),
+                artifact_type="text/markdown",
+            )
+            # Update trace artifacts list with the new artifact ID
+            artifacts.append(artifact_id)
+
         return trace
+
+    def _build_result_artifact(self, trace: RunTrace, steps: list[Step]) -> str:
+        """Build result.md artifact content from step outputs.
+
+        Args:
+            trace: The completed run trace
+            steps: List of steps that were executed
+
+        Returns:
+            Markdown content summarizing the run results
+        """
+        lines = [
+            f"# Run Result: {trace.run_id}",
+            "",
+            f"- **Status:** {trace.final.value}",
+            f"- **Mode:** {trace.mode.value}",
+            f"- **Duration:** {trace.duration_ms}ms" if trace.duration_ms else "- **Duration:** unknown",
+            f"- **Playbook:** {trace.playbook.name}@{trace.playbook.version}",
+            "",
+            "## Steps",
+            "",
+        ]
+
+        for step in steps:
+            status = "✓" if not step.error else "✗"
+            lines.append(f"### {status} Step {step.step_number}: {step.step_type.value}")
+            if step.skill_name:
+                lines.append(f"- **Skill:** {step.skill_name}")
+            lines.append(f"- **Output:** {step.output_summary}")
+            if step.error:
+                lines.append(f"- **Error:** {step.error}")
+            lines.append("")
+
+        return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
