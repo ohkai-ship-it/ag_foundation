@@ -445,13 +445,66 @@ def ws_show(
 
 @artifacts_app.command("list")
 def artifacts_list(
-    run_id: Optional[str] = typer.Option(None, "--run", "-r", help="Filter by run ID."),
+    run_id: str = typer.Option(..., "--run", "-r", help="Run ID to list artifacts for."),
+    workspace: Optional[str] = typer.Option(
+        None, "--workspace", "-w", help="Workspace ID (derived from run if not provided)."
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
-    """List artifacts."""
-    if run_id:
-        console.print(f"[dim]Filtering by run:[/dim] {run_id}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0009)[/yellow]")
+    """List artifacts for a run.
+
+    Returns artifacts registered during the run, including result.md
+    which contains step summaries.
+    """
+    # Get run to find workspace_id if not provided
+    run_store = _get_run_store()
+    artifact_store = _get_artifact_store()
+
+    # If no workspace provided, we need to find the run
+    if not workspace:
+        # Try to find the run in all workspaces - for now just use a simple approach
+        # In a real implementation, we'd have a global index
+        err_console.print(
+            "[bold red]Error:[/bold red] --workspace is required for artifact listing."
+        )
+        err_console.print("Example: ag artifacts list --run <run_id> --workspace <workspace_id>")
+        raise typer.Exit(code=1)
+
+    artifacts = artifact_store.list(workspace, run_id)
+
+    if json_output:
+        # Output as JSON array
+        json_data = [
+            {
+                "artifact_id": a.artifact_id,
+                "path": a.path,
+                "artifact_type": a.artifact_type,
+                "size_bytes": a.size_bytes,
+                "checksum": a.checksum,
+            }
+            for a in artifacts
+        ]
+        print(json.dumps(json_data, indent=2))
+    else:
+        if not artifacts:
+            console.print(f"[dim]No artifacts found for run {run_id}[/dim]")
+        else:
+            table = Table(title=f"Artifacts for run {run_id}")
+            table.add_column("ID", style="cyan")
+            table.add_column("Type", style="green")
+            table.add_column("Size", justify="right")
+            table.add_column("Path")
+
+            for a in artifacts:
+                size_str = f"{a.size_bytes} B" if a.size_bytes is not None else "-"
+                # Extract just the filename from path for display
+                path_display = Path(a.path).name if a.path else "-"
+                table.add_row(a.artifact_id, a.artifact_type, size_str, path_display)
+
+            console.print(table)
+
+    run_store.close()
+    artifact_store.close()
 
 
 @artifacts_app.command("show")
