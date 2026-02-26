@@ -1,0 +1,11 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\Kai\OneDrive\Documents\04 Themen\Tech\Programmierung\VS Code\Agents\ag_foundation\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Kai\OneDrive\Documents\04 Themen\Tech\Programmierung\VS Code\Agents\ag_foundation
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0, mock-3.15.1
+collecting ... collected 1 item
+
+tests/test_providers.py::TestOpenAIProviderIntegration::test_real_chat_completion PASSED [100%]
+
+============================== 1 passed in 6.41s ==============================

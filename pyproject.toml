@@ -24,18 +24,25 @@ dependencies = [
     "typer>=0.9.0",
     "pydantic>=2.0.0",
     "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-mock>=3.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "openai>=1.0.0",
 ]
 test = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-mock>=3.0.0",
+]
+llm = [
+    "openai>=1.0.0",
 ]
 
 [project.scripts]
@@ -47,7 +54,10 @@ packages = ["src/ag"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-v"
+addopts = "-v -m 'not integration'"
+markers = [
+    "integration: marks tests that require external services (deselect with '-m \"not integration\"')",
+]
 
 [tool.ruff]
 src = ["src"]

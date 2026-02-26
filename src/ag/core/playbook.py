@@ -36,24 +36,14 @@ class PlaybookStep(BaseModel):
 
     step_id: str = Field(..., min_length=1, description="Unique step identifier")
     name: str = Field(..., min_length=1, description="Human-readable step name")
-    step_type: PlaybookStepType = Field(
-        default=PlaybookStepType.SKILL, description="Type of step"
-    )
-    skill_name: str | None = Field(
-        default=None, description="Skill to invoke (for skill steps)"
-    )
+    step_type: PlaybookStepType = Field(default=PlaybookStepType.SKILL, description="Type of step")
+    skill_name: str | None = Field(default=None, description="Skill to invoke (for skill steps)")
     description: str = Field(default="", description="Step description")
     required: bool = Field(default=True, description="Whether step is required")
     retry_count: int = Field(default=0, ge=0, description="Max retry attempts")
-    timeout_seconds: int | None = Field(
-        default=None, ge=1, description="Step timeout"
-    )
-    parameters: dict[str, Any] = Field(
-        default_factory=dict, description="Step parameters"
-    )
-    on_failure: str | None = Field(
-        default=None, description="Step ID to jump to on failure"
-    )
+    timeout_seconds: int | None = Field(default=None, ge=1, description="Step timeout")
+    parameters: dict[str, Any] = Field(default_factory=dict, description="Step parameters")
+    on_failure: str | None = Field(default=None, description="Step ID to jump to on failure")
 
     model_config = {"extra": "forbid"}
 
@@ -78,12 +68,8 @@ class Playbook(BaseModel):
         min_length=1,
         description="Supported reasoning modes",
     )
-    budgets: Budgets = Field(
-        default_factory=Budgets, description="Default resource budgets"
-    )
-    steps: list[PlaybookStep] = Field(
-        default_factory=list, description="Linear sequence of steps"
-    )
+    budgets: Budgets = Field(default_factory=Budgets, description="Default resource budgets")
+    steps: list[PlaybookStep] = Field(default_factory=list, description="Linear sequence of steps")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional playbook metadata"
     )

@@ -16,9 +16,9 @@ from ag.core import (
     VerifierStatus,
     create_runtime,
 )
+from ag.core.runtime import Runtime
 from ag.skills import SkillRegistry, create_default_registry
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -337,9 +337,7 @@ class TestEchoTool:
 
     def test_echo_tool_returns_input(self, registry: SkillRegistry) -> None:
         """echo_tool returns the input message."""
-        success, output, result = registry.execute(
-            "echo_tool", {"message": "Hello, World!"}
-        )
+        success, output, result = registry.execute("echo_tool", {"message": "Hello, World!"})
 
         assert success is True
         assert "Hello, World!" in output
@@ -390,6 +388,8 @@ class TestInterfaces:
 
     def test_interfaces_use_protocol(self) -> None:
         """Interfaces use typing.Protocol."""
+        from typing import Protocol
+
         from ag.core.interfaces import (
             Executor,
             Normalizer,
@@ -398,8 +398,58 @@ class TestInterfaces:
             Recorder,
             Verifier,
         )
-        from typing import Protocol
 
         # Check they're Protocols (structural subtyping)
         for iface in [Normalizer, Planner, Orchestrator, Executor, Verifier, Recorder]:
             assert issubclass(iface, Protocol) or hasattr(iface, "__protocol_attrs__")
+
+
+# ---------------------------------------------------------------------------
+# Runtime Lifecycle Tests (AF-0021 regression)
+# ---------------------------------------------------------------------------
+
+
+class TestRuntimeLifecycle:
+    """Tests for Runtime context manager support (AF-0021)."""
+
+    def test_runtime_context_manager(self, tmp_path: Path) -> None:
+        """Runtime works as context manager and closes stores."""
+        from ag.core import create_runtime
+        from ag.storage import SQLiteArtifactStore, SQLiteRunStore
+
+        run_store = SQLiteRunStore(tmp_path)
+        artifact_store = SQLiteArtifactStore(tmp_path)
+
+        runtime = create_runtime(run_store=run_store, artifact_store=artifact_store)
+
+        with runtime:
+            trace = runtime.execute(
+                prompt="Test context manager",
+                workspace="ctx-ws",
+                mode="manual",
+            )
+            assert trace is not None
+
+        # After exiting context, stores should be closed
+        assert run_store._connections == {}
+        assert artifact_store._connections == {}
+
+    def test_runtime_close_explicit(self, tmp_path: Path) -> None:
+        """Runtime.close() explicitly closes underlying stores."""
+        from ag.core import create_runtime
+        from ag.storage import SQLiteArtifactStore, SQLiteRunStore
+
+        run_store = SQLiteRunStore(tmp_path)
+        artifact_store = SQLiteArtifactStore(tmp_path)
+
+        runtime = create_runtime(run_store=run_store, artifact_store=artifact_store)
+        runtime.execute(prompt="Test", workspace="close-ws", mode="manual")
+
+        # Connections exist
+        assert len(run_store._connections) > 0
+
+        runtime.close()
+
+        # After close, stores should be empty
+        assert run_store._connections == {}
+        assert artifact_store._connections == {}

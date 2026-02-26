@@ -9,14 +9,12 @@ Tests:
 """
 
 import json
-import tempfile
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from ag.cli.main import app
-from ag.core import Artifact, ExecutionMode, create_runtime
+from ag.core import Artifact, create_runtime
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
 
 runner = CliRunner()
@@ -54,7 +52,6 @@ class TestArtifactsTable:
 
     def test_artifacts_table_exists(self, tmp_path: Path):
         """SQLite database should have artifacts table."""
-        import sqlite3
 
         from ag.storage.workspace import Workspace
 
@@ -124,9 +121,7 @@ class TestArtifactRegistration:
         artifacts = artifact_store.list("summary-test", trace.run_id)
 
         # Get the result artifact
-        result_artifact = next(
-            (a for a in artifacts if "result" in a.artifact_id), None
-        )
+        result_artifact = next((a for a in artifacts if "result" in a.artifact_id), None)
         assert result_artifact is not None
 
         # Read the content
@@ -228,9 +223,7 @@ class TestArtifactsIntegration:
         assert len(artifacts) >= 1, "Should have at least one artifact"
 
         # Verify the result artifact
-        result_artifact = next(
-            (a for a in artifacts if "result" in a.artifact_id), None
-        )
+        result_artifact = next((a for a in artifacts if "result" in a.artifact_id), None)
         assert result_artifact is not None, "Should have result artifact"
         assert result_artifact.artifact_type == "text/markdown"
 
@@ -249,7 +242,7 @@ class TestArtifactsIntegration:
             mode="manual",
         )
 
-        artifacts = artifact_store.list("content-test", trace.run_id)
+        artifact_store.list("content-test", trace.run_id)
 
         result = artifact_store.get(
             "content-test",

@@ -1,5 +1,5 @@
 # Collaboration Manifest (ag_foundation)
-# Version number: v0.1
+# Version number: v0.2
 
 This manifest defines **roles, responsibilities, and collaboration norms** for the ag_foundation project.
 
@@ -51,6 +51,9 @@ Every behavior change must include at least one of:
 - **Modularity:** core runtime modules and skills remain swappable behind interfaces.
 - **Safety hooks exist:** permission/confirmation points must not be bypassed.
 - **Manual mode is dev/test-only:** never shipped as an end-user feature.
+- **Code quality:** Ruff check and format must pass before merge.
+- **Test discipline:** All tests must pass with `-W error` (warnings fail CI).
+- **Coverage thresholds:** Overall ≥85%, CLI ≥72%, Providers ≥95%, Storage ≥95%.
 
 ## 6) Definition of Done (project-level)
 A change is “done” when:

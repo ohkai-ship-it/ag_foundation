@@ -2,7 +2,7 @@
 
 These tests enforce:
 1. JSON round-trip stability
-2. Version fields present and correct  
+2. Version fields present and correct
 3. Additive evolution guardrails (required fields)
 4. Stable defaults
 """
@@ -32,7 +32,6 @@ from ag.core import (
     Verifier,
     VerifierStatus,
 )
-
 
 # ===========================================================================
 # TaskSpec v0.1 Contract Tests

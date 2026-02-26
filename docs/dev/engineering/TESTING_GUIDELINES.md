@@ -1,7 +1,42 @@
 # Testing Guidelines (ag_foundation)
-# Version number: v0.1
+# Version number: v0.2
 
 These guidelines define what tests are required for different change types.
+
+## 0) Coverage Thresholds & CI Policy
+
+### Coverage Requirements
+All PRs must maintain or improve the following coverage thresholds:
+
+| Module | Minimum Coverage |
+|--------|-----------------|
+| Overall | ≥85% |
+| CLI (`src/ag/cli/`) | ≥72% |
+| Providers (`src/ag/providers/`) | ≥95% |
+| Storage (`src/ag/storage/`) | ≥95% |
+| Core (`src/ag/core/`) | ≥85% |
+
+Check coverage with:
+```bash
+pytest --cov=src/ag --cov-report=term-missing
+```
+
+### Warnings Policy
+All tests MUST pass with warnings treated as errors:
+```bash
+pytest -W error
+```
+
+This catches:
+- ResourceWarning (unclosed files/connections)
+- DeprecationWarning (deprecated APIs)
+- UserWarning (potential issues)
+
+### CI Enforcement
+The CI pipeline will fail if:
+1. Coverage drops below thresholds
+2. Any warning is raised during tests
+3. Ruff linting fails (see PR Checklist)
 
 ## 1) Test tiers
 ### Unit tests (required for core logic)

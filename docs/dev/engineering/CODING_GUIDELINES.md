@@ -1,7 +1,42 @@
 # Coding Guidelines (ag_foundation)
-# Version number: v0.1
+# Version number: v0.2
 
 These guidelines keep the codebase modular, testable, and ready for future interfaces (API/UI/IoT) without rewrites.
+
+## 0) Code Quality Enforcement (MANDATORY)
+
+### Ruff Linting
+All code must pass Ruff checks before merge:
+```bash
+# Check for linting issues
+ruff check src tests
+
+# Auto-fix issues where possible
+ruff check --fix src tests
+```
+
+### Ruff Formatting
+All code must be formatted with Ruff:
+```bash
+# Check formatting
+ruff format --check src tests
+
+# Apply formatting
+ruff format src tests
+```
+
+### Pre-commit Hook (Recommended)
+Set up pre-commit to run Ruff automatically:
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+```
 
 ## 1) Golden rules (non-negotiable)
 1. **No business logic in adapters.**

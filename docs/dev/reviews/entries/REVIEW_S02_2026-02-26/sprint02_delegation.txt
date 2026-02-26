@@ -1,0 +1,33 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Kai\OneDrive\Documents\04 Themen\Tech\Programmierung\VS Code\Agents\ag_foundation
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0, mock-3.15.1
+collecting ... collected 23 items
+
+tests/test_delegation.py::TestDelegateV0Playbook::test_delegate_v0_exists PASSED [  4%]
+tests/test_delegation.py::TestDelegateV0Playbook::test_delegate_v0_alias PASSED [  8%]
+tests/test_delegation.py::TestDelegateV0Playbook::test_delegate_v0_in_list PASSED [ 13%]
+tests/test_delegation.py::TestDelegateV0Playbook::test_delegate_v0_has_six_steps PASSED [ 17%]
+tests/test_delegation.py::TestDelegateV0Playbook::test_delegate_v0_plan_step_has_min_subtasks_param PASSED [ 21%]
+tests/test_delegation.py::TestDelegationSkills::test_normalize_input_registered PASSED [ 26%]
+tests/test_delegation.py::TestDelegationSkills::test_plan_subtasks_registered PASSED [ 30%]
+tests/test_delegation.py::TestDelegationSkills::test_execute_subtask_registered PASSED [ 34%]
+tests/test_delegation.py::TestDelegationSkills::test_verify_delegation_registered PASSED [ 39%]
+tests/test_delegation.py::TestDelegationSkills::test_finalize_result_registered PASSED [ 43%]
+tests/test_delegation.py::TestDelegationSkills::test_plan_subtasks_returns_at_least_two PASSED [ 47%]
+tests/test_delegation.py::TestManualDelegatedRun::test_delegate_v0_executes_all_steps PASSED [ 52%]
+tests/test_delegation.py::TestManualDelegatedRun::test_delegate_v0_plan_step_has_subtasks PASSED [ 56%]
+tests/test_delegation.py::TestManualDelegatedRun::test_delegate_v0_plan_step_type_is_planning PASSED [ 60%]
+tests/test_delegation.py::TestManualDelegatedRun::test_delegate_v0_trace_has_delegation_metadata PASSED [ 65%]
+tests/test_delegation.py::TestDelegationCLI::test_cli_run_with_delegate_playbook PASSED [ 69%]
+tests/test_delegation.py::TestDelegationCLI::test_cli_runs_show_json_has_subtasks PASSED [ 73%]
+tests/test_delegation.py::TestDelegationCLI::test_cli_delegate_with_default_alias PASSED [ 78%]
+tests/test_delegation.py::TestSubtaskModel::test_subtask_creation PASSED [ 82%]
+tests/test_delegation.py::TestSubtaskModel::test_subtask_serialization PASSED [ 86%]
+tests/test_delegation.py::TestSubtaskModel::test_subtask_forbids_extra_fields PASSED [ 91%]
+tests/test_delegation.py::TestPlanningStepType::test_planning_step_type_exists PASSED [ 95%]
+tests/test_delegation.py::TestPlanningStepType::test_planning_in_step_types PASSED [100%]
+
+============================= 23 passed in 0.47s ==============================

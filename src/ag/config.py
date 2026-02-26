@@ -13,7 +13,11 @@ Future AF items will implement real parsing.
 
 import os
 from pathlib import Path
-from typing import Optional
+
+from dotenv import load_dotenv
+
+# Load .env file early (before any os.environ access elsewhere)
+load_dotenv()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Config file locations (contract)
@@ -24,6 +28,7 @@ from typing import Optional
 
 DEFAULT_CONFIG_DIR = Path.home() / ".ag"
 DEFAULT_CONFIG_FILE = DEFAULT_CONFIG_DIR / "config.yaml"
+DEFAULT_WORKSPACES_ROOT = DEFAULT_CONFIG_DIR / "workspaces"
 CONFIG_PATH_ENV_VAR = "AG_CONFIG_PATH"
 
 
@@ -143,7 +148,7 @@ def get_workspace_dir() -> Path:
     if env_dir:
         return Path(env_dir)
     # TODO: Check config file when implemented
-    return DEFAULT_CONFIG_DIR / "workspaces"
+    return DEFAULT_WORKSPACES_ROOT
 
 
 def get_default_workspace() -> str:

@@ -1,0 +1,10 @@
+﻿Test 1 - Global --help exit code: 0
+PASS: Global options present in --help
+Test 2 - run --help exit code: 0
+'workspace' in run help: True
+PASS: run subcommand help works
+Test 3 - --json run exit code: 0
+JSON parse OK, has run_id: True
+PASS: JSON output works
+
+=== A10 CLI Global Options REPL: ALL PASSED ===

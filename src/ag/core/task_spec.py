@@ -34,18 +34,10 @@ class Budgets(BaseModel):
 class Constraints(BaseModel):
     """Execution constraints for the task."""
 
-    allowed_skills: list[str] | None = Field(
-        default=None, description="Whitelist of skill names"
-    )
-    blocked_skills: list[str] | None = Field(
-        default=None, description="Blacklist of skill names"
-    )
-    allowed_paths: list[str] | None = Field(
-        default=None, description="Filesystem path whitelist"
-    )
-    blocked_paths: list[str] | None = Field(
-        default=None, description="Filesystem path blacklist"
-    )
+    allowed_skills: list[str] | None = Field(default=None, description="Whitelist of skill names")
+    blocked_skills: list[str] | None = Field(default=None, description="Blacklist of skill names")
+    allowed_paths: list[str] | None = Field(default=None, description="Filesystem path whitelist")
+    blocked_paths: list[str] | None = Field(default=None, description="Filesystem path blacklist")
 
     model_config = {"extra": "forbid"}
 
@@ -64,9 +56,7 @@ class TaskSpec(BaseModel):
     )
     prompt: str = Field(..., min_length=1, description="User's task description")
     workspace_id: str = Field(..., min_length=1, description="Workspace identifier")
-    mode: ExecutionMode = Field(
-        default=ExecutionMode.MANUAL, description="Execution mode"
-    )
+    mode: ExecutionMode = Field(default=ExecutionMode.MANUAL, description="Execution mode")
     playbook_preference: str | None = Field(
         default=None, description="Preferred playbook name (optional hint)"
     )

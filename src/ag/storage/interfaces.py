@@ -76,7 +76,9 @@ class ArtifactStore(Protocol):
         """
         ...
 
-    def get(self, workspace_id: str, run_id: str, artifact_id: str) -> tuple[Artifact, bytes] | None:
+    def get(
+        self, workspace_id: str, run_id: str, artifact_id: str
+    ) -> tuple[Artifact, bytes] | None:
         """Retrieve an artifact and its content.
 
         Args:

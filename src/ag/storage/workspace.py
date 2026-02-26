@@ -15,6 +15,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from ag.config import get_workspace_dir
+
 
 class WorkspaceError(Exception):
     """Raised when workspace operations fail."""
@@ -37,7 +39,7 @@ class Workspace:
             root_path: Base path for workspaces. Defaults to ~/.ag/workspaces/
         """
         self.workspace_id = workspace_id
-        self._root = root_path or (Path.home() / ".ag" / "workspaces")
+        self._root = root_path or get_workspace_dir()
         self._path = self._root / workspace_id
 
     @property

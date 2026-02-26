@@ -4,8 +4,6 @@ Sanity tests for ag_foundation.
 These tests verify that the package is properly installed and imports work.
 """
 
-import pytest
-
 
 def test_import_ag():
     """Test that the main package can be imported."""

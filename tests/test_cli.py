@@ -4,12 +4,9 @@ CLI tests for ag_foundation.
 These tests verify the CLI entrypoint and manual mode gating.
 """
 
-import os
-
-import pytest
 from typer.testing import CliRunner
 
-from ag.cli.main import app, DEV_ENV_VAR
+from ag.cli.main import DEV_ENV_VAR, app
 
 runner = CliRunner()
 
@@ -105,12 +102,22 @@ class TestRunCommand:
         assert "Run completed" in result.stdout
         assert "Status: success" in result.stdout
 
-    def test_run_with_workspace_option(self, monkeypatch):
-        """ag run --workspace should accept workspace option."""
+    def test_run_with_workspace_option(self, monkeypatch, tmp_path):
+        """ag run --workspace should accept workspace option when workspace exists."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "--workspace", "my_ws", "Test"])
+        # First create the workspace
+        from ag.storage import Workspace
 
+        ws = Workspace("my_ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "my_ws", "Test"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
         assert result.exit_code == 0
         assert "my_ws" in result.stdout
 
@@ -122,3 +129,116 @@ class TestRunCommand:
 
         # Should not fail; option is accepted (stub doesn't use it yet)
         assert result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# AF-0024: Workspace Lifecycle Tests
+# ---------------------------------------------------------------------------
+
+
+class TestWorkspaceLifecycle:
+    """Tests for workspace lifecycle (AF-0024)."""
+
+    def test_run_with_nonexistent_workspace_fails(self, monkeypatch, tmp_path):
+        """ag run --workspace should fail if workspace doesn't exist."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "nonexistent", "Test prompt"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 1
+        assert "does not exist" in result.stdout or "does not exist" in (result.stderr or "")
+        assert "ag ws create" in result.stdout or "ag ws create" in (result.stderr or "")
+
+    def test_run_without_workspace_autocreates(self, monkeypatch):
+        """ag run without --workspace should auto-create a new workspace."""
+        monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+
+        result = runner.invoke(app, ["run", "Test prompt"])
+
+        assert result.exit_code == 0
+        assert "Run completed" in result.stdout
+        # Workspace ID should be auto-generated
+        assert "Workspace: ws-" in result.stdout
+
+    def test_ws_create_command(self, monkeypatch, tmp_path):
+        """ag ws create should create a new workspace."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        result = runner.invoke(
+            app,
+            ["ws", "create", "test-workspace"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        assert "Created workspace" in result.stdout
+        assert "test-workspace" in result.stdout
+
+        # Verify workspace was actually created
+        from ag.storage import Workspace
+
+        ws = Workspace("test-workspace", tmp_path)
+        assert ws.exists()
+
+    def test_ws_create_duplicate_fails(self, monkeypatch, tmp_path):
+        """ag ws create should fail if workspace already exists."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspace first time
+        result1 = runner.invoke(app, ["ws", "create", "duplicate-ws"], env=env)
+        assert result1.exit_code == 0
+
+        # Try to create again
+        result2 = runner.invoke(app, ["ws", "create", "duplicate-ws"], env=env)
+        assert result2.exit_code == 1
+        assert "already exists" in result2.stdout or "already exists" in (result2.stderr or "")
+
+    def test_multiple_runs_same_workspace_reuse_db(self, monkeypatch, tmp_path):
+        """Multiple runs in same workspace should reuse the same DB file."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspace
+        runner.invoke(app, ["ws", "create", "multi-run-ws"], env=env)
+
+        # Run twice in same workspace
+        result1 = runner.invoke(app, ["run", "--workspace", "multi-run-ws", "First run"], env=env)
+        assert result1.exit_code == 0
+
+        result2 = runner.invoke(app, ["run", "--workspace", "multi-run-ws", "Second run"], env=env)
+        assert result2.exit_code == 0
+
+        # Verify both runs are in the same workspace
+        from ag.storage import Workspace
+
+        ws = Workspace("multi-run-ws", tmp_path)
+        assert ws.exists()
+
+        # Check there's only one DB file
+        db_path = ws.db_path
+        assert db_path.exists()
+
+        # Check both runs are stored
+        from ag.storage import SQLiteRunStore
+
+        with SQLiteRunStore(tmp_path) as store:
+            runs = store.list("multi-run-ws")
+            assert len(runs) == 2
+
+    def test_ws_list_command(self, monkeypatch, tmp_path):
+        """ag ws list should show created workspaces."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspaces
+        runner.invoke(app, ["ws", "create", "ws-alpha"], env=env)
+        runner.invoke(app, ["ws", "create", "ws-beta"], env=env)
+
+        # List workspaces
+        result = runner.invoke(app, ["ws", "list"], env=env)
+        assert result.exit_code == 0
+        assert "ws-alpha" in result.stdout
+        assert "ws-beta" in result.stdout

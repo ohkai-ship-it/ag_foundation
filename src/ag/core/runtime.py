@@ -18,8 +18,11 @@ from ag.core.run_trace import (
     RunTrace,
     Step,
     StepType,
-    Verifier as VerifierModel,
+    Subtask,
     VerifierStatus,
+)
+from ag.core.run_trace import (
+    Verifier as VerifierModel,
 )
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.skills import SkillRegistry, get_default_registry
@@ -171,9 +174,7 @@ class V0Recorder:
             artifact_type=artifact_type,
             size_bytes=len(content),
         )
-        return self._artifact_store.save(
-            trace.workspace_id, trace.run_id, artifact, content
-        )
+        return self._artifact_store.save(trace.workspace_id, trace.run_id, artifact, content)
 
     def close(self) -> None:
         """Close storage connections."""
@@ -207,6 +208,7 @@ class V0Orchestrator:
         - Stop on first error for required steps
         - Skip optional steps on error
         - Verifier runs at end
+        - AF-0019: Delegation support with subtask tracking
         """
         run_id = str(uuid4())
         started_at = datetime.now(UTC)
@@ -215,21 +217,50 @@ class V0Orchestrator:
         final_status = FinalStatus.SUCCESS
         error_message: str | None = None
 
+        # AF-0019: Track subtasks from planning step for delegation
+        planned_subtasks: list[dict[str, Any]] = []
+
         # Execute each step in sequence
         for i, playbook_step in enumerate(playbook.steps):
             step_started = datetime.now(UTC)
             step_error: str | None = None
             output_summary = ""
             skill_name = playbook_step.skill_name
+            step_subtasks: list[Subtask] | None = None
+            result: dict[str, Any] = {}
 
             try:
                 if skill_name:
+                    # Build skill parameters: merge step params with task context
+                    skill_params = {
+                        "prompt": task.prompt,
+                        "step": i,
+                        **playbook_step.parameters,
+                    }
+                    # AF-0019: Pass subtasks context to execute_subtask skills
+                    if skill_name == "execute_subtask" and planned_subtasks:
+                        skill_params["subtasks"] = planned_subtasks
+
                     # Execute the skill
                     success, output_summary, result = self._executor.execute(
-                        skill_name, {"prompt": task.prompt, "step": i}
+                        skill_name, skill_params
                     )
                     if not success:
                         step_error = output_summary
+
+                    # AF-0019: Capture subtasks from plan_subtasks skill
+                    if skill_name == "plan_subtasks" and success:
+                        raw_subtasks = result.get("subtasks", [])
+                        planned_subtasks = raw_subtasks
+                        # Convert to Subtask models for the trace
+                        step_subtasks = [
+                            Subtask(
+                                subtask_id=st.get("subtask_id", f"subtask_{idx}"),
+                                description=st.get("description", ""),
+                                status=st.get("status", "pending"),
+                            )
+                            for idx, st in enumerate(raw_subtasks)
+                        ]
                 else:
                     # No skill - just mark as skipped
                     output_summary = "No skill defined for step"
@@ -244,11 +275,19 @@ class V0Orchestrator:
             step_ended = datetime.now(UTC)
             duration_ms = int((step_ended - step_started).total_seconds() * 1000)
 
+            # Determine step type: PLANNING for plan_subtasks, otherwise SKILL_CALL
+            if skill_name == "plan_subtasks":
+                step_type = StepType.PLANNING
+            elif skill_name:
+                step_type = StepType.SKILL_CALL
+            else:
+                step_type = StepType.REASONING
+
             # Record the step
             step = Step(
                 step_id=f"{run_id}-step-{i}",
                 step_number=i,
-                step_type=StepType.SKILL_CALL if skill_name else StepType.REASONING,
+                step_type=step_type,
                 skill_name=skill_name,
                 input_summary=f"prompt={task.prompt[:50]}...",
                 output_summary=output_summary,
@@ -256,6 +295,7 @@ class V0Orchestrator:
                 ended_at=step_ended,
                 duration_ms=duration_ms,
                 error=step_error,
+                subtasks=step_subtasks,  # AF-0019: Only set for plan step
             )
             steps.append(step)
 
@@ -335,7 +375,11 @@ class V0Orchestrator:
             "",
             f"- **Status:** {trace.final.value}",
             f"- **Mode:** {trace.mode.value}",
-            f"- **Duration:** {trace.duration_ms}ms" if trace.duration_ms else "- **Duration:** unknown",
+            (
+                f"- **Duration:** {trace.duration_ms}ms"
+                if trace.duration_ms
+                else "- **Duration:** unknown"
+            ),
             f"- **Playbook:** {trace.playbook.name}@{trace.playbook.version}",
             "",
             "## Steps",
@@ -353,6 +397,23 @@ class V0Orchestrator:
             lines.append("")
 
         return "\n".join(lines)
+
+    def close(self) -> None:
+        """Close underlying storage connections."""
+        self._recorder.close()
+
+    def __enter__(self) -> "V0Orchestrator":
+        """Context manager entry."""
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
+        """Context manager exit - ensures storage is closed."""
+        self.close()
 
 
 # ---------------------------------------------------------------------------
@@ -406,6 +467,23 @@ class Runtime:
         trace = self._orchestrator.run(task, selected_playbook)
 
         return trace
+
+    def close(self) -> None:
+        """Close underlying storage connections."""
+        self._orchestrator.close()
+
+    def __enter__(self) -> "Runtime":
+        """Context manager entry."""
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
+        """Context manager exit - ensures storage is closed."""
+        self.close()
 
 
 def create_runtime(

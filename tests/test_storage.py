@@ -7,11 +7,7 @@ Tests:
 4. Isolation: two workspaces with runs, no cross-visibility
 """
 
-import shutil
-import tempfile
-from datetime import UTC, datetime
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 
@@ -19,10 +15,8 @@ from ag.core import (
     Artifact,
     ExecutionMode,
     FinalStatus,
-    PlaybookMetadata,
     RunTrace,
     RunTraceBuilder,
-    Verifier,
     VerifierStatus,
 )
 from ag.storage import (
@@ -31,7 +25,6 @@ from ag.storage import (
     Workspace,
     WorkspaceError,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -151,16 +144,12 @@ class TestRunStore:
         assert retrieved.workspace_id == trace.workspace_id
         assert retrieved.final == trace.final
 
-    def test_get_nonexistent_returns_none(
-        self, run_store: SQLiteRunStore, temp_root: Path
-    ) -> None:
+    def test_get_nonexistent_returns_none(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
         """Getting nonexistent run returns None."""
         result = run_store.get("ws-1", "nonexistent-run")
         assert result is None
 
-    def test_list_returns_runs_ordered(
-        self, run_store: SQLiteRunStore, temp_root: Path
-    ) -> None:
+    def test_list_returns_runs_ordered(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
         """List returns runs in reverse chronological order."""
         trace1 = _make_run_trace("ws-1")
         trace2 = _make_run_trace("ws-1")
@@ -186,9 +175,7 @@ class TestRunStore:
         result = run_store.get("ws-1", trace.run_id)
         assert result is None
 
-    def test_json_file_persisted(
-        self, run_store: SQLiteRunStore, temp_root: Path
-    ) -> None:
+    def test_json_file_persisted(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
         """RunTrace JSON is persisted to filesystem."""
         trace = _make_run_trace("ws-1")
         run_store.save(trace)
@@ -208,9 +195,7 @@ class TestRunStore:
 class TestArtifactStore:
     """Tests for SQLiteArtifactStore."""
 
-    def test_save_and_get(
-        self, artifact_store: SQLiteArtifactStore, temp_root: Path
-    ) -> None:
+    def test_save_and_get(self, artifact_store: SQLiteArtifactStore, temp_root: Path) -> None:
         """Can save and retrieve an artifact."""
         artifact = Artifact(
             artifact_id="art-1",
@@ -228,16 +213,12 @@ class TestArtifactStore:
         assert retrieved_artifact.artifact_id == "art-1"
         assert retrieved_content == content
 
-    def test_list_empty(
-        self, artifact_store: SQLiteArtifactStore, temp_root: Path
-    ) -> None:
+    def test_list_empty(self, artifact_store: SQLiteArtifactStore, temp_root: Path) -> None:
         """Listing artifacts for nonexistent run returns empty list."""
         artifacts = artifact_store.list("ws-1", "run-1")
         assert artifacts == []
 
-    def test_list_artifacts(
-        self, artifact_store: SQLiteArtifactStore, temp_root: Path
-    ) -> None:
+    def test_list_artifacts(self, artifact_store: SQLiteArtifactStore, temp_root: Path) -> None:
         """Can list artifacts for a run."""
         art1 = Artifact(artifact_id="art-1", path="file1.txt", artifact_type="text/plain")
         art2 = Artifact(artifact_id="art-2", path="file2.txt", artifact_type="text/plain")
@@ -251,9 +232,7 @@ class TestArtifactStore:
         ids = {a.artifact_id for a in artifacts}
         assert ids == {"art-1", "art-2"}
 
-    def test_delete(
-        self, artifact_store: SQLiteArtifactStore, temp_root: Path
-    ) -> None:
+    def test_delete(self, artifact_store: SQLiteArtifactStore, temp_root: Path) -> None:
         """Can delete an artifact."""
         artifact = Artifact(
             artifact_id="art-1",
@@ -356,9 +335,7 @@ class TestWorkspaceIsolation:
         test_file_b = ws_b.runs_dir / "test.txt"
         assert not test_file_b.exists()
 
-    def test_sqlite_databases_separate(
-        self, run_store: SQLiteRunStore, temp_root: Path
-    ) -> None:
+    def test_sqlite_databases_separate(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
         """Each workspace has its own SQLite database."""
         # Save runs to force database creation
         trace_a = _make_run_trace("ws_a")
@@ -417,3 +394,62 @@ class TestWorkspaceIsolation:
         retrieved_b = run_store.get("ws_b", trace_b.run_id)
         assert retrieved_b is not None
         assert retrieved_b.run_id == trace_b.run_id
+
+
+# ---------------------------------------------------------------------------
+# Connection Lifecycle Tests (AF-0021 regression)
+# ---------------------------------------------------------------------------
+
+
+class TestConnectionLifecycle:
+    """Tests for deterministic connection closure (AF-0021, BUG-0001)."""
+
+    def test_run_store_context_manager(self, temp_root: Path) -> None:
+        """SQLiteRunStore works as context manager."""
+        with SQLiteRunStore(temp_root) as store:
+            trace = _make_run_trace("ctx-ws")
+            store.save(trace)
+            retrieved = store.get("ctx-ws", trace.run_id)
+            assert retrieved is not None
+        # Exiting context should have closed connections
+        assert store._connections == {}
+
+    def test_artifact_store_context_manager(self, temp_root: Path) -> None:
+        """SQLiteArtifactStore works as context manager."""
+        from ag.core import Artifact
+
+        with SQLiteArtifactStore(temp_root) as store:
+            artifact = Artifact(
+                artifact_id="art-ctx",
+                path="test.txt",
+                artifact_type="text/plain",
+                size_bytes=4,
+            )
+            store.save("ctx-ws", "run-1", artifact, b"test")
+            artifacts = store.list("ctx-ws", "run-1")
+            assert len(artifacts) == 1
+        # Exiting context should have closed connections
+        assert store._connections == {}
+
+    def test_close_clears_connections(self, temp_root: Path) -> None:
+        """Calling close() clears the connections dict."""
+        store = SQLiteRunStore(temp_root)
+        trace = _make_run_trace("close-ws")
+        store.save(trace)
+        # Connection should be cached
+        assert len(store._connections) > 0
+
+        store.close()
+        assert store._connections == {}
+
+    def test_multiple_workspaces_all_closed(self, temp_root: Path) -> None:
+        """Multiple workspace connections are all closed."""
+        with SQLiteRunStore(temp_root) as store:
+            trace_a = _make_run_trace("multi-ws-a")
+            trace_b = _make_run_trace("multi-ws-b")
+            store.save(trace_a)
+            store.save(trace_b)
+            # Should have 2 connections (one per workspace)
+            assert len(store._connections) == 2
+        # After exit, all should be closed
+        assert store._connections == {}

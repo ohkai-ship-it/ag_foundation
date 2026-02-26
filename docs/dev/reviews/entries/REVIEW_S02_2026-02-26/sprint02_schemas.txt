@@ -1,0 +1,31 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Kai\OneDrive\Documents\04 Themen\Tech\Programmierung\VS Code\Agents\ag_foundation
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0, mock-3.15.1
+collecting ... collected 21 items
+
+tests/test_contracts.py::TestTaskSpecContract::test_version_field_present PASSED [  4%]
+tests/test_contracts.py::TestTaskSpecContract::test_required_fields PASSED [  9%]
+tests/test_contracts.py::TestTaskSpecContract::test_json_roundtrip PASSED [ 14%]
+tests/test_contracts.py::TestTaskSpecContract::test_stable_defaults PASSED [ 19%]
+tests/test_contracts.py::TestTaskSpecContract::test_builder_produces_valid_spec PASSED [ 23%]
+tests/test_contracts.py::TestTaskSpecAdditiveEvolution::test_all_v01_fields_present PASSED [ 28%]
+tests/test_contracts.py::TestRunTraceContract::test_version_field_present PASSED [ 33%]
+tests/test_contracts.py::TestRunTraceContract::test_required_fields PASSED [ 38%]
+tests/test_contracts.py::TestRunTraceContract::test_json_roundtrip PASSED [ 42%]
+tests/test_contracts.py::TestRunTraceContract::test_stable_defaults PASSED [ 47%]
+tests/test_contracts.py::TestRunTraceContract::test_builder_produces_valid_trace PASSED [ 52%]
+tests/test_contracts.py::TestRunTraceAdditiveEvolution::test_all_v01_fields_present PASSED [ 57%]
+tests/test_contracts.py::TestPlaybookContract::test_version_field_present PASSED [ 61%]
+tests/test_contracts.py::TestPlaybookContract::test_required_fields PASSED [ 66%]
+tests/test_contracts.py::TestPlaybookContract::test_json_roundtrip PASSED [ 71%]
+tests/test_contracts.py::TestPlaybookContract::test_stable_defaults PASSED [ 76%]
+tests/test_contracts.py::TestPlaybookContract::test_builder_produces_valid_playbook PASSED [ 80%]
+tests/test_contracts.py::TestPlaybookAdditiveEvolution::test_all_v01_fields_present PASSED [ 85%]
+tests/test_contracts.py::TestSchemaIntegration::test_taskspec_mode_matches_runtrace_mode PASSED [ 90%]
+tests/test_contracts.py::TestSchemaIntegration::test_budgets_shared_between_taskspec_and_playbook PASSED [ 95%]
+tests/test_contracts.py::TestSchemaIntegration::test_full_workflow_schemas PASSED [100%]
+
+============================= 21 passed in 0.26s ==============================

@@ -8,6 +8,7 @@ All labels are derived from persisted RunTrace (truthful UX).
 import json
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -16,7 +17,8 @@ from rich.console import Console
 from rich.table import Table
 
 from ag import __version__
-from ag.core import ExecutionMode, FinalStatus, RunTrace, VerifierStatus, create_runtime
+from ag.config import get_workspace_dir
+from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
 
 # Console for rich output
@@ -53,9 +55,6 @@ app.add_typer(config_app, name="config")
 DEV_ENV_VAR = "AG_DEV"
 MANUAL_MODE_BANNER = "DEV MODE: manual (LLMs disabled)"
 
-# Default workspace root
-DEFAULT_WORKSPACES_ROOT = Path.home() / ".ag" / "workspaces"
-
 
 def _check_manual_mode_gate() -> bool:
     """
@@ -72,12 +71,12 @@ def _print_manual_mode_banner() -> None:
 
 def _get_run_store(workspaces_root: Path | None = None) -> SQLiteRunStore:
     """Get a run store instance."""
-    return SQLiteRunStore(workspaces_root or DEFAULT_WORKSPACES_ROOT)
+    return SQLiteRunStore(workspaces_root or get_workspace_dir())
 
 
 def _get_artifact_store(workspaces_root: Path | None = None) -> SQLiteArtifactStore:
     """Get an artifact store instance."""
-    return SQLiteArtifactStore(workspaces_root or DEFAULT_WORKSPACES_ROOT)
+    return SQLiteArtifactStore(workspaces_root or get_workspace_dir())
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -131,6 +130,50 @@ def format_verifier(status: VerifierStatus) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
+@dataclass
+class CLIContext:
+    """Global CLI context for propagating options to subcommands."""
+
+    workspace: Optional[str] = None
+    json_output: bool = False
+    quiet: bool = False
+    verbose: bool = False
+
+
+def get_cli_ctx(ctx: typer.Context) -> CLIContext:
+    """Get CLI context from Typer context, or create empty one."""
+    if ctx.obj is None:
+        return CLIContext()
+    return ctx.obj
+
+
+def resolve_option(
+    local: Optional[bool] | Optional[str],
+    ctx: typer.Context,
+    key: str,
+) -> Optional[bool] | Optional[str]:
+    """Resolve an option with precedence: local flag > global flag > default.
+
+    Args:
+        local: Value from subcommand option
+        ctx: Typer context
+        key: Attribute name in CLIContext
+
+    Returns:
+        Resolved value with proper precedence
+    """
+    cli_ctx = get_cli_ctx(ctx)
+    global_value = getattr(cli_ctx, key, None)
+
+    # Local always wins if explicitly set (not None for optionals, not False for bools)
+    if isinstance(local, bool):
+        # For bools: local True wins, else use global
+        return local if local else global_value
+    else:
+        # For strings: local if set, else global
+        return local if local is not None else global_value
+
+
 def version_callback(value: bool) -> None:
     """Print version and exit."""
     if value:
@@ -140,6 +183,7 @@ def version_callback(value: bool) -> None:
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -148,9 +192,48 @@ def main(
         is_eager=True,
         help="Show version and exit.",
     ),
+    workspace: Optional[str] = typer.Option(
+        None,
+        "--workspace",
+        "-w",
+        help="Default workspace ID for all commands.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Output machine-readable JSON (where supported).",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        "-q",
+        help="Reduce non-essential output.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Include extra debug details.",
+    ),
 ) -> None:
-    """ag_foundation CLI."""
-    pass
+    """ag_foundation CLI.
+
+    Global options like --workspace, --json, --quiet, --verbose can be set
+    here and will be inherited by all subcommands. Subcommand-level options
+    take precedence over global options.
+
+    Examples:
+        ag --workspace my_ws runs list
+        ag --json runs show <run_id> --workspace my_ws
+        ag --quiet run "Task"
+    """
+    # Store global options in context for subcommands
+    ctx.obj = CLIContext(
+        workspace=workspace,
+        json_output=json_output,
+        quiet=quiet,
+        verbose=verbose,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -160,6 +243,7 @@ def main(
 
 @app.command()
 def run(
+    ctx: typer.Context,
     prompt: str = typer.Argument(..., help="The prompt or task to execute."),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace ID (default: auto-generated)."
@@ -173,9 +257,7 @@ def run(
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
-    json_output: bool = typer.Option(
-        False, "--json", help="Output machine-readable JSON."
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Reduce output."),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Include trace pointers and debug details."
@@ -188,18 +270,40 @@ def run(
         ag run "Draft a project plan"
         ag run --mode manual "Test the pipeline"
     """
+    # Resolve global options with precedence: local > global > default
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+    resolved_quiet = quiet or cli_ctx.quiet
+    resolved_verbose = verbose or cli_ctx.verbose
+
     # Manual mode gate check
     if mode == "manual":
         if not _check_manual_mode_gate():
             err_console.print(
-                f"[bold red]Error:[/bold red] --mode manual requires {DEV_ENV_VAR}=1 environment variable."
+                f"[bold red]Error:[/bold red] --mode manual requires "
+                f"{DEV_ENV_VAR}=1 environment variable."
             )
             err_console.print(
-                f"Set the environment variable and try again: {DEV_ENV_VAR}=1 ag run --mode manual ..."
+                f"Set the environment variable and try again: "
+                f"{DEV_ENV_VAR}=1 ag run --mode manual ..."
             )
             raise typer.Exit(code=1)
-        if not quiet and not json_output:
+        if not resolved_quiet and not resolved_json:
             _print_manual_mode_banner()
+
+    # AF-0024: Validate workspace exists if explicitly specified
+    # If workspace is not specified, a new one will be auto-generated
+    if resolved_workspace:
+        from ag.storage import Workspace
+
+        ws = Workspace(resolved_workspace, get_workspace_dir())
+        if not ws.exists():
+            err_console.print(
+                f"[bold red]Error:[/bold red] Workspace '{resolved_workspace}' does not exist."
+            )
+            err_console.print(f"Create it first: [cyan]ag ws create {resolved_workspace}[/cyan]")
+            raise typer.Exit(code=1)
 
     # Create and execute runtime
     run_store = _get_run_store()
@@ -213,20 +317,20 @@ def run(
 
         trace = runtime.execute(
             prompt=prompt,
-            workspace=workspace,
+            workspace=resolved_workspace,
             mode=mode,
             playbook=playbook,
         )
 
         # Output results
-        if json_output:
+        if resolved_json:
             console.print(trace.to_json())
         else:
             labels = extract_labels(trace)
 
-            if not quiet:
+            if not resolved_quiet:
                 console.print()
-                console.print(f"[bold]Run completed[/bold]")
+                console.print("[bold]Run completed[/bold]")
                 console.print(f"  Run ID: {labels['run_id']}")
                 console.print(f"  Workspace: {labels['workspace_id']}")
                 console.print(f"  Mode: {labels['mode']}")
@@ -235,14 +339,13 @@ def run(
                 console.print(f"  Duration: {labels['duration']}")
                 console.print(f"  Playbook: {labels['playbook']}")
 
-                if verbose:
+                if resolved_verbose:
                     console.print()
                     console.print(f"  Steps: {len(trace.steps)}")
                     for step in trace.steps:
-                        step_status = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
-                        console.print(
-                            f"    {step_status} {step.step_number}: {step.skill_name or 'reasoning'}"
-                        )
+                        status_mark = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
+                        skill = step.skill_name or "reasoning"
+                        console.print(f"    {status_mark} {step.step_number}: {skill}")
 
                 if trace.error:
                     console.print()
@@ -264,39 +367,43 @@ def run(
 
 @runs_app.command("list")
 def runs_list(
+    ctx: typer.Context,
     limit: int = typer.Option(10, "--limit", "-n", help="Max runs to show."),
     status: Optional[str] = typer.Option(
         None, "--status", "-s", help="Filter by status (success/failure)."
     ),
-    workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Filter by workspace."
-    ),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Filter by workspace."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """List recent runs."""
-    if not workspace:
+    # Resolve global options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
         err_console.print("[bold red]Error:[/bold red] --workspace is required for runs list")
         raise typer.Exit(code=1)
 
     run_store = _get_run_store()
 
     try:
-        runs = run_store.list(workspace, limit=limit)
+        runs = run_store.list(resolved_workspace, limit=limit)
 
         # Filter by status if provided
         if status:
             status_filter = status.lower()
             runs = [r for r in runs if r.final.value == status_filter]
 
-        if json_output:
+        if resolved_json:
             output = [json.loads(r.to_json()) for r in runs]
             console.print(json.dumps(output, indent=2))
         else:
             if not runs:
-                console.print(f"No runs found in workspace '{workspace}'")
+                console.print(f"No runs found in workspace '{resolved_workspace}'")
                 return
 
-            table = Table(title=f"Runs in workspace '{workspace}'")
+            table = Table(title=f"Runs in workspace '{resolved_workspace}'")
             table.add_column("Run ID", style="cyan")
             table.add_column("Status")
             table.add_column("Verifier")
@@ -323,6 +430,7 @@ def runs_list(
 
 @runs_app.command("show")
 def runs_show(
+    ctx: typer.Context,
     run_id: str = typer.Argument(..., help="The run ID to show."),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace containing the run."
@@ -330,20 +438,28 @@ def runs_show(
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """Show details of a specific run."""
-    if not workspace:
+    # Resolve global options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
         err_console.print("[bold red]Error:[/bold red] --workspace is required for runs show")
         raise typer.Exit(code=1)
 
     run_store = _get_run_store()
 
     try:
-        trace = run_store.get(workspace, run_id)
+        trace = run_store.get(resolved_workspace, run_id)
 
         if not trace:
-            err_console.print(f"[bold red]Error:[/bold red] Run '{run_id}' not found in workspace '{workspace}'")
+            err_console.print(
+                f"[bold red]Error:[/bold red] Run '{run_id}' not found "
+                f"in workspace '{resolved_workspace}'"
+            )
             raise typer.Exit(code=1)
 
-        if json_output:
+        if resolved_json:
             # Output conforms to RunTrace schema
             console.print(trace.to_json())
         else:
@@ -392,6 +508,7 @@ def runs_show(
 
 @runs_app.command("trace")
 def runs_trace(
+    ctx: typer.Context,
     run_id: str = typer.Argument(..., help="The run ID to show trace for."),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace containing the run."
@@ -399,9 +516,8 @@ def runs_trace(
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """Show the full trace of a run (alias for show --json)."""
-    # Delegate to show with json_output=True
-    runs_show(run_id=run_id, workspace=workspace, json_output=True)
-
+    # Delegate to show with json_output=True, passing ctx
+    runs_show(ctx=ctx, run_id=run_id, workspace=workspace, json_output=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -412,14 +528,39 @@ def runs_trace(
 @ws_app.command("list")
 def ws_list() -> None:
     """List all workspaces."""
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0006)[/yellow]")
+    workspaces_root = get_workspace_dir()
+    if not workspaces_root.exists():
+        console.print("[dim]No workspaces found.[/dim]")
+        return
+
+    workspace_dirs = [d for d in workspaces_root.iterdir() if d.is_dir()]
+    if not workspace_dirs:
+        console.print("[dim]No workspaces found.[/dim]")
+        return
+
+    table = Table(title="Workspaces")
+    table.add_column("Workspace ID", style="cyan")
+    table.add_column("Path")
+
+    for ws_dir in sorted(workspace_dirs):
+        table.add_row(ws_dir.name, str(ws_dir))
+
+    console.print(table)
 
 
 @ws_app.command("create")
 def ws_create(name: str = typer.Argument(..., help="Workspace name.")) -> None:
     """Create a new workspace."""
-    console.print(f"[dim]Creating workspace:[/dim] {name}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0006)[/yellow]")
+    from ag.storage import Workspace
+
+    ws = Workspace(name, get_workspace_dir())
+    if ws.exists():
+        err_console.print(f"[bold red]Error:[/bold red] Workspace '{name}' already exists.")
+        raise typer.Exit(code=1)
+
+    ws.ensure_exists()
+    console.print(f"[green]Created workspace:[/green] {name}")
+    console.print(f"  Path: {ws.path}")
 
 
 @ws_app.command("use")
@@ -431,7 +572,7 @@ def ws_use(workspace_id: str = typer.Argument(..., help="Workspace ID to switch 
 
 @ws_app.command("show")
 def ws_show(
-    workspace_id: Optional[str] = typer.Argument(None, help="Workspace ID (default: current).")
+    workspace_id: Optional[str] = typer.Argument(None, help="Workspace ID (default: current)."),
 ) -> None:
     """Show workspace details."""
     console.print(f"[dim]Workspace:[/dim] {workspace_id or 'current'}")
@@ -445,6 +586,7 @@ def ws_show(
 
 @artifacts_app.command("list")
 def artifacts_list(
+    ctx: typer.Context,
     run_id: str = typer.Option(..., "--run", "-r", help="Run ID to list artifacts for."),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace ID (derived from run if not provided)."
@@ -456,12 +598,17 @@ def artifacts_list(
     Returns artifacts registered during the run, including result.md
     which contains step summaries.
     """
+    # Resolve global options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
     # Get run to find workspace_id if not provided
     run_store = _get_run_store()
     artifact_store = _get_artifact_store()
 
     # If no workspace provided, we need to find the run
-    if not workspace:
+    if not resolved_workspace:
         # Try to find the run in all workspaces - for now just use a simple approach
         # In a real implementation, we'd have a global index
         err_console.print(
@@ -470,9 +617,9 @@ def artifacts_list(
         err_console.print("Example: ag artifacts list --run <run_id> --workspace <workspace_id>")
         raise typer.Exit(code=1)
 
-    artifacts = artifact_store.list(workspace, run_id)
+    artifacts = artifact_store.list(resolved_workspace, run_id)
 
-    if json_output:
+    if resolved_json:
         # Output as JSON array
         json_data = [
             {
@@ -590,13 +737,104 @@ def doctor(
     """
     Run diagnostics to validate environment setup.
     """
+    from ag.config import (
+        ENV_VARS,
+        get_config_path,
+        get_default_workspace,
+        get_workspace_dir,
+    )
+
+    issues: list[str] = []
+    warnings: list[str] = []
+
+    # Check basic info
     console.print("[bold]ag doctor[/bold]")
     console.print()
-    console.print(f"  Version: {__version__}")
-    console.print(f"  Python: {sys.version}")
-    console.print(f"  {DEV_ENV_VAR}: {os.environ.get(DEV_ENV_VAR, '(not set)')}")
+    console.print("[bold cyan]System Info[/bold cyan]")
+    console.print(f"  Version:     {__version__}")
+    console.print(f"  Python:      {sys.version.split()[0]}")
     console.print()
-    console.print("[yellow]⚠ Full diagnostics not implemented yet[/yellow]")
+
+    # Check environment variables
+    console.print("[bold cyan]Environment Variables[/bold cyan]")
+    for var, desc in ENV_VARS.items():
+        value = os.environ.get(var)
+        if value:
+            # Mask API keys
+            if "KEY" in var or "SECRET" in var:
+                display_value = value[:4] + "..." + value[-4:] if len(value) > 8 else "****"
+            else:
+                display_value = value
+            console.print(f"  {var}: [green]{display_value}[/green]")
+        else:
+            console.print(f"  {var}: [dim](not set)[/dim]")
+    console.print()
+
+    # Check config resolution
+    console.print("[bold cyan]Configuration[/bold cyan]")
+    config_path = get_config_path()
+    console.print(f"  Config file:       {config_path}")
+    if config_path.exists():
+        console.print("                     [green]✓ exists[/green]")
+    else:
+        console.print("                     [dim](not created)[/dim]")
+    console.print()
+
+    # Check workspace directory
+    console.print("[bold cyan]Workspace Storage[/bold cyan]")
+    workspace_dir = get_workspace_dir()
+    console.print(f"  Workspace root:    {workspace_dir}")
+
+    if workspace_dir.exists():
+        console.print("                     [green]✓ exists[/green]")
+        # List workspaces
+        workspace_dirs = [d for d in workspace_dir.iterdir() if d.is_dir()]
+        console.print(f"  Workspaces found:  {len(workspace_dirs)}")
+    else:
+        console.print("                     [yellow]○ not created yet[/yellow]")
+        warnings.append(f"Workspace directory does not exist: {workspace_dir}")
+
+    # Check if directory is writable
+    try:
+        workspace_dir.mkdir(parents=True, exist_ok=True)
+        test_file = workspace_dir / ".ag_doctor_test"
+        test_file.touch()
+        test_file.unlink()
+        console.print("  Writable:          [green]✓ yes[/green]")
+    except Exception as e:
+        console.print(f"  Writable:          [red]✗ no ({e})[/red]")
+        issues.append(f"Cannot write to workspace directory: {e}")
+
+    console.print()
+    console.print(f"  Default workspace: {get_default_workspace()}")
+    console.print()
+
+    # Check config resolution order
+    console.print("[bold cyan]Config Resolution Order[/bold cyan]")
+    console.print("  1. TaskSpec (runtime)")
+    console.print("  2. Workspace settings")
+    console.print("  3. Environment variables (.env)")
+    console.print("  4. Config file (~/.ag/config.yaml)")
+    console.print("  5. Defaults")
+    console.print()
+
+    # Summary
+    if issues:
+        console.print("[bold red]Issues Found[/bold red]")
+        for issue in issues:
+            console.print(f"  [red]✗[/red] {issue}")
+        console.print()
+
+    if warnings:
+        console.print("[bold yellow]Warnings[/bold yellow]")
+        for warning in warnings:
+            console.print(f"  [yellow]○[/yellow] {warning}")
+        console.print()
+
+    if not issues and not warnings:
+        console.print("[bold green]✓ All checks passed[/bold green]")
+    elif not issues:
+        console.print("[bold yellow]○ No critical issues[/bold yellow]")
 
 
 if __name__ == "__main__":

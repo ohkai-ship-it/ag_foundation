@@ -54,6 +54,11 @@ dmypy.json
 *.sqlite3
 .ag/
 
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+
 # OS
 .DS_Store
 Thumbs.db

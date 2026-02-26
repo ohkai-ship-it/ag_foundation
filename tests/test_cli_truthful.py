@@ -19,9 +19,7 @@ from typer.testing import CliRunner
 from ag.cli.main import app, extract_labels
 from ag.core import (
     ExecutionMode,
-    FinalStatus,
     RunTrace,
-    VerifierStatus,
     create_runtime,
 )
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
@@ -62,6 +60,24 @@ def env_with_dev(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AG_DEV", "1")
 
 
+@pytest.fixture
+def workspace_setup(temp_root: Path, monkeypatch: pytest.MonkeyPatch):
+    """Set up workspace environment for CLI tests.
+
+    Creates the 'ws-test' workspace and sets AG_WORKSPACE_DIR env var.
+    """
+    from ag.storage import Workspace
+
+    # Create the workspace used by most tests
+    ws = Workspace("ws-test", temp_root)
+    ws.ensure_exists()
+
+    # Set the workspace directory via environment variable
+    monkeypatch.setenv("AG_WORKSPACE_DIR", str(temp_root))
+
+    return temp_root
+
+
 # ---------------------------------------------------------------------------
 # Manual Mode Gate Tests (Extended)
 # ---------------------------------------------------------------------------
@@ -74,21 +90,17 @@ class TestManualModeGateExtended:
         self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Manual mode prints correct banner."""
-        # Patch workspaces root
-        monkeypatch.setattr(
-            "ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root
-        )
+        # Set workspaces root via env var
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(temp_root))
 
         result = runner.invoke(app, ["run", "--mode", "manual", "Test task"])
 
         assert "DEV MODE: manual (LLMs disabled)" in result.stdout
 
     def test_manual_mode_trace_has_manual_mode(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path
     ) -> None:
         """Manual mode sets trace.mode to 'manual'."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test task"]
         )
@@ -121,33 +133,28 @@ class TestTruthfulLabels:
         self, run_store: SQLiteRunStore, artifact_store: SQLiteArtifactStore
     ) -> None:
         """extract_labels helper produces correct values from trace."""
-        runtime = create_runtime(
+        with create_runtime(
             run_store=run_store,
             artifact_store=artifact_store,
-        )
+        ) as runtime:
+            trace = runtime.execute(
+                prompt="Test task",
+                workspace="ws-test",
+                mode="manual",
+            )
 
-        trace = runtime.execute(
-            prompt="Test task",
-            workspace="ws-test",
-            mode="manual",
-        )
+            labels = extract_labels(trace)
 
-        labels = extract_labels(trace)
+            # Verify labels match trace fields
+            assert labels["mode"] == trace.mode.value
+            assert labels["status"] == trace.final.value
+            assert labels["verifier_status"] == trace.verifier.status.value
+            assert labels["run_id"] == trace.run_id
+            assert labels["workspace_id"] == trace.workspace_id
+            assert trace.playbook.name in labels["playbook"]
 
-        # Verify labels match trace fields
-        assert labels["mode"] == trace.mode.value
-        assert labels["status"] == trace.final.value
-        assert labels["verifier_status"] == trace.verifier.status.value
-        assert labels["run_id"] == trace.run_id
-        assert labels["workspace_id"] == trace.workspace_id
-        assert trace.playbook.name in labels["playbook"]
-
-    def test_cli_mode_label_matches_trace(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_cli_mode_label_matches_trace(self, env_with_dev: None, workspace_setup: Path) -> None:
         """CLI mode label matches RunTrace.mode."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # Run in manual mode
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
@@ -159,11 +166,9 @@ class TestTruthfulLabels:
         assert trace_data["mode"] == "manual"
 
     def test_cli_verifier_status_matches_trace(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path
     ) -> None:
         """CLI verifier status matches RunTrace.verifier.status."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
         )
@@ -175,12 +180,8 @@ class TestTruthfulLabels:
         assert "status" in trace_data["verifier"]
         assert trace_data["verifier"]["status"] in ["passed", "failed", "pending", "skipped"]
 
-    def test_cli_duration_matches_trace(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_cli_duration_matches_trace(self, env_with_dev: None, workspace_setup: Path) -> None:
         """CLI duration matches RunTrace.duration_ms."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
         )
@@ -201,11 +202,9 @@ class TestRunsShowJsonConformance:
     """Tests that ag runs show --json conforms to RunTrace schema."""
 
     def test_runs_show_json_has_all_required_fields(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path
     ) -> None:
         """ag runs show --json output has all RunTrace v0.1 required fields."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # First create a run
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
@@ -214,9 +213,7 @@ class TestRunsShowJsonConformance:
         run_id = trace_data["run_id"]
 
         # Now show it
-        result = runner.invoke(
-            app, ["runs", "show", run_id, "--workspace", "ws-test", "--json"]
-        )
+        result = runner.invoke(app, ["runs", "show", run_id, "--workspace", "ws-test", "--json"])
 
         assert result.exit_code == 0
         show_data = json.loads(result.stdout)
@@ -239,11 +236,9 @@ class TestRunsShowJsonConformance:
             assert field in show_data, f"Missing required field: {field}"
 
     def test_runs_show_json_can_parse_as_runtrace(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path
     ) -> None:
         """ag runs show --json output can be parsed back as RunTrace."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # Create a run
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
@@ -252,9 +247,7 @@ class TestRunsShowJsonConformance:
         run_id = trace_data["run_id"]
 
         # Show it
-        result = runner.invoke(
-            app, ["runs", "show", run_id, "--workspace", "ws-test", "--json"]
-        )
+        result = runner.invoke(app, ["runs", "show", run_id, "--workspace", "ws-test", "--json"])
 
         # Parse as RunTrace
         parsed = RunTrace.from_json(result.stdout)
@@ -264,11 +257,9 @@ class TestRunsShowJsonConformance:
         assert parsed.mode == ExecutionMode.MANUAL
 
     def test_runs_show_json_matches_original_trace(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path
     ) -> None:
         """ag runs show --json output matches original trace from ag run."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # Create a run
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test task"]
@@ -297,12 +288,8 @@ class TestRunsShowJsonConformance:
 class TestRunsList:
     """Tests for ag runs list command."""
 
-    def test_runs_list_shows_runs(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_runs_list_shows_runs(self, env_with_dev: None, workspace_setup: Path) -> None:
         """ag runs list shows created runs."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # Create a run
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
@@ -311,9 +298,7 @@ class TestRunsList:
         run_id = trace_data["run_id"]
 
         # List runs
-        result = runner.invoke(
-            app, ["runs", "list", "--workspace", "ws-test", "--json"]
-        )
+        result = runner.invoke(app, ["runs", "list", "--workspace", "ws-test", "--json"])
 
         assert result.exit_code == 0
         runs = json.loads(result.stdout)
@@ -324,10 +309,17 @@ class TestRunsList:
         self, temp_root: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """ag runs list on empty workspace returns empty list."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
+        from ag.storage import Workspace
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(temp_root))
+        # Create empty workspace for the test
+        ws = Workspace("empty-ws", temp_root)
+        ws.ensure_exists()
 
         result = runner.invoke(
-            app, ["runs", "list", "--workspace", "empty-ws", "--json"]
+            app,
+            ["runs", "list", "--workspace", "empty-ws", "--json"],
+            env={"AG_WORKSPACE_DIR": str(temp_root)},
         )
 
         assert result.exit_code == 0
@@ -350,12 +342,8 @@ class TestRunsList:
 class TestLabelConsistency:
     """Tests that labels are consistent across CLI commands."""
 
-    def test_run_and_show_labels_match(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_run_and_show_labels_match(self, env_with_dev: None, workspace_setup: Path) -> None:
         """Labels from ag run match labels from ag runs show."""
-        monkeypatch.setattr("ag.cli.main.DEFAULT_WORKSPACES_ROOT", temp_root)
-
         # Run
         result = runner.invoke(
             app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]

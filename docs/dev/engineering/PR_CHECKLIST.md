@@ -1,5 +1,5 @@
 # PR Checklist (ag_foundation)
-# Version number: v0.1
+# Version number: v0.2
 
 This checklist must be completed before requesting review.
 
@@ -16,7 +16,11 @@ This checklist must be completed before requesting review.
 ## Truthful UX
 - [ ] Any user-visible label is derived from `RunTrace`
 - [ ] No hardcoded “verified/computed/retrieval used” claims
-
+## Code Quality (REQUIRED)
+- [ ] Ruff check passes: `ruff check src tests`
+- [ ] Ruff format applied: `ruff format src tests`
+- [ ] Tests pass with warnings as errors: `pytest -W error`
+- [ ] Coverage thresholds maintained (see TESTING_GUIDELINES)
 ## Tests & evidence
 - [ ] Appropriate tests added/updated (see TESTING_GUIDELINES)
 - [ ] Tests executed locally and results included in PR description

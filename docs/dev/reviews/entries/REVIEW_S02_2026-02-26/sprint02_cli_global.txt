@@ -1,0 +1,23 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.2, pluggy-1.6.0 -- C:\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Kai\OneDrive\Documents\04 Themen\Tech\Programmierung\VS Code\Agents\ag_foundation
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.0.0, mock-3.15.1
+collecting ... collected 13 items
+
+tests/test_cli_global_options.py::TestHelpGlobalOptions::test_main_help_shows_global_options PASSED [  7%]
+tests/test_cli_global_options.py::TestHelpGlobalOptions::test_main_help_shows_version PASSED [ 15%]
+tests/test_cli_global_options.py::TestHelpGlobalOptions::test_run_help_shows_local_options PASSED [ 23%]
+tests/test_cli_global_options.py::TestHelpGlobalOptions::test_runs_help_shows_list_and_show PASSED [ 30%]
+tests/test_cli_global_options.py::TestGlobalWorkspacePropagation::test_global_workspace_for_runs_list PASSED [ 38%]
+tests/test_cli_global_options.py::TestGlobalWorkspacePropagation::test_local_workspace_overrides_global PASSED [ 46%]
+tests/test_cli_global_options.py::TestGlobalJsonPropagation::test_global_json_for_runs_list PASSED [ 53%]
+tests/test_cli_global_options.py::TestGlobalJsonPropagation::test_local_json_overrides_global PASSED [ 61%]
+tests/test_cli_global_options.py::TestGlobalQuietVerbosePropagation::test_global_quiet_reduces_output PASSED [ 69%]
+tests/test_cli_global_options.py::TestGlobalQuietVerbosePropagation::test_global_verbose_adds_details PASSED [ 76%]
+tests/test_cli_global_options.py::TestWorkspaceEquivalence::test_runs_list_workspace_equivalence PASSED [ 84%]
+tests/test_cli_global_options.py::TestCLIContextHelper::test_cli_context_defaults PASSED [ 92%]
+tests/test_cli_global_options.py::TestCLIContextHelper::test_cli_context_with_values PASSED [100%]
+
+============================= 13 passed in 0.70s ==============================

@@ -6,6 +6,8 @@ from .interfaces import (
     Orchestrator,
     Planner,
     Recorder,
+)
+from .interfaces import (
     Verifier as VerifierProtocol,
 )
 from .playbook import (

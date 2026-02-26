@@ -1,0 +1,13 @@
+﻿Test 1 - Playbooks: ['default_v0', 'delegate_v0']
+PASS: Playbooks listed
+Test 2 - Delegate playbook steps: ['normalize', 'plan', 'execute_subtask_1', 'execute_subtask_2', 'verify', 'finalize']
+Step count: 6
+PASS: Delegate playbook has correct steps
+Test 3 - Subtask: sub-001, pending
+Updated subtask: completed, Done
+PASS: Subtask model works
+Test 4 - StepType.PLANNING: StepType.PLANNING
+All step types: ['skill_call', 'reasoning', 'verification', 'user_input', 'planning']
+PASS: StepType.PLANNING exists
+
+=== A9 Delegation Playbook REPL: ALL PASSED ===

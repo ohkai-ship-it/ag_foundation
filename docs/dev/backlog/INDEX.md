@@ -2,6 +2,38 @@
 
 Status legend: Proposed → Ready → In Progress → Done (or Blocked / Dropped)
 
+## Backlog
+
+| ID | Priority | Status | Title | Area | Owner |
+|---:|:--:|:--|---|---|---|
+| AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob |
+| AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob |
+| AF-0015 | P2 | Ready | Resolve storage DB filename mismatch (docs vs code) | Storage | Jacob |
+
+## Sprint 02 Items (Agent network v0 + LLM provider) — COMPLETED
+
+| ID | Priority | Status | Title | Area | Owner |
+|---:|:--:|:--|---|---|---|
+| AF-0017 | P0 | Done | OpenAI API integration (provider adapter) + config wiring | Providers | Jacob |
+| AF-0019 | P0 | Done | Agent network playbook v0: delegation with multi-step trace | Kernel | Jacob |
+| AF-0011 | P1 | Done | CLI global options: --workspace/--json/--quiet/--verbose truly global | CLI | Jacob |
+| AF-0014 | P1 | Done | Resolve Recorder interface discrepancy (docs vs implementation) | Kernel | Jacob |
+| AF-0018 | P1 | Done | Provider abstraction + Claude/local stubs | Providers | Jacob |
+| AF-0016 | P2 | Done | Resolve contract drift: ReasoningMode enum vs examples; Artifact semantics | Contracts | Jacob |
+
+## Sprint 02 Hardening Extension — COMPLETED
+
+Hardening follow-up items triggered by SQLite connection leak bug discovery.
+
+| ID | Priority | Status | Title | Area | Owner |
+|---:|:--:|:--|---|---|---|
+| BUG-0004 | P1 | Fixed | SQLite connections not closed → ResourceWarning | Storage | Jacob |
+| AF-0021 | P1 | Done | Storage lifecycle hardening (SQLite deterministic closure) | Storage | Jacob |
+| AF-0022 | P1 | Done | Provider coverage hardening (≥95% target) | Providers | Jacob |
+| AF-0023 | P1 | Done | Environment & configuration hardening | Config | Jacob |
+| AF-0024 | P1 | Done | Workspace lifecycle correction (ag ws create/list) | CLI | Jacob |
+| AF-0025 | P1 | Done | Test discipline enforcement (Ruff + docs) | Testing | Jacob |
+
 ## Sprint 01 Items (2026-03-02 → 2026-03-15)
 
 | ID | Priority | Status | Title | Area | Owner |

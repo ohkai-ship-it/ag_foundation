@@ -4,6 +4,36 @@ This is the central log for all sprints. Each sprint gets a section below; we do
 
 ---
 
+## Sprint 02 — Agent network v0 + LLM provider adapter (OpenAI first)
+**Dates:** 2026-02-25 → 2026-02-26  
+**Goal:** Extend the v0 runtime to multi-step delegation with provider abstraction and OpenAI as first real LLM provider.
+
+### Targeted Backlog Items
+
+| ID | Priority | Title | Status | Evidence |
+|---:|:--:|---|:--:|---|
+| AF-0014 | P1 | Resolve Recorder interface discrepancy (docs vs implementation) | Done | CONTRACT_INVENTORY updated |
+| AF-0016 | P2 | Resolve ReasoningMode enum + Artifact semantics | Done | CONTRACT_INVENTORY fixed |
+| AF-0018 | P1 | Provider abstraction + Claude/local stubs | Done | 34 tests |
+| AF-0017 | P0 | OpenAI API integration (provider adapter) | Done | Mocked tests + integration marker |
+| AF-0019 | P0 | Agent network playbook v0: delegation | Done | 23 tests |
+| AF-0011 | P1 | CLI global options truly global | Done | 13 tests |
+
+### Sprint Summary
+- **Tests:** 173 passed (was 137 at Sprint 01 end)
+- **Coverage:** 89% overall (was 88%)
+- **CLI coverage:** 72% (was 64%, +8pp)
+- **New modules:** `src/ag/providers/` (base, registry, stubs, openai)
+- **New playbook:** `delegate_v0` with 6 steps (normalize→plan→execute×2→verify→finalize)
+- **New models:** `Subtask`, `StepType.PLANNING`
+
+### Sprint Notes
+- Sprint plan: [SPRINT_PLAN_SPRINT02.md](SPRINT_PLAN_SPRINT02.md)
+- Review evidence: `/docs/dev/reviews/entries/REVIEW_S01_2026-02-24/` (CONTRACT_INVENTORY, TEST_INVENTORY)
+- Continuation prompt: `/docs/dev/prompts/continuation_prompt_sprint03_opus.md`
+
+---
+
 ## Sprint 01 — Core runtime skeleton v0
 **Dates:** 2026-03-02 → 2026-03-15  
 **Goal:** Ship the minimal end-to-end runtime so `ag run "<prompt>"` produces a persisted `RunTrace` (truthful UX) in an isolated workspace.

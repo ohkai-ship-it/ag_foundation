@@ -11,6 +11,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ag.config import get_workspace_dir
+
 from .workspace import Workspace
 
 if TYPE_CHECKING:
@@ -69,7 +71,7 @@ def _init_db(db_path: Path) -> sqlite3.Connection:
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA_SQL)
-    
+
     # Check/set schema version
     cursor = conn.execute("SELECT version FROM schema_version LIMIT 1")
     row = cursor.fetchone()
@@ -93,7 +95,7 @@ class SQLiteRunStore:
         Args:
             workspaces_root: Root path for workspaces. Defaults to ~/.ag/workspaces/
         """
-        self._root = workspaces_root or (Path.home() / ".ag" / "workspaces")
+        self._root = workspaces_root or get_workspace_dir()
         self._connections: dict[str, sqlite3.Connection] = {}
 
     def _get_workspace(self, workspace_id: str) -> Workspace:
@@ -111,7 +113,6 @@ class SQLiteRunStore:
 
     def save(self, trace: "RunTrace") -> None:
         """Persist a RunTrace."""
-        from ag.core import RunTrace
 
         ws = self._get_workspace(trace.workspace_id)
         conn = self._get_conn(trace.workspace_id)
@@ -124,8 +125,8 @@ class SQLiteRunStore:
         now = datetime.now(UTC).isoformat()
         conn.execute(
             """
-            INSERT OR REPLACE INTO runs 
-            (run_id, workspace_id, mode, status, started_at, ended_at, 
+            INSERT OR REPLACE INTO runs
+            (run_id, workspace_id, mode, status, started_at, ended_at,
              duration_ms, playbook_name, playbook_version, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -160,7 +161,6 @@ class SQLiteRunStore:
 
     def list(self, workspace_id: str, limit: int = 100) -> "list[RunTrace]":
         """List runs in a workspace, most recent first."""
-        from ag.core import RunTrace
 
         ws = Workspace(workspace_id, self._root)
         if not ws.exists():
@@ -169,7 +169,7 @@ class SQLiteRunStore:
         conn = self._get_conn(workspace_id)
         cursor = conn.execute(
             """
-            SELECT run_id FROM runs 
+            SELECT run_id FROM runs
             WHERE workspace_id = ?
             ORDER BY started_at DESC
             LIMIT ?
@@ -209,6 +209,19 @@ class SQLiteRunStore:
             conn.close()
         self._connections.clear()
 
+    def __enter__(self) -> "SQLiteRunStore":
+        """Context manager entry."""
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
+        """Context manager exit - ensures connections are closed."""
+        self.close()
+
 
 # ---------------------------------------------------------------------------
 # SQLite ArtifactStore Implementation
@@ -224,7 +237,7 @@ class SQLiteArtifactStore:
         Args:
             workspaces_root: Root path for workspaces. Defaults to ~/.ag/workspaces/
         """
-        self._root = workspaces_root or (Path.home() / ".ag" / "workspaces")
+        self._root = workspaces_root or get_workspace_dir()
         self._connections: dict[str, sqlite3.Connection] = {}
 
     def _get_workspace(self, workspace_id: str) -> Workspace:
@@ -240,9 +253,7 @@ class SQLiteArtifactStore:
             self._connections[workspace_id] = _init_db(ws.db_path)
         return self._connections[workspace_id]
 
-    def save(
-        self, workspace_id: str, run_id: str, artifact: "Artifact", content: bytes
-    ) -> str:
+    def save(self, workspace_id: str, run_id: str, artifact: "Artifact", content: bytes) -> str:
         """Store an artifact and its content."""
         ws = self._get_workspace(workspace_id)
         conn = self._get_conn(workspace_id)
@@ -262,7 +273,7 @@ class SQLiteArtifactStore:
         conn.execute(
             """
             INSERT OR REPLACE INTO artifacts
-            (artifact_id, run_id, workspace_id, path, artifact_type, 
+            (artifact_id, run_id, workspace_id, path, artifact_type,
              size_bytes, checksum, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
@@ -361,9 +372,7 @@ class SQLiteArtifactStore:
         conn = self._get_conn(workspace_id)
 
         # Get path first
-        cursor = conn.execute(
-            "SELECT path FROM artifacts WHERE artifact_id = ?", (artifact_id,)
-        )
+        cursor = conn.execute("SELECT path FROM artifacts WHERE artifact_id = ?", (artifact_id,))
         row = cursor.fetchone()
         if not row:
             return False
@@ -384,3 +393,16 @@ class SQLiteArtifactStore:
         for conn in self._connections.values():
             conn.close()
         self._connections.clear()
+
+    def __enter__(self) -> "SQLiteArtifactStore":
+        """Context manager entry."""
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object,
+    ) -> None:
+        """Context manager exit - ensures connections are closed."""
+        self.close()
