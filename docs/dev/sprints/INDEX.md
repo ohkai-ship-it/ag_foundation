@@ -8,6 +8,7 @@ This folder contains sprint planning and tracking for ag_foundation.
 - **SPRINT_REPORT_SPRINT01.md** — Sprint 01 completion report
 - **SPRINT_PLAN_SPRINT02.md** — detailed plan for Sprint 02
 - **SPRINT_REPORT_SPRINT02.md** — Sprint 02 completion report
+- **SPRINT_REPORT_SPRINT02_HARDENING.md** — Sprint 02 Hardening Extension report
 - **PROCESS.md** — sprint cadence and process guidelines
 - `templates/` — sprint plan/report templates (for reference)
 
@@ -19,5 +20,6 @@ This folder contains sprint planning and tracking for ag_foundation.
 
 ## Current Sprint
 - **Sprint 02** COMPLETED (2026-02-25 → 2026-02-26): Agent network v0 + LLM provider adapter
+- **Sprint 02 Hardening** COMPLETED (2026-02-26): Storage, Coverage, Config, Workspace Policy
 - **Sprint 03** PENDING: See backlog for candidates (AF-0012, AF-0013, AF-0015)
 - See [SPRINT_LOG.md](SPRINT_LOG.md) for status and targeted items.

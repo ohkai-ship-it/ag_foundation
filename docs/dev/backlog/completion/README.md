@@ -32,3 +32,14 @@ See [../templates/COMPLETION_NOTE_TEMPLATE.md](../templates/COMPLETION_NOTE_TEMP
 | 2026-02-26 | AF-0017 | [2026-02-26_AF-0017_openai-adapter.md](2026-02-26_AF-0017_openai-adapter.md) | OpenAI API integration |
 | 2026-02-26 | AF-0018 | [2026-02-26_AF-0018_provider-abstraction.md](2026-02-26_AF-0018_provider-abstraction.md) | Provider abstraction + stubs |
 | 2026-02-26 | AF-0019 | [2026-02-26_AF-0019_delegation-playbook.md](2026-02-26_AF-0019_delegation-playbook.md) | Delegation playbook v0 |
+
+## Sprint 02 Hardening Completions
+
+| Date | AF/BUG Item | File | Description |
+|------|-------------|------|-------------|
+| 2026-02-26 | AF-0021 / BUG-0004 | [2026-02-26_AF-0021_storage-lifecycle-hardening.md](2026-02-26_AF-0021_storage-lifecycle-hardening.md) | Storage lifecycle (SQLite connection fix) |
+| 2026-02-26 | AF-0022 | [2026-02-26_AF-0022_provider-coverage-hardening.md](2026-02-26_AF-0022_provider-coverage-hardening.md) | Provider coverage hardening |
+| 2026-02-26 | AF-0023 | [2026-02-26_AF-0023_environment-configuration-hardening.md](2026-02-26_AF-0023_environment-configuration-hardening.md) | Environment & configuration hardening |
+| 2026-02-26 | AF-0024 | [2026-02-26_AF-0024_workspace-lifecycle-correction.md](2026-02-26_AF-0024_workspace-lifecycle-correction.md) | Workspace lifecycle (ws create/list) |
+| 2026-02-26 | AF-0025 | [2026-02-26_AF-0025_test-discipline-enforcement.md](2026-02-26_AF-0025_test-discipline-enforcement.md) | Test discipline (Ruff + docs) |
+| 2026-02-26 | AF-0026 / BUG-0005 | [2026-02-26_AF-0026_workspace-selection-policy.md](2026-02-26_AF-0026_workspace-selection-policy.md) | Workspace selection policy enforcement |

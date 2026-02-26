@@ -4,6 +4,37 @@ This is the central log for all sprints. Each sprint gets a section below; we do
 
 ---
 
+## Sprint 02 Hardening Extension — Storage, Coverage, Config, Workspace Policy
+**Dates:** 2026-02-26  
+**Goal:** Harden Sprint 02 deliverables after SQLite connection leak discovery (BUG-0004) and sign-off verification findings.
+
+### Targeted Backlog Items
+
+| ID | Priority | Title | Status | Evidence |
+|---:|:--:|---|:--:|---|
+| BUG-0004 | P1 | SQLite connections not closed → ResourceWarning | Fixed | pytest -W error passes |
+| BUG-0005 | P0 | Implicit workspace creation on ag run | Fixed | 5 regression tests |
+| AF-0021 | P1 | Storage lifecycle hardening (SQLite deterministic closure) | Done | 96% storage coverage |
+| AF-0022 | P1 | Provider coverage hardening (≥95% target) | Done | 96% provider coverage |
+| AF-0023 | P1 | Environment & configuration hardening | Done | 98% config coverage |
+| AF-0024 | P1 | Workspace lifecycle correction (ag ws create/list) | Done | CLI tests |
+| AF-0025 | P1 | Test discipline enforcement (Ruff + docs) | Done | ruff check passes |
+| AF-0026 | P0 | Workspace selection policy enforcement | Done | 5 regression tests |
+
+### Sprint Summary
+- **Tests:** 174 passed (was 173 before hardening)
+- **Coverage:** 90% overall, 96% storage, 96% providers, 98% config
+- **Bugs fixed:** 2 (BUG-0004: SQLite leak, BUG-0005: implicit workspace)
+- **Breaking change:** Workspace selection policy — `ag run` requires explicit `--workspace` or `AG_WORKSPACE`
+
+### Sprint Notes
+- Sprint report: [SPRINT_REPORT_SPRINT02_HARDENING.md](SPRINT_REPORT_SPRINT02_HARDENING.md)
+- Sign-off findings: `/docs/dev/reviews/entries/REVIEW_S02_2026-02-26_SIGNOFF_FINDINGS.md`
+- Bug reports: `/docs/dev/bugs/reports/` (BUG-0004, BUG-0005)
+- Completion notes: `/docs/dev/backlog/completion/` (AF-0021 through AF-0026)
+
+---
+
 ## Sprint 02 — Agent network v0 + LLM provider adapter (OpenAI first)
 **Dates:** 2026-02-25 → 2026-02-26  
 **Goal:** Extend the v0 runtime to multi-step delegation with provider abstraction and OpenAI as first real LLM provider.

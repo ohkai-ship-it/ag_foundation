@@ -10,6 +10,7 @@ This folder contains review records and review templates.
 
 | Date | Topic | Decision | Link |
 |------|-------|----------|------|
+| 2026-02-26 | Sprint 02 Hardening Sign-off | APPROVED | [REVIEW_S02_2026-02-26_SIGNOFF_FINDINGS.md](entries/REVIEW_S02_2026-02-26_SIGNOFF_FINDINGS.md) |
 | 2026-02-26 | Sprint 02 Hardening Extension | ACCEPT | [REVIEW_S02_2026-02-26.md](entries/REVIEW_S02_2026-02-26.md) |
 | 2026-02-24 | Sprint 01 Strict Audit | ACCEPT WITH FOLLOW-UPS | [REVIEW_S01_2026-02-24.md](entries/REVIEW_S01_2026-02-24.md) |
 | 2026-02-23 | Kickoff | N/A | [2026-02-23-kickoff.md](entries/2026-02-23-kickoff.md) |
