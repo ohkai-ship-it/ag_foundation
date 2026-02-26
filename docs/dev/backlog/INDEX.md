@@ -28,11 +28,13 @@ Hardening follow-up items triggered by SQLite connection leak bug discovery.
 | ID | Priority | Status | Title | Area | Owner |
 |---:|:--:|:--|---|---|---|
 | BUG-0004 | P1 | Fixed | SQLite connections not closed → ResourceWarning | Storage | Jacob |
+| BUG-0005 | P0 | Fixed | Implicit workspace creation on ag run | CLI/Storage | Jacob |
 | AF-0021 | P1 | Done | Storage lifecycle hardening (SQLite deterministic closure) | Storage | Jacob |
 | AF-0022 | P1 | Done | Provider coverage hardening (≥95% target) | Providers | Jacob |
 | AF-0023 | P1 | Done | Environment & configuration hardening | Config | Jacob |
 | AF-0024 | P1 | Done | Workspace lifecycle correction (ag ws create/list) | CLI | Jacob |
 | AF-0025 | P1 | Done | Test discipline enforcement (Ruff + docs) | Testing | Jacob |
+| AF-0026 | P0 | Done | Workspace selection policy enforcement | CLI/Runtime | Jacob |
 
 ## Sprint 01 Items (2026-03-02 → 2026-03-15)
 

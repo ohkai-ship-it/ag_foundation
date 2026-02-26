@@ -58,31 +58,64 @@ class TestCLIHelp:
 class TestManualModeGate:
     """Test manual mode dev gate enforcement."""
 
-    def test_manual_mode_without_env_var_fails(self, monkeypatch):
+    def test_manual_mode_without_env_var_fails(self, monkeypatch, tmp_path):
         """--mode manual without AG_DEV=1 should fail."""
         # Ensure env var is not set
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "--mode", "manual", "test prompt"])
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--mode", "manual", "--workspace", "test-ws", "test prompt"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
         assert result.exit_code == 1
         assert DEV_ENV_VAR in result.stdout or DEV_ENV_VAR in (result.stderr or "")
 
-    def test_manual_mode_with_env_var_succeeds(self, monkeypatch):
+    def test_manual_mode_with_env_var_succeeds(self, monkeypatch, tmp_path):
         """--mode manual with AG_DEV=1 should succeed (stub output)."""
         monkeypatch.setenv(DEV_ENV_VAR, "1")
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "--mode", "manual", "test prompt"])
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--mode", "manual", "--workspace", "test-ws", "test prompt"],
+            env={"AG_DEV": "1", "AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
         assert result.exit_code == 0
         assert "DEV MODE" in result.stdout
         assert "manual" in result.stdout.lower()
 
-    def test_llm_mode_without_env_var_succeeds(self, monkeypatch):
+    def test_llm_mode_without_env_var_succeeds(self, monkeypatch, tmp_path):
         """--mode llm (default) should work without AG_DEV."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "test prompt"])
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "test-ws", "test prompt"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
         assert result.exit_code == 0
         # Should NOT print dev mode banner
@@ -92,11 +125,22 @@ class TestManualModeGate:
 class TestRunCommand:
     """Test ag run command options."""
 
-    def test_run_with_prompt(self, monkeypatch):
+    def test_run_with_prompt(self, monkeypatch, tmp_path):
         """ag run with a prompt should work and show run summary."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "Hello world"])
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "test-ws", "Hello world"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
         assert result.exit_code == 0
         assert "Run completed" in result.stdout
@@ -121,11 +165,22 @@ class TestRunCommand:
         assert result.exit_code == 0
         assert "my_ws" in result.stdout
 
-    def test_run_with_playbook_option(self, monkeypatch):
+    def test_run_with_playbook_option(self, monkeypatch, tmp_path):
         """ag run --playbook should accept playbook option."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "--playbook", "custom", "Test"])
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "test-ws", "--playbook", "custom", "Test"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
         # Should not fail; option is accepted (stub doesn't use it yet)
         assert result.exit_code == 0
@@ -152,16 +207,22 @@ class TestWorkspaceLifecycle:
         assert "does not exist" in result.stdout or "does not exist" in (result.stderr or "")
         assert "ag ws create" in result.stdout or "ag ws create" in (result.stderr or "")
 
-    def test_run_without_workspace_autocreates(self, monkeypatch):
-        """ag run without --workspace should auto-create a new workspace."""
+    def test_run_without_workspace_fails(self, monkeypatch, tmp_path):
+        """ag run without --workspace should fail with clear error (AF-0026)."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
 
-        result = runner.invoke(app, ["run", "Test prompt"])
+        result = runner.invoke(
+            app,
+            ["run", "Test prompt"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
 
-        assert result.exit_code == 0
-        assert "Run completed" in result.stdout
-        # Workspace ID should be auto-generated
-        assert "Workspace: ws-" in result.stdout
+        assert result.exit_code == 1
+        assert "No workspace specified" in (result.stderr or "") or "No workspace specified" in result.stdout
+        assert "--workspace" in (result.stderr or "") or "--workspace" in result.stdout
+        assert "AG_WORKSPACE" in (result.stderr or "") or "AG_WORKSPACE" in result.stdout
 
     def test_ws_create_command(self, monkeypatch, tmp_path):
         """ag ws create should create a new workspace."""
@@ -242,3 +303,121 @@ class TestWorkspaceLifecycle:
         assert result.exit_code == 0
         assert "ws-alpha" in result.stdout
         assert "ws-beta" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# AF-0026: Workspace Selection Policy Enforcement Tests
+# ---------------------------------------------------------------------------
+
+
+class TestWorkspaceSelectionPolicy:
+    """Tests for workspace selection policy enforcement (AF-0026, BUG-0005).
+
+    Policy:
+    1. --workspace flag → use specified workspace
+    2. AG_WORKSPACE env var → use as default
+    3. No selection → fail with explicit error
+
+    Implicit workspace creation is NOT allowed.
+    """
+
+    def test_workspace_flag_takes_precedence(self, monkeypatch, tmp_path):
+        """--workspace flag overrides AG_WORKSPACE env var."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_WORKSPACE": "env-ws"}
+
+        # Create both workspaces
+        from ag.storage import Workspace
+
+        Workspace("env-ws", tmp_path).ensure_exists()
+        Workspace("flag-ws", tmp_path).ensure_exists()
+
+        # Run with --workspace flag (should use flag-ws, not env-ws)
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "flag-ws", "Test"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        assert "flag-ws" in result.stdout
+
+    def test_ag_workspace_env_var_used_when_no_flag(self, monkeypatch, tmp_path):
+        """AG_WORKSPACE env var is used when --workspace not provided."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_WORKSPACE", "env-default-ws")
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_WORKSPACE": "env-default-ws"}
+
+        # Create the workspace specified by AG_WORKSPACE
+        from ag.storage import Workspace
+
+        Workspace("env-default-ws", tmp_path).ensure_exists()
+
+        # Run without --workspace flag (should use AG_WORKSPACE)
+        result = runner.invoke(
+            app,
+            ["run", "Test"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        assert "env-default-ws" in result.stdout
+
+    def test_no_workspace_selection_fails(self, monkeypatch, tmp_path):
+        """Without workspace selection, ag run fails with clear error."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        result = runner.invoke(
+            app,
+            ["run", "Test"],
+            env=env,
+        )
+        assert result.exit_code == 1
+        # Check for helpful error message
+        output = result.stdout + (result.stderr or "")
+        assert "No workspace specified" in output
+        assert "--workspace" in output
+        assert "AG_WORKSPACE" in output
+
+    def test_no_implicit_workspace_creation(self, monkeypatch, tmp_path):
+        """ag run must not implicitly create workspaces."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Run without workspace (should fail)
+        result = runner.invoke(
+            app,
+            ["run", "Test"],
+            env=env,
+        )
+        assert result.exit_code == 1
+
+        # Verify no workspace was created
+        workspaces = list(tmp_path.iterdir()) if tmp_path.exists() else []
+        assert len(workspaces) == 0, f"Unexpected workspaces created: {workspaces}"
+
+    def test_repeated_runs_reuse_workspace(self, monkeypatch, tmp_path):
+        """Repeated ag run with same workspace reuse same DB."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspace explicitly
+        from ag.storage import Workspace, SQLiteRunStore
+
+        Workspace("stable-ws", tmp_path).ensure_exists()
+
+        # Run multiple times
+        for i in range(3):
+            result = runner.invoke(
+                app,
+                ["run", "--workspace", "stable-ws", f"Run {i}"],
+                env=env,
+            )
+            assert result.exit_code == 0
+            assert "stable-ws" in result.stdout
+
+        # Verify all runs in same workspace
+        with SQLiteRunStore(tmp_path) as store:
+            runs = store.list("stable-ws")
+            assert len(runs) == 3

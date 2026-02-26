@@ -1,22 +1,44 @@
 # ag_foundation — CLI Reference
-# Version number: v0.1
+# Version number: v0.2
 
 This document defines the **CLI contract** for ag_foundation. The CLI is the primary interface in early iterations, but the core runtime is interface-agnostic and will later be callable via an internal API.
 
 ## Principles
 - **Default runtime is LLM-first** (end-user behavior).
 - **Manual mode is dev/test-only** (LLMs disabled). It exists for fast debugging and CI-style checks and must not become an end-user feature.
-- **Truthful UX:** anything printed as a label (e.g., “verified”, “used retrieval”) must be derived from the persisted **RunTrace**.
+- **Truthful UX:** anything printed as a label (e.g., "verified", "used retrieval") must be derived from the persisted **RunTrace**.
+- **Explicit workspace selection** (AF-0026): Workspaces must be explicitly selected; no implicit creation during runs.
 
 ---
 
 ## Command overview
 
 ### Global
-- `--workspace <id>`: select workspace (default: current or configured default)
+- `--workspace <id>`: select workspace (required for run; see workspace selection policy)
 - `--json`: emit machine-readable JSON (where supported)
 - `--quiet`: reduce non-essential output
 - `--verbose`: include trace pointers, timing, and debug details
+
+### Workspace Selection Policy (AF-0026)
+
+**Runs require an explicit workspace.** Implicit workspace creation is not allowed.
+
+Precedence order:
+1. `--workspace <id>` flag (highest priority)
+2. `AG_WORKSPACE` environment variable
+3. **Error** if neither is specified
+
+When no workspace is selected, `ag run` fails with:
+```
+Error: No workspace specified.
+
+Specify a workspace using one of:
+  1. --workspace <name> flag
+  2. AG_WORKSPACE environment variable
+
+To create a workspace: ag ws create <name>
+To list workspaces:    ag ws list
+```
 
 ### Mode (runtime)
 - **Default:** `llm`
@@ -83,6 +105,8 @@ Workspaces isolate:
 - artifacts
 - memory/retrieval stores (optional)
 - defaults (budgets, playbooks, tool allowlists)
+
+**Important:** Workspaces must be created explicitly with `ag ws create` before use. `ag run` will not auto-create workspaces (AF-0026).
 
 ---
 

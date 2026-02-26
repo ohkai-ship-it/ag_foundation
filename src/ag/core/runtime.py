@@ -55,8 +55,12 @@ class V0Normalizer:
         if not prompt or not prompt.strip():
             raise ValueError("Prompt cannot be empty")
 
-        # Resolve workspace
-        workspace_id = workspace or f"ws-{uuid4().hex[:8]}"
+        # AF-0026: Workspace is required - no implicit creation
+        if not workspace:
+            raise ValueError(
+                "Workspace is required. Implicit workspace creation is not allowed."
+            )
+        workspace_id = workspace
 
         # Parse mode
         mode_enum = ExecutionMode.MANUAL if mode == "manual" else ExecutionMode.SUPERVISED

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from pathlib import Path
 
 from typer.testing import CliRunner
 
@@ -67,31 +68,45 @@ class TestGlobalWorkspacePropagation:
     def test_global_workspace_for_runs_list(self) -> None:
         """ag --workspace ws_a runs list uses global workspace."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            env = {"AG_DATA_DIR": tmpdir}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
 
-            # First create a run in the workspace
+            # First create the workspace explicitly
+            from ag.storage import Workspace
+
+            ws = Workspace("global-ws", Path(tmpdir))
+            ws.ensure_exists()
+
+            # Then create a run in the workspace
             run_result = runner.invoke(
                 app,
                 ["run", "Test", "--workspace", "global-ws", "--mode", "manual"],
-                env={**env, "AG_DEV": "1"},
+                env=env,
             )
             assert run_result.exit_code == 0
 
             # Now use global --workspace to list runs
-            result = runner.invoke(app, ["--workspace", "global-ws", "runs", "list"], env=env)
+            result = runner.invoke(
+                app, ["--workspace", "global-ws", "runs", "list"], env={"AG_WORKSPACE_DIR": tmpdir}
+            )
             assert result.exit_code == 0
             assert "global-ws" in result.output
 
     def test_local_workspace_overrides_global(self) -> None:
         """Local --workspace overrides global --workspace."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            env = {"AG_DATA_DIR": tmpdir}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create both workspaces explicitly
+            from ag.storage import Workspace
+
+            Workspace("global-ws", Path(tmpdir)).ensure_exists()
+            Workspace("local-ws", Path(tmpdir)).ensure_exists()
 
             # Create a run in local-ws
             run_result = runner.invoke(
                 app,
                 ["run", "Test", "--workspace", "local-ws", "--mode", "manual"],
-                env={**env, "AG_DEV": "1"},
+                env=env,
             )
             assert run_result.exit_code == 0
 
@@ -99,7 +114,7 @@ class TestGlobalWorkspacePropagation:
             result = runner.invoke(
                 app,
                 ["--workspace", "global-ws", "runs", "list", "--workspace", "local-ws"],
-                env=env,
+                env={"AG_WORKSPACE_DIR": tmpdir},
             )
             assert result.exit_code == 0
             assert "local-ws" in result.output
@@ -117,19 +132,26 @@ class TestGlobalJsonPropagation:
         """ag --json runs list outputs JSON."""
         with tempfile.TemporaryDirectory() as tmpdir:
             workspace = "json-test-ws"
-            env = {"AG_DATA_DIR": tmpdir}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create workspace first
+            from ag.storage import Workspace
+
+            Workspace(workspace, Path(tmpdir)).ensure_exists()
 
             # Create a run
             run_result = runner.invoke(
                 app,
                 ["run", "Test", "--workspace", workspace, "--mode", "manual"],
-                env={**env, "AG_DEV": "1"},
+                env=env,
             )
             assert run_result.exit_code == 0
 
             # Use global --json
             result = runner.invoke(
-                app, ["--json", "--workspace", workspace, "runs", "list"], env=env
+                app,
+                ["--json", "--workspace", workspace, "runs", "list"],
+                env={"AG_WORKSPACE_DIR": tmpdir},
             )
             assert result.exit_code == 0
             # Should be valid JSON
@@ -140,13 +162,18 @@ class TestGlobalJsonPropagation:
         """Local --json and global --json both work (no conflict)."""
         with tempfile.TemporaryDirectory() as tmpdir:
             workspace = "json-override-ws"
-            env = {"AG_DATA_DIR": tmpdir}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create workspace first
+            from ag.storage import Workspace
+
+            Workspace(workspace, Path(tmpdir)).ensure_exists()
 
             # Create a run
             run_result = runner.invoke(
                 app,
                 ["run", "Test", "--workspace", workspace, "--mode", "manual"],
-                env={**env, "AG_DEV": "1"},
+                env=env,
             )
             assert run_result.exit_code == 0
 
@@ -154,7 +181,7 @@ class TestGlobalJsonPropagation:
             result = runner.invoke(
                 app,
                 ["--json", "runs", "list", "--workspace", workspace, "--json"],
-                env=env,
+                env={"AG_WORKSPACE_DIR": tmpdir},
             )
             assert result.exit_code == 0
             data = json.loads(result.output)
@@ -172,15 +199,25 @@ class TestGlobalQuietVerbosePropagation:
     def test_global_quiet_reduces_output(self) -> None:
         """ag --quiet run produces less output."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            env = {"AG_DATA_DIR": tmpdir, "AG_DEV": "1"}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create workspace first
+            from ag.storage import Workspace
+
+            ws = Workspace("quiet-test-ws", Path(tmpdir))
+            ws.ensure_exists()
 
             # Normal run
-            normal_result = runner.invoke(app, ["run", "Test", "--mode", "manual"], env=env)
+            normal_result = runner.invoke(
+                app, ["run", "Test", "--workspace", "quiet-test-ws", "--mode", "manual"], env=env
+            )
             normal_lines = len(normal_result.output.strip().split("\n"))
 
             # Quiet run (global)
             quiet_result = runner.invoke(
-                app, ["--quiet", "run", "Test", "--mode", "manual"], env=env
+                app,
+                ["--quiet", "run", "Test", "--workspace", "quiet-test-ws", "--mode", "manual"],
+                env=env,
             )
             quiet_lines = len(quiet_result.output.strip().split("\n"))
 
@@ -190,10 +227,20 @@ class TestGlobalQuietVerbosePropagation:
     def test_global_verbose_adds_details(self) -> None:
         """ag --verbose run shows step details."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            env = {"AG_DATA_DIR": tmpdir, "AG_DEV": "1"}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create workspace first
+            from ag.storage import Workspace
+
+            ws = Workspace("verbose-test-ws", Path(tmpdir))
+            ws.ensure_exists()
 
             # Verbose run
-            result = runner.invoke(app, ["--verbose", "run", "Test", "--mode", "manual"], env=env)
+            result = runner.invoke(
+                app,
+                ["--verbose", "run", "Test", "--workspace", "verbose-test-ws", "--mode", "manual"],
+                env=env,
+            )
             assert result.exit_code == 0
             # Verbose should show steps
             assert "Steps:" in result.output or "step" in result.output.lower()
@@ -211,7 +258,12 @@ class TestWorkspaceEquivalence:
         """ag --workspace ws runs list == ag runs list --workspace ws."""
         with tempfile.TemporaryDirectory() as tmpdir:
             workspace = "equiv-ws"
-            env = {"AG_DATA_DIR": tmpdir, "AG_DEV": "1"}
+            env = {"AG_WORKSPACE_DIR": tmpdir, "AG_DEV": "1"}
+
+            # Create workspace first
+            from ag.storage import Workspace
+
+            Workspace(workspace, Path(tmpdir)).ensure_exists()
 
             # Create a run
             runner.invoke(
@@ -219,10 +271,14 @@ class TestWorkspaceEquivalence:
             )
 
             # Global workspace
-            global_result = runner.invoke(app, ["--workspace", workspace, "runs", "list"], env=env)
+            global_result = runner.invoke(
+                app, ["--workspace", workspace, "runs", "list"], env={"AG_WORKSPACE_DIR": tmpdir}
+            )
 
             # Local workspace
-            local_result = runner.invoke(app, ["runs", "list", "--workspace", workspace], env=env)
+            local_result = runner.invoke(
+                app, ["runs", "list", "--workspace", workspace], env={"AG_WORKSPACE_DIR": tmpdir}
+            )
 
             # Both should succeed and show same workspace
             assert global_result.exit_code == 0

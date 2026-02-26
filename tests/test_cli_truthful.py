@@ -87,13 +87,14 @@ class TestManualModeGateExtended:
     """Extended manual mode gate tests."""
 
     def test_manual_mode_banner_printed(
-        self, env_with_dev: None, temp_root: Path, monkeypatch: pytest.MonkeyPatch
+        self, env_with_dev: None, workspace_setup: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Manual mode prints correct banner."""
-        # Set workspaces root via env var
-        monkeypatch.setenv("AG_WORKSPACE_DIR", str(temp_root))
-
-        result = runner.invoke(app, ["run", "--mode", "manual", "Test task"])
+        result = runner.invoke(
+            app,
+            ["run", "--mode", "manual", "--workspace", "ws-test", "Test task"],
+            env={"AG_WORKSPACE_DIR": str(workspace_setup), "AG_DEV": "1"},
+        )
 
         assert "DEV MODE: manual (LLMs disabled)" in result.stdout
 
@@ -109,13 +110,17 @@ class TestManualModeGateExtended:
         trace_data = json.loads(result.stdout)
         assert trace_data["mode"] == "manual"
 
-    def test_without_ag_dev_manual_mode_fails(self, temp_root: Path) -> None:
+    def test_without_ag_dev_manual_mode_fails(self, workspace_setup: Path) -> None:
         """Without AG_DEV=1, manual mode fails."""
         # Ensure AG_DEV is not set
         if "AG_DEV" in os.environ:
             del os.environ["AG_DEV"]
 
-        result = runner.invoke(app, ["run", "--mode", "manual", "Test task"])
+        result = runner.invoke(
+            app,
+            ["run", "--mode", "manual", "--workspace", "ws-test", "Test task"],
+            env={"AG_WORKSPACE_DIR": str(workspace_setup)},
+        )
 
         assert result.exit_code == 1
         assert "AG_DEV=1" in result.stdout or "AG_DEV=1" in result.stderr

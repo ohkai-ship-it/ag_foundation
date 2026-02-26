@@ -246,7 +246,7 @@ def run(
     ctx: typer.Context,
     prompt: str = typer.Argument(..., help="The prompt or task to execute."),
     workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Workspace ID (default: auto-generated)."
+        None, "--workspace", "-w", help="Workspace ID (uses AG_WORKSPACE env if not specified)."
     ),
     mode: str = typer.Option(
         "llm", "--mode", "-m", help="Runtime mode: llm (default) or manual (dev-only)."
@@ -272,10 +272,44 @@ def run(
     """
     # Resolve global options with precedence: local > global > default
     cli_ctx = get_cli_ctx(ctx)
-    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
     resolved_quiet = quiet or cli_ctx.quiet
     resolved_verbose = verbose or cli_ctx.verbose
+
+    # AF-0026: Workspace selection policy enforcement
+    # Precedence: --workspace flag > AG_WORKSPACE env > error
+    from ag.config import get_default_workspace
+    from ag.storage import Workspace
+
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    if resolved_workspace is None:
+        # Try AG_WORKSPACE env var via get_default_workspace()
+        env_workspace = os.environ.get("AG_WORKSPACE")
+        if env_workspace:
+            resolved_workspace = env_workspace
+
+    # Fail if no workspace selected
+    if resolved_workspace is None:
+        err_console.print(
+            "[bold red]Error:[/bold red] No workspace specified."
+        )
+        err_console.print()
+        err_console.print("Specify a workspace using one of:")
+        err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
+        err_console.print("  2. [cyan]AG_WORKSPACE[/cyan] environment variable")
+        err_console.print()
+        err_console.print("To create a workspace: [cyan]ag ws create <name>[/cyan]")
+        err_console.print("To list workspaces:    [cyan]ag ws list[/cyan]")
+        raise typer.Exit(code=1)
+
+    # Validate workspace exists
+    ws = Workspace(resolved_workspace, get_workspace_dir())
+    if not ws.exists():
+        err_console.print(
+            f"[bold red]Error:[/bold red] Workspace '{resolved_workspace}' does not exist."
+        )
+        err_console.print(f"Create it first: [cyan]ag ws create {resolved_workspace}[/cyan]")
+        raise typer.Exit(code=1)
 
     # Manual mode gate check
     if mode == "manual":
@@ -291,19 +325,6 @@ def run(
             raise typer.Exit(code=1)
         if not resolved_quiet and not resolved_json:
             _print_manual_mode_banner()
-
-    # AF-0024: Validate workspace exists if explicitly specified
-    # If workspace is not specified, a new one will be auto-generated
-    if resolved_workspace:
-        from ag.storage import Workspace
-
-        ws = Workspace(resolved_workspace, get_workspace_dir())
-        if not ws.exists():
-            err_console.print(
-                f"[bold red]Error:[/bold red] Workspace '{resolved_workspace}' does not exist."
-            )
-            err_console.print(f"Create it first: [cyan]ag ws create {resolved_workspace}[/cyan]")
-            raise typer.Exit(code=1)
 
     # Create and execute runtime
     run_store = _get_run_store()

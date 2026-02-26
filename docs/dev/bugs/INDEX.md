@@ -19,6 +19,7 @@ This folder contains bug reports and bug templates.
 | ID | Title | Severity | Area | Status |
 |----|-------|----------|------|--------|
 | [BUG-0004](reports/BUG-0004-sqlite-connection-leak.md) | SQLite connections not closed → ResourceWarning | P1 | Storage | Fixed |
+| [BUG-0005](reports/BUG-0005-implicit-workspace-creation.md) | Implicit workspace creation on ag run | P0 | CLI/Storage | Fixed |
 
 ## How to use
 1. Create a new file in `/docs/dev/bugs/reports/BUG-000x-<title>.md` from the template.
