@@ -28,7 +28,7 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** In Review
+- **State:** Accepted
 
 ---
 
@@ -91,8 +91,8 @@ Force the architecture to prove itself under a realistic multi-step, evidence-he
 - [x] All P0 items are merged
 - [x] Each merged AF has its completion section filled
 - [x] Evidence captured for behavior changes (tests + RunTrace ID(s))
-- [ ] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS)
-- [ ] Repo hygiene executed (per checklist)
+- [x] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS) — **ACCEPT WITH FOLLOW-UPS**
+- [x] Repo hygiene executed (per checklist)
 - [x] Indices updated and consistent
 
 ---

@@ -4,7 +4,7 @@
 
 -   **ID:** AF0051
 -   **Type:** Feature
--   **Status:** In progress
+-   **Status:** Done
 -   **Priority:** P1
 -   **Area:** Storage
 -   **Owner:** Jacob

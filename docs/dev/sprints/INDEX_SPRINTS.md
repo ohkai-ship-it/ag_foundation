@@ -33,7 +33,7 @@ Each sprint folder:
 | Sprint 02 Hardening | Closed | (legacy `/docs/old_dev`) |
 | Sprint 03 | Closed | (legacy `/docs/old_dev`) |
 | Sprint 04 | Closed | [Sprint04_process_hardening](documentation/Sprint04_process_hardening/) |
-| Sprint 05 | In Review | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
+| Sprint 05 | Accepted | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
 
 ---
 
