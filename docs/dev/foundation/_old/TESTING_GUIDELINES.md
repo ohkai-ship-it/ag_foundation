@@ -1,8 +1,8 @@
-# DEPRECATED — see FOUNDATION_MANUAL.md
+# DEPRECATED — see FOUNDATION_OPERATING_MANUAL.md
 
 > **This document is deprecated.**
 > All rules have been consolidated into:
-> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+> `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md`
 >
 > This file is retained for historical reference only.
 > Do not update this file. Update the operating manual instead.
@@ -13,8 +13,8 @@
 # Version number: v0.2 (DEPRECATED)
 
 > **See also:**
-> - `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 5: CI & Quality Enforcement
-> - `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 6: Testing Requirements by Change Type
+> - `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md` → Section 5: CI & Quality Enforcement
+> - `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md` → Section 6: Testing Requirements by Change Type
 
 These guidelines define what tests are required for different change types.
 

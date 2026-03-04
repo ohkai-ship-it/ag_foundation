@@ -1,8 +1,8 @@
-# DEPRECATED — see FOUNDATION_MANUAL.md
+# DEPRECATED — see FOUNDATION_OPERATING_MANUAL.md
 
 > **This document is deprecated.**
 > All rules have been consolidated into:
-> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+> `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md`
 >
 > This file is retained for historical reference only.
 > Do not update this file. Update the operating manual instead.
@@ -14,8 +14,8 @@
 # Effective date: 2026-03-03
 
 > **See also:**
-> - `/docs/dev/foundation/FOUNDATION_MANUAL.md` — unified operating rules
-> - `/docs/dev/foundation/SPRINT_MANUAL.md` — step-by-step sprint execution
+> - `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md` — unified operating rules
+> - `/docs/dev/foundation/SPRINT_EXECUTION_PLAYBOOK.md` — step-by-step sprint execution
 
 This document consolidates the workflow/process rules previously spread across multiple files.
 It is canonical for `/docs/dev`.
