@@ -14,14 +14,23 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
 |---:|:--:|:--|---|---|---|---|
 | AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `/docs/dev/backlog/items/AF0046_Proposed_test_isolation_framework.md` |
-| AF-0034 | P0 | Ready | Workspace error message hardening (no identifier leakage) | CLI | Jacob | `/docs/dev/backlog/items/AF0034_Ready_workspace_error_message.md` |
-| AF-0037 | P1 | Ready | Standardize workspace error messages | CLI | Jacob | `/docs/dev/backlog/items/AF0037_Ready_standardize_workspace_error.md` |
-| AF-0038 | P1 | Ready | JSON error path consistency | CLI | Jacob | `/docs/dev/backlog/items/AF0038_Ready_json_error_path.md` |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `/docs/dev/backlog/items/AF0012_Ready_cli_reference_surface.md` |
 | AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob | `/docs/dev/backlog/items/AF0013_Ready_contract_inventory_hardening.md` |
 | AF-0015 | P2 | Ready | Resolve storage DB filename mismatch (docs vs code) | Storage | Jacob | `/docs/dev/backlog/items/AF0015_Ready_resolve_storage_db.md` |
-| AF-0035 | P2 | Ready | Clarify --workspace flag help text | CLI | Jacob | `/docs/dev/backlog/items/AF0035_Ready_clarify_workspace_flag.md` |
 | AF-0036 | P1 | Proposed | Remove global CLI flags (needs design) | CLI | Jacob | `/docs/dev/backlog/items/AF0036_Proposed_remove_global_cli.md` |
+
+---
+
+## Sprint 04 items — completed
+| ID | Priority | Status | Title | Area | Owner | New file (target path) |
+|---:|:--:|:--|---|---|---|---|
+| AF-0039 | P0 | Done | Create canonical /docs/dev skeleton + root doc moves | Docs/Process | Kai/Jeff | `/docs/dev/backlog/items/AF0039_Done_new_dev_skeleton.md` |
+| AF-0040 | P1 | Done | Merge WORKFLOW/PROCESS into canonical foundation docs | Docs/Process | Kai/Jeff | `/docs/dev/backlog/items/AF0040_Done_workflow_docs_merge.md` |
+| AF-0041 | P0 | Done | Backlog migration: merge templates + rename/move AFs | Docs/Backlog | Jacob | `/docs/dev/backlog/items/AF0041_Done_backlog_migration.md` |
+| AF-0042 | P1 | Done | Bugs + Decisions migration: rename/move + update indexes | Docs/Bugs/Decisions | Jacob | `/docs/dev/backlog/items/AF0042_Done_bugs_decisions_migration.md` |
+| AF-0043 | P0 | Done | Sprint system migration: per-sprint folders + deprecate SPRINT_LOG | Docs/Sprints | Jacob | `/docs/dev/backlog/items/AF0043_Done_sprint_system_migration.md` |
+| AF-0044 | P1 | Done | Review artifact migration: reviews into sprint folders | Docs/Reviews | Jacob | `/docs/dev/backlog/items/AF0044_Done_review_migration.md` |
+| AF-0045 | P0 | Done | CI enforcement: ruff + pytest + coverage via pre-commit/Actions | CI/Quality | Jacob | `/docs/dev/backlog/items/AF0045_Done_ci_enforcement.md` |
 
 ---
 
@@ -35,6 +44,10 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 | AF-0031 | P0 | Done | CLI truthfulness enforcement | CLI | Jacob | `/docs/dev/backlog/items/AF0031_Done_cli_truthfulness_enforcement.md` |
 | AF-0032 | P0 | Done | Observability command expansion | CLI | Jacob | `/docs/dev/backlog/items/AF0032_Done_observability_command_expansion.md` |
 | AF-0033 | P0 | Done | Early .env loading + manual mode gate fix | CLI | Jacob | `/docs/dev/backlog/items/AF0033_Done_early_env_loading.md` |
+| AF-0034 | P0 | Done | Workspace error message hardening (no name leakage) | CLI | Jacob | `/docs/dev/backlog/items/AF0034_Done_workspace_error_message.md` |
+| AF-0035 | P2 | Done | Clarify --workspace flag help text | CLI | Jacob | `/docs/dev/backlog/items/AF0035_Done_clarify_workspace_flag.md` |
+| AF-0037 | P1 | Done | Standardize workspace-required error messaging | CLI | Jacob | `/docs/dev/backlog/items/AF0037_Done_standardize_workspace_error.md` |
+| AF-0038 | P1 | Done | Ensure --json applies to error paths | CLI | Jacob | `/docs/dev/backlog/items/AF0038_Done_json_error_path.md` |
 
 ---
 

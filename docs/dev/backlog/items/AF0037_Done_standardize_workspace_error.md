@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0037
 - **Type:** Quality
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P1
 - **Area:** CLI
 - **Owner:** TBD

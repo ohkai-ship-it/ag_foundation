@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0034
 - **Type:** Quality
-- **Status:** Ready
+- **Status:** Done
 - **Priority:** P0
 - **Area:** CLI
 - **Owner:** TBD
