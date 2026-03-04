@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from ag.skills.strategic_brief import (
+    Citation,
     SourceExcerpt,
     SourceFile,
     StrategicBrief,
@@ -309,3 +310,71 @@ class TestStrategicBriefIntegration:
         assert success is True
         assert result["source_count"] == 25
         assert "25 sources" in summary
+
+
+class TestCitationEvidenceRefConversion:
+    """Tests for Citation to EvidenceRef conversion (AF0054)."""
+
+    def test_citation_to_evidence_ref_basic(self):
+        """Citation converts to EvidenceRef with correct fields."""
+        citation = Citation(
+            source_path="docs/test.md",
+            excerpt_index=None,
+            context="Test context",
+        )
+        evidence_ref = citation.to_evidence_ref()
+
+        assert evidence_ref.source_type == "file"
+        assert evidence_ref.source_path == "docs/test.md"
+        assert evidence_ref.relevance == "Test context"
+        assert evidence_ref.ref_id.startswith("cite-")
+        assert len(evidence_ref.ref_id) == 13  # "cite-" + 8 hex chars
+
+    def test_citation_to_evidence_ref_custom_id(self):
+        """Citation accepts custom ref_id."""
+        citation = Citation(source_path="test.md", context="ctx")
+        evidence_ref = citation.to_evidence_ref(ref_id="custom-001")
+
+        assert evidence_ref.ref_id == "custom-001"
+
+    def test_citation_to_evidence_ref_with_source_file(self):
+        """Citation extracts excerpt from SourceFile."""
+        source_file = SourceFile(
+            path="docs/test.md",
+            title="Test Doc",
+            excerpts=[
+                SourceExcerpt(line_start=10, line_end=15, content="First excerpt"),
+                SourceExcerpt(line_start=20, line_end=25, content="Second excerpt"),
+            ],
+        )
+        citation = Citation(
+            source_path="docs/test.md",
+            excerpt_index=1,
+            context="Referencing second excerpt",
+        )
+        evidence_ref = citation.to_evidence_ref(source_file=source_file)
+
+        assert evidence_ref.excerpt == "Second excerpt"
+        assert evidence_ref.line_start == 20
+        assert evidence_ref.line_end == 25
+        assert evidence_ref.relevance == "Referencing second excerpt"
+
+    def test_citation_to_evidence_ref_invalid_excerpt_index(self):
+        """Citation handles out-of-range excerpt_index gracefully."""
+        source_file = SourceFile(
+            path="docs/test.md",
+            excerpts=[SourceExcerpt(line_start=1, line_end=5, content="Only one")],
+        )
+        citation = Citation(source_path="docs/test.md", excerpt_index=99)
+        evidence_ref = citation.to_evidence_ref(source_file=source_file)
+
+        assert evidence_ref.excerpt is None
+        assert evidence_ref.line_start is None
+        assert evidence_ref.line_end is None
+
+    def test_citation_to_evidence_ref_empty_context(self):
+        """Citation with empty context sets relevance to None."""
+        citation = Citation(source_path="test.md", context="")
+        evidence_ref = citation.to_evidence_ref()
+
+        assert evidence_ref.relevance is None

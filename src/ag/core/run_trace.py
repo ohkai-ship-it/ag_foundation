@@ -179,6 +179,18 @@ class EvidenceRef(BaseModel):
     """A reference to evidence used in a step (AF-0049).
 
     Enables citation traceability by linking step outputs to source materials.
+
+    Ownership (AF0054):
+        This is the canonical Core-layer evidence model for trace metadata.
+        Skills may define lightweight citation models (e.g., Citation in
+        strategic_brief) for their output artifacts, but should convert
+        to EvidenceRef when recording to the trace via to_evidence_ref().
+
+    Source types:
+        - file: Local file path
+        - url: Remote URL
+        - artifact: Reference to another artifact
+        - memory: In-memory/ephemeral source
     """
 
     ref_id: str = Field(..., min_length=1, description="Unique reference identifier")

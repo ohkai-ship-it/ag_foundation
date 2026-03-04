@@ -6,16 +6,26 @@ strategic brief with evidence citations.
 Output:
 - brief.json: Structured JSON with sections and citations
 - brief.md: Human-readable markdown summary
+
+Citation Model Note (AF0054):
+    This module defines Citation for skill output artifacts. Citation is
+    lightweight and skill-specific. For trace-level evidence tracking,
+    use EvidenceRef from ag.core.run_trace. Citation.to_evidence_ref()
+    provides conversion between the two models.
 """
 
 from __future__ import annotations
 
 import json
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
+
+if TYPE_CHECKING:
+    from ag.core.run_trace import EvidenceRef
 
 # ---------------------------------------------------------------------------
 # Schema definitions for structured output
@@ -39,11 +49,57 @@ class SourceFile(BaseModel):
 
 
 class Citation(BaseModel):
-    """A citation referencing a source file."""
+    """A citation referencing a source file (skill output schema).
+
+    This is a lightweight citation for skill artifact output. For trace-level
+    evidence tracking, convert to EvidenceRef using to_evidence_ref().
+
+    Ownership (AF0054):
+        - Citation: Skill-layer output artifact (part of StrategicBrief schema)
+        - EvidenceRef: Core-layer trace metadata (part of Step schema)
+    """
 
     source_path: str = Field(..., description="Path to cited source")
     excerpt_index: int | None = Field(default=None, description="Index into source excerpts")
     context: str = Field(default="", description="Citation context")
+
+    def to_evidence_ref(
+        self,
+        ref_id: str | None = None,
+        source_file: "SourceFile | None" = None,
+    ) -> "EvidenceRef":
+        """Convert this Citation to an EvidenceRef for trace recording.
+
+        Args:
+            ref_id: Unique reference ID. Auto-generated if not provided.
+            source_file: Optional SourceFile to extract excerpt details.
+
+        Returns:
+            EvidenceRef suitable for Step.evidence_refs.
+        """
+        from ag.core.run_trace import EvidenceRef
+
+        # Extract excerpt if available
+        excerpt: str | None = None
+        line_start: int | None = None
+        line_end: int | None = None
+
+        if source_file and self.excerpt_index is not None:
+            if 0 <= self.excerpt_index < len(source_file.excerpts):
+                src_excerpt = source_file.excerpts[self.excerpt_index]
+                excerpt = src_excerpt.content
+                line_start = src_excerpt.line_start
+                line_end = src_excerpt.line_end
+
+        return EvidenceRef(
+            ref_id=ref_id or f"cite-{uuid.uuid4().hex[:8]}",
+            source_type="file",
+            source_path=self.source_path,
+            excerpt=excerpt,
+            line_start=line_start,
+            line_end=line_end,
+            relevance=self.context or None,
+        )
 
 
 class BriefSection(BaseModel):
