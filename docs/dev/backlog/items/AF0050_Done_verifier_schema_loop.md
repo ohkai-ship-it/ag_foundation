@@ -4,7 +4,7 @@
 
 -   **ID:** AF0050
 -   **Type:** Feature
--   **Status:** In progress
+-   **Status:** Done
 -   **Priority:** P0
 -   **Area:** Verifier
 -   **Owner:** Jacob
