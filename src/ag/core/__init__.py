@@ -20,6 +20,7 @@ from .playbook import (
 from .playbooks import DEFAULT_V0, get_playbook, list_playbooks
 from .run_trace import (
     Artifact,
+    EvidenceRef,
     FinalStatus,
     PlaybookMetadata,
     RunTrace,
@@ -59,6 +60,7 @@ __all__ = [
     "RunTrace",
     "RunTraceBuilder",
     "Artifact",
+    "EvidenceRef",
     "Step",
     "StepType",
     "PlaybookMetadata",
