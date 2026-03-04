@@ -33,6 +33,30 @@ class FinalStatus(str, Enum):
     TIMEOUT = "timeout"
 
 
+# AF-0051: Typed artifact categories for deterministic handling
+class ArtifactCategory(str, Enum):
+    """Category of artifact for deterministic export handling.
+
+    These categories map to specific export behaviors and MIME types.
+    """
+
+    # Core output types
+    RESULT = "result"  # Primary run result (e.g., result.md)
+    LOG = "log"  # Execution logs
+    TRACE = "trace"  # RunTrace JSON
+    CONFIG = "config"  # Configuration/settings
+
+    # Content types
+    DOCUMENT = "document"  # Markdown, text, etc.
+    DATA = "data"  # JSON, YAML, structured data
+    CODE = "code"  # Source code files
+    IMAGE = "image"  # Images, charts, diagrams
+
+    # Other
+    BINARY = "binary"  # Generic binary content
+    UNKNOWN = "unknown"  # Fallback for untyped artifacts
+
+
 class StepType(str, Enum):
     """Type of step in the run trace."""
 
@@ -65,8 +89,76 @@ class Artifact(BaseModel):
         default_factory=lambda: datetime.now(UTC), description="Creation timestamp"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    # AF-0051: Optional typed category for deterministic export handling
+    category: ArtifactCategory | None = Field(
+        default=None, description="Artifact category for export handling (AF-0051)"
+    )
 
     model_config = {"extra": "forbid"}
+
+    def get_category(self) -> ArtifactCategory:
+        """Get artifact category, inferring from type/path if not set.
+
+        Returns:
+            ArtifactCategory for this artifact
+        """
+        if self.category is not None:
+            return self.category
+        return infer_artifact_category(self.artifact_type, self.path)
+
+
+def infer_artifact_category(artifact_type: str, path: str) -> ArtifactCategory:
+    """Infer artifact category from MIME type and path.
+
+    Args:
+        artifact_type: MIME type or category string
+        path: File path or URI
+
+    Returns:
+        Inferred ArtifactCategory
+    """
+    # Check specific patterns first
+    lower_type = artifact_type.lower()
+    lower_path = path.lower()
+
+    # Result files
+    if "result" in lower_path or lower_type == "result":
+        return ArtifactCategory.RESULT
+
+    # Trace files
+    if "trace" in lower_path or lower_type == "trace":
+        return ArtifactCategory.TRACE
+
+    # Log files
+    if ".log" in lower_path or "log" in lower_type:
+        return ArtifactCategory.LOG
+
+    # Config files
+    if any(ext in lower_path for ext in [".json", ".yaml", ".yml", ".toml", ".ini"]):
+        if "config" in lower_path or "settings" in lower_path:
+            return ArtifactCategory.CONFIG
+
+    # Code files - check before MIME types to catch .py, .js etc
+    code_extensions = [".py", ".js", ".ts", ".java", ".go", ".rs", ".cpp", ".c", ".h"]
+    if any(lower_path.endswith(ext) for ext in code_extensions):
+        return ArtifactCategory.CODE
+
+    # MIME type based inference
+    if lower_type.startswith("text/"):
+        if "markdown" in lower_type or lower_path.endswith(".md"):
+            return ArtifactCategory.DOCUMENT
+        return ArtifactCategory.DOCUMENT
+
+    if lower_type.startswith("application/json") or lower_type.startswith("application/yaml"):
+        return ArtifactCategory.DATA
+
+    if lower_type.startswith("image/"):
+        return ArtifactCategory.IMAGE
+
+    if lower_type.startswith("application/octet-stream"):
+        return ArtifactCategory.BINARY
+
+    return ArtifactCategory.UNKNOWN
 
 
 class Subtask(BaseModel):

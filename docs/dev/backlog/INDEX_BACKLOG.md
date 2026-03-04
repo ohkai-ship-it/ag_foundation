@@ -35,8 +35,8 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 |---:|:--:|:--|---|---|---|---|
 | AF-0048 | P0 | Done | Structured brief skill | Skills | Jacob | `/docs/dev/backlog/items/AF0048_Done_structured_brief_skill.md` |
 | AF-0049 | P0 | Done | Evidence capture discipline | Core | Jacob | `/docs/dev/backlog/items/AF0049_Done_evidence_capture_discipline.md` |
-| AF-0050 | P0 | In progress | Verifier schema loop | Verifier | Jacob | `/docs/dev/backlog/items/AF0050_In progress_verifier_schema_loop.md` |
-| AF-0051 | P1 | Ready | Artifact export hardening | Storage | Jacob | `/docs/dev/backlog/items/AF0051_Ready_artifact_export_hardening.md` |
+| AF-0050 | P0 | Done | Verifier schema loop | Verifier | Jacob | `/docs/dev/backlog/items/AF0050_Done_verifier_schema_loop.md` |
+| AF-0051 | P1 | In progress | Artifact export hardening | Storage | Jacob | `/docs/dev/backlog/items/AF0051_In progress_artifact_export_hardening.md` |
 
 ---
 

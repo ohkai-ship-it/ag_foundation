@@ -20,6 +20,7 @@ from .playbook import (
 from .playbooks import DEFAULT_V0, get_playbook, list_playbooks
 from .run_trace import (
     Artifact,
+    ArtifactCategory,
     EvidenceRef,
     FinalStatus,
     PlaybookMetadata,
@@ -30,6 +31,7 @@ from .run_trace import (
     Verifier,
     VerifierStatus,
     WorkspaceSource,
+    infer_artifact_category,
 )
 from .runtime import (
     Runtime,
@@ -68,6 +70,7 @@ __all__ = [
     "RunTrace",
     "RunTraceBuilder",
     "Artifact",
+    "ArtifactCategory",
     "EvidenceRef",
     "Step",
     "StepType",
@@ -76,6 +79,7 @@ __all__ = [
     "VerifierStatus",
     "FinalStatus",
     "WorkspaceSource",
+    "infer_artifact_category",
     # playbook
     "Playbook",
     "PlaybookBuilder",

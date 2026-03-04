@@ -864,10 +864,137 @@ def artifacts_list(
 
 
 @artifacts_app.command("show")
-def artifacts_show(artifact_id: str = typer.Argument(..., help="Artifact ID.")) -> None:
-    """Show artifact details."""
-    console.print(f"[dim]Artifact:[/dim] {artifact_id}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0009)[/yellow]")
+def artifacts_show(
+    ctx: typer.Context,
+    artifact_id: str = typer.Argument(..., help="Artifact ID."),
+    run_id: str = typer.Option(..., "--run", "-r", help="Run ID."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Show artifact details and preview content."""
+    from ag.core import ArtifactCategory
+
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required for artifact show.")
+        raise typer.Exit(code=1)
+
+    artifact_store = _get_artifact_store()
+
+    result = artifact_store.get(resolved_workspace, run_id, artifact_id)
+    if result is None:
+        err_console.print(f"[bold red]Error:[/bold red] Artifact {artifact_id} not found.")
+        artifact_store.close()
+        raise typer.Exit(code=1)
+
+    artifact, content = result
+
+    if resolved_json:
+        json_data = {
+            "artifact_id": artifact.artifact_id,
+            "path": artifact.path,
+            "artifact_type": artifact.artifact_type,
+            "category": artifact.get_category().value,
+            "size_bytes": artifact.size_bytes,
+            "checksum": artifact.checksum,
+            "created_at": artifact.created_at.isoformat() if artifact.created_at else None,
+            "metadata": artifact.metadata,
+        }
+        print(json.dumps(json_data, indent=2))
+    else:
+        category = artifact.get_category()
+        console.print(f"[bold]Artifact:[/bold] {artifact.artifact_id}")
+        console.print(f"  [dim]Path:[/dim] {artifact.path}")
+        console.print(f"  [dim]Type:[/dim] {artifact.artifact_type}")
+        console.print(f"  [dim]Category:[/dim] {category.value}")
+        if artifact.size_bytes is not None:
+            console.print(f"  [dim]Size:[/dim] {artifact.size_bytes} bytes")
+        if artifact.checksum:
+            console.print(f"  [dim]Checksum:[/dim] {artifact.checksum}")
+        if artifact.created_at:
+            console.print(f"  [dim]Created:[/dim] {artifact.created_at.isoformat()}")
+
+        # Preview content for text-based artifacts
+        if category in (
+            ArtifactCategory.RESULT,
+            ArtifactCategory.DOCUMENT,
+            ArtifactCategory.LOG,
+            ArtifactCategory.CODE,
+            ArtifactCategory.DATA,
+            ArtifactCategory.CONFIG,
+        ):
+            try:
+                text = content.decode("utf-8")
+                lines = text.split("\n")
+                preview_lines = lines[:20]
+                console.print("\n[bold]Content preview:[/bold]")
+                for line in preview_lines:
+                    console.print(f"  {line}")
+                if len(lines) > 20:
+                    console.print(f"  [dim]... ({len(lines) - 20} more lines)[/dim]")
+            except UnicodeDecodeError:
+                console.print("\n[dim]Binary content - cannot preview[/dim]")
+        else:
+            console.print(f"\n[dim]Binary content ({len(content)} bytes)[/dim]")
+
+    artifact_store.close()
+
+
+@artifacts_app.command("export")
+def artifacts_export(
+    ctx: typer.Context,
+    artifact_id: str = typer.Argument(..., help="Artifact ID to export."),
+    run_id: str = typer.Option(..., "--run", "-r", help="Run ID."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    output_path: str = typer.Option(..., "--to", "-o", help="Destination path for export."),
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite if file exists."),
+) -> None:
+    """Export artifact content to a local file.
+
+    Copies the artifact content to the specified destination path.
+    Use --force to overwrite existing files.
+    """
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+
+    if not resolved_workspace:
+        err_console.print(
+            "[bold red]Error:[/bold red] --workspace is required for artifact export."
+        )
+        raise typer.Exit(code=1)
+
+    # Check if output path already exists
+    output = Path(output_path)
+    if output.exists() and not force:
+        err_console.print(
+            f"[bold red]Error:[/bold red] {output_path} already exists. Use --force to overwrite."
+        )
+        raise typer.Exit(code=1)
+
+    artifact_store = _get_artifact_store()
+
+    result = artifact_store.get(resolved_workspace, run_id, artifact_id)
+    if result is None:
+        err_console.print(f"[bold red]Error:[/bold red] Artifact {artifact_id} not found.")
+        artifact_store.close()
+        raise typer.Exit(code=1)
+
+    artifact, content = result
+
+    # Create parent directories if needed
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write content to file
+    output.write_bytes(content)
+
+    console.print(f"[green]✓[/green] Exported {artifact.artifact_id} to {output_path}")
+    console.print(f"  [dim]Size: {len(content)} bytes[/dim]")
+    console.print(f"  [dim]Category: {artifact.get_category().value}[/dim]")
+
+    artifact_store.close()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
