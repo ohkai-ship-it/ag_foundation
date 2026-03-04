@@ -1,7 +1,18 @@
 # BUG REPORT — BUG#### — <three_word_description>
 # Version number: v0.2
 
-> **File naming (required):** `BUG####_<Status>_<three_word_description>.md`  
+> **FOUNDATION GOVERNANCE**
+> This file is governed by:
+> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+>
+> Critical invariants in this context:
+> - Truthful UX (trace-derived labels)
+> - Workspace isolation
+> - CI discipline (ruff + pytest -W error + coverage)
+> - INDEX update rule (status ↔ filename integrity)
+> - Evidence capture requirement (RunTrace ID for CLI/runtime bugs)
+
+> **File naming (required):** `BUG####_<Status>_<three_word_description>.md`
 > Status values: `Open | In progress | Fixed | Verified | Dropped`
 
 ---

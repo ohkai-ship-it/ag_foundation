@@ -29,14 +29,9 @@ The project is building a modular **agent network** core. IoT, web/app UI, and e
 4. `/docs/dev/cornerstone/REVIEW_GUIDE.md`
 
 ### How we work
-- Backlog ↔ PR workflow: `/docs/dev/backlog/WORKFLOW.md`
-- Sprint process: `/docs/dev/sprints/PLAYBOOK.md`
-- Engineering rules:
-  - `/docs/dev/engineering/CODING_GUIDELINES.md`
-  - `/docs/dev/engineering/TESTING_GUIDELINES.md`
-  - `/docs/dev/engineering/PR_CHECKLIST.md`
-- Completion note template (mandatory for merged PRs):
-  - `/docs/dev/backlog/templates/COMPLETION_NOTE_TEMPLATE.md`
+- Foundation operating manual: `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+- Sprint execution playbook: `/docs/dev/foundation/SPRINT_MANUAL.md`
+- Backlog template: `/docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
 - ADRs (only for P1+): `/docs/dev/decisions/`
 
 ---

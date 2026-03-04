@@ -1,6 +1,17 @@
 # Pull Request Template (ag_foundation)
 # Version number: v0.2
 
+> **FOUNDATION GOVERNANCE**
+> This PR is governed by:
+> `/docs/dev/foundation/FOUNDATION_MANUAL.md` — Section 4: Branching & PR Discipline
+> `/docs/dev/foundation/SPRINT_MANUAL.md` — Section 6: PR Creation Protocol
+>
+> Critical invariants:
+> - 1 PR = 1 primary AF (exactly)
+> - CI discipline (ruff + pytest -W error + coverage)
+> - Evidence required for behavior changes (RunTrace ID)
+> - INDEX update required if statuses change
+
 ## Primary work item
 - **Backlog (primary):** AF####
 - **Related (secondary):** AF#### (optional)

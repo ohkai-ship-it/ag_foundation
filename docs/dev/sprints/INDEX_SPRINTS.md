@@ -1,7 +1,15 @@
 # INDEX_SPRINTS
 # Version number: v0.2
 
-> **Location (new):** `/docs/dev/sprints/INDEX_SPRINTS.md`  
+> **FOUNDATION RULE**
+> INDEX integrity is mandatory.
+> Sprint status must be kept current.
+> Update required:
+> - at sprint start ritual
+> - whenever sprint status changes
+> See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
+
+> **Location:** `/docs/dev/sprints/INDEX_SPRINTS.md`
 > **Rule:** Each sprint gets a folder under `/docs/dev/sprints/documentation/`.
 
 ---

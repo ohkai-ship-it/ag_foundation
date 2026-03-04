@@ -1,7 +1,18 @@
 # BACKLOG ITEM — AF#### — <three_word_description>
 # Version number: v0.2
 
-> **File naming (required):** `AF####_<Status>_<three_word_description>.md`  
+> **FOUNDATION GOVERNANCE**
+> This file is governed by:
+> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+>
+> Critical invariants in this context:
+> - Truthful UX (trace-derived labels)
+> - Workspace isolation
+> - CI discipline (ruff + pytest -W error + coverage)
+> - 1 PR = 1 primary AF
+> - INDEX update rule (status ↔ filename integrity)
+
+> **File naming (required):** `AF####_<Status>_<three_word_description>.md`
 > Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
 
 ---

@@ -1,7 +1,15 @@
 # INDEX_DECISIONS
 # Version number: v0.2
 
-> **Location (new):** `/docs/dev/decisions/INDEX_DECISIONS.md`  
+> **FOUNDATION RULE**
+> INDEX integrity is mandatory.
+> Filename status must match internal status.
+> Update required:
+> - at sprint start ritual
+> - whenever status changes
+> See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
+
+> **Location:** `/docs/dev/decisions/INDEX_DECISIONS.md`
 > **Naming (required):** `ADR###_<three_word_description>.md` in `/docs/dev/decisions/files/`
 
 ---

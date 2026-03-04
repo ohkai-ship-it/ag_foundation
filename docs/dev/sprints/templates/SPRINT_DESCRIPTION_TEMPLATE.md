@@ -1,7 +1,19 @@
 # SPRINT DESCRIPTION — Sprint## — <three_word_description>
 # Version number: v0.2
 
-> **Folder naming (required):** `/docs/dev/sprints/documentation/Sprint##_three_word_description/`  
+> **FOUNDATION GOVERNANCE**
+> This file is governed by:
+> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+> `/docs/dev/foundation/SPRINT_MANUAL.md`
+>
+> Critical invariants in this context:
+> - Truthful UX (trace-derived labels)
+> - Workspace isolation
+> - CI discipline (ruff + pytest -W error + coverage)
+> - 1 PR = 1 primary AF
+> - INDEX update rule (status ↔ filename integrity)
+
+> **Folder naming (required):** `/docs/dev/sprints/documentation/Sprint##_three_word_description/`
 > **Files (required):**
 > - `S##_DESCRIPTION.md` (this file; includes plan + report)
 > - `S##_REVIEW_01.md` (created by Jeff+Kai; executed by Jacob)

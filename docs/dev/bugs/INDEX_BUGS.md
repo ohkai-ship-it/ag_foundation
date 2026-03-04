@@ -1,8 +1,16 @@
 # INDEX_BUGS
 # Version number: v0.2
 
-> **Location (new):** `/docs/dev/bugs/INDEX_BUGS.md`  
-> **Naming (required):** `BUG####_<Status>_<three_word_description>.md` in `/docs/dev/bugs/reports/`  
+> **FOUNDATION RULE**
+> INDEX integrity is mandatory.
+> Filename status must match internal status.
+> Update required:
+> - at sprint start ritual
+> - whenever status changes
+> See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
+
+> **Location:** `/docs/dev/bugs/INDEX_BUGS.md`
+> **Naming (required):** `BUG####_<Status>_<three_word_description>.md` in `/docs/dev/bugs/reports/`
 > Status values: `Open | In progress | Fixed | Verified | Dropped`
 
 ---

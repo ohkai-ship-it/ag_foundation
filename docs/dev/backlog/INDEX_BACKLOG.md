@@ -1,8 +1,16 @@
 # INDEX_BACKLOG
 # Version number: v0.2
 
-> **Location (new):** `/docs/dev/backlog/INDEX_BACKLOG.md`  
-> **Naming (required):** `AF####_<Status>_<three_word_description>.md` in `/docs/dev/backlog/items/`  
+> **FOUNDATION RULE**
+> INDEX integrity is mandatory.
+> Filename status must match internal status.
+> Update required:
+> - at sprint start ritual
+> - whenever status changes
+> See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
+
+> **Location:** `/docs/dev/backlog/INDEX_BACKLOG.md`
+> **Naming (required):** `AF####_<Status>_<three_word_description>.md` in `/docs/dev/backlog/items/`
 > Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
 
 ## Status legend
@@ -13,6 +21,7 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 ## Active backlog (current)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
 |---:|:--:|:--|---|---|---|---|
+| AF-0047 | P0 | Done | Foundation consolidation refactor | Docs/Process | Jacob | `/docs/dev/backlog/items/AF0047_Done_foundation_consolidation.md` |
 | AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `/docs/dev/backlog/items/AF0046_Proposed_test_isolation_framework.md` |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `/docs/dev/backlog/items/AF0012_Ready_cli_reference_surface.md` |
 | AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob | `/docs/dev/backlog/items/AF0013_Ready_contract_inventory_hardening.md` |
