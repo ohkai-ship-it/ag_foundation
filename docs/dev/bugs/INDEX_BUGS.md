@@ -18,6 +18,7 @@
 ## Open bugs
 | ID | Severity | Status | Title | Area | New file (target path) |
 |---:|:--:|:--|---|---|---|
+| BUG-0008 | P0 | Open | CLI cannot route to strategic_brief skill | CLI / Routing | `/docs/dev/bugs/reports/BUG0008_Open_skill_routing_missing.md` |
 | BUG-0007 | P1 | Open | OpenAI provider test isolation failure | Testing | `/docs/dev/bugs/reports/BUG0007_Open_openai_test_isolation.md` |
 | BUG-0002 | P2 | Open | Missing ag run options per CLI reference | CLI | `/docs/dev/bugs/reports/BUG0002_Open_missing_ag_run.md` |
 | BUG-0003 | P2 | Open | Missing CLI subcommands per reference spec | CLI | `/docs/dev/bugs/reports/BUG0003_Open_missing_cli_subcommands.md` |
