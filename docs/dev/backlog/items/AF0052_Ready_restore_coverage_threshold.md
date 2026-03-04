@@ -6,7 +6,7 @@
 
 -   **ID:** AF0052
 -   **Type:** Foundation
--   **Status:** Done
+-   **Status:** In progress
 -   **Priority:** P0
 -   **Area:** Testing / CI
 -   **Owner:** Jacob
@@ -40,12 +40,12 @@ Storage ≥95% - Core ≥85%
 
 ## Acceptance criteria
 
--   [x] `pytest --cov=src/ag --cov-report=term-missing` shows ≥85%
+-   [ ] `pytest --cov=src/ag --cov-report=term-missing` shows ≥85%
     overall
--   [x] Provider coverage ≥95%
--   [x] No test exclusions added to mask coverage gaps
--   [x] CI green on main
--   [x] Completion section filled when done
+-   [ ] Provider coverage ≥95%
+-   [ ] No test exclusions added to mask coverage gaps
+-   [ ] CI green on main
+-   [ ] Completion section filled when done
 
 ------------------------------------------------------------------------
 
@@ -57,26 +57,3 @@ Storage ≥95% - Core ≥85%
 ------------------------------------------------------------------------
 
 # Completion section (fill when done)
-
-## Summary
-
-Fixed test timing issue in `test_providers.py` where environment variable
-was cleared AFTER provider initialization, causing the provider to capture
-the API key at init time.
-
-## Changes
-
-- `tests/test_providers.py`: Reordered `test_openai_validate_without_key_raises`
-  and `test_openai_chat_without_key_raises` to clear `OPENAI_API_KEY` BEFORE
-  creating the provider instance.
-
-## Results
-
-- 317 tests pass (was 315 passed, 2 failed)
-- Overall coverage: 88% (≥85% ✓)
-- Provider module coverage: 97% (≥95% ✓)
-- Storage module coverage: 96% (≥95% ✓)
-
-## Commit
-
-`6c2b27c` - fix(AF0052): correct provider test timing - clear env before provider init

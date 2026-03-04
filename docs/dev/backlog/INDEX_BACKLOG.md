@@ -33,7 +33,7 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 ## Sprint 05 items — in progress (follow-ups)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
 |---:|:--:|:--|---|---|---|---|
-| AF-0052 | P0 | In progress | Restore coverage threshold | Testing | Jacob | `/docs/dev/backlog/items/AF0052_In progress_restore_coverage_threshold.md` |
+| AF-0052 | P0 | Done | Restore coverage threshold | Testing | Jacob | `/docs/dev/backlog/items/AF0052_Done_restore_coverage_threshold.md` |
 | AF-0053 | P0 | Ready | Provider test stability | Testing | Jacob | `/docs/dev/backlog/items/AF0053_Ready_provider_test_stability.md` |
 | AF-0054 | P1 | Ready | Citation model unification | Core | Jacob | `/docs/dev/backlog/items/AF0054_Ready_citation_model_unification.md` |
 | AF-0055 | P1 | Ready | Verifier loop bounding | Verifier | Jacob | `/docs/dev/backlog/items/AF0055_Ready_verifier_loop_bounding.md` |
