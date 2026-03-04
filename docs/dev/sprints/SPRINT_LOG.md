@@ -1,6 +1,39 @@
 # Sprint Log — ag_foundation
 
+> **⚠️ DEPRECATED (2026-03-03):** This log is archived. Sprint tracking now uses per-sprint folders under `/docs/new_dev/sprints/documentation/`. See `/docs/new_dev/sprints/INDEX_SPRINTS.md` for the canonical sprint index.
+
 This is the central log for all sprints. Each sprint gets a section below; we do **not** create per-sprint folders.
+
+---
+
+## Sprint 03 — Observability & Truthful UX — COMPLETED
+**Dates:** 2026-02-27 → 2026-02-28  
+**Goal:** Strengthen workspace maturity, fix manual mode gating, and enforce observability + truthful UX.
+
+### Targeted Backlog Items
+
+| ID | Priority | Title | Status | Evidence |
+|---:|:--:|---|:--:|---|
+| AF-0027 | P0 | Default workspace policy (intuitive precedence) | Done | 5+ workspace policy tests |
+| AF-0028 | P0 | Run ID truncation fix | Done | Full UUID in `ag runs list` |
+| AF-0029 | P0 | RunTrace verification hardening | Done | 3 verifier consistency tests |
+| AF-0030 | P0 | RunTrace metadata completeness (workspace_source) | Done | 2 workspace_source tests |
+| AF-0031 | P0 | CLI truthfulness enforcement | Done | extract_labels tests |
+| AF-0032 | P0 | Observability command expansion | Done | `ag runs stats` command |
+| AF-0033 | P0 | Early .env loading + manual mode gate fix | Done | subprocess dotenv test |
+| BUG-0006 | P1 | Manual mode .env loading defect | Fixed | AG_DEV from .env works |
+
+### Sprint Summary
+- **Tests:** 188 passed (was 178 before Sprint 03)
+- **Coverage:** 76% overall, 100% run_trace, 100% task_spec, 93% config
+- **New features:** `ag runs stats`, `workspace_source` metadata, verifier consistency
+- **Review:** APPROVED — see [REVIEW_S03_FINDINGS.md](../reviews/entries/REVIEW_S03_2026-02-27/REVIEW_S03_FINDINGS.md)
+
+### Sprint Notes
+- Sprint plan: [SPRINT_03_PLAN.md](SPRINT_03_PLAN.md)
+- Sprint report: [SPRINT_REPORT_SPRINT03.md](SPRINT_REPORT_SPRINT03.md)
+- Completion note: [S03_COMPLETION_NOTE.md](S03_COMPLETION_NOTE.md)
+- Workspace Resolution Order: `--workspace` → persisted default → `AG_WORKSPACE` → bootstrap 'default' → error
 
 ---
 

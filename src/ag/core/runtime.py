@@ -20,6 +20,7 @@ from ag.core.run_trace import (
     StepType,
     Subtask,
     VerifierStatus,
+    WorkspaceSource,
 )
 from ag.core.run_trace import (
     Verifier as VerifierModel,
@@ -57,9 +58,7 @@ class V0Normalizer:
 
         # AF-0026: Workspace is required - no implicit creation
         if not workspace:
-            raise ValueError(
-                "Workspace is required. Implicit workspace creation is not allowed."
-            )
+            raise ValueError("Workspace is required. Implicit workspace creation is not allowed.")
         workspace_id = workspace
 
         # Parse mode
@@ -131,14 +130,20 @@ class V0Verifier:
         - If final status is not success, return 'failed'
         - Otherwise return 'passed'
         """
+        return self.verify_components(trace.steps, trace.final)
+
+    def verify_components(
+        self, steps: list[Step], final_status: FinalStatus
+    ) -> tuple[str, str | None]:
+        """Verify run components without requiring a full trace (AF-0029)."""
         # Check for step errors
-        for step in trace.steps:
+        for step in steps:
             if step.error:
                 return "failed", f"Step {step.step_number} failed: {step.error}"
 
         # Check final status
-        if trace.final != FinalStatus.SUCCESS:
-            return "failed", f"Run ended with status: {trace.final.value}"
+        if final_status != FinalStatus.SUCCESS:
+            return "failed", f"Run ended with status: {final_status.value}"
 
         return "passed", "All steps completed successfully"
 
@@ -204,7 +209,9 @@ class V0Orchestrator:
         self._verifier = verifier or V0Verifier()
         self._recorder = recorder or V0Recorder()
 
-    def run(self, task: TaskSpec, playbook: Playbook) -> RunTrace:
+    def run(
+        self, task: TaskSpec, playbook: Playbook, workspace_source: str | None = None
+    ) -> RunTrace:
         """Execute a playbook for the given task.
 
         v0 execution:
@@ -316,10 +323,18 @@ class V0Orchestrator:
         ended_at = datetime.now(UTC)
         duration_ms = int((ended_at - started_at).total_seconds() * 1000)
 
-        # Build trace (before verification)
+        # Run verification before constructing trace (AF-0029)
+        verify_status, verify_message = self._verifier.verify_components(steps, final_status)
+        checked_at = datetime.now(UTC)
+
+        # Convert workspace_source string to enum if provided (AF-0030)
+        ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
+
+        # Build trace with verification result included
         trace = RunTrace(
             run_id=run_id,
             workspace_id=task.workspace_id,
+            workspace_source=ws_source_enum,
             mode=task.mode,
             playbook=PlaybookMetadata(name=playbook.name, version=playbook.version),
             started_at=started_at,
@@ -327,22 +342,13 @@ class V0Orchestrator:
             duration_ms=duration_ms,
             steps=steps,
             artifacts=artifacts,
-            verifier=VerifierModel(status=VerifierStatus.PENDING),
+            verifier=VerifierModel(
+                status=VerifierStatus(verify_status),
+                checked_at=checked_at,
+                message=verify_message,
+            ),
             final=final_status,
             error=error_message,
-        )
-
-        # Run verification
-        verify_status, verify_message = self._verifier.verify(trace)
-        trace = RunTrace(
-            **{
-                **trace.model_dump(),
-                "verifier": VerifierModel(
-                    status=VerifierStatus(verify_status),
-                    checked_at=datetime.now(UTC),
-                    message=verify_message,
-                ),
-            }
         )
 
         # Persist the trace
@@ -444,6 +450,7 @@ class Runtime:
         workspace: str | None = None,
         mode: str = "llm",
         playbook: str | None = None,
+        workspace_source: str | None = None,
     ) -> RunTrace:
         """Execute a task and return the trace.
 
@@ -452,6 +459,7 @@ class Runtime:
             workspace: Workspace ID (auto-generated if not provided)
             mode: Execution mode ('manual' or 'llm')
             playbook: Playbook name preference
+            workspace_source: How the workspace was resolved (AF-0030)
 
         Returns:
             RunTrace capturing the execution
@@ -468,7 +476,7 @@ class Runtime:
         selected_playbook = self._planner.plan(task)
 
         # Execute
-        trace = self._orchestrator.run(task, selected_playbook)
+        trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)
 
         return trace
 

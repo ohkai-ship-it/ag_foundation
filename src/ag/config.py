@@ -165,3 +165,78 @@ def get_default_workspace() -> str:
         return env_ws
     # TODO: Check config file when implemented
     return "ws_default"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AF-0027: Persisted default workspace
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _get_config_dir() -> Path:
+    """
+    Get the config directory.
+
+    Resolution order:
+    1. AG_CONFIG_DIR environment variable (for testing)
+    2. ~/.ag (default)
+    """
+    env_dir = os.environ.get("AG_CONFIG_DIR")
+    if env_dir:
+        return Path(env_dir)
+    return DEFAULT_CONFIG_DIR
+
+
+def _get_state_file() -> Path:
+    """Get the state file path."""
+    return _get_config_dir() / "state.json"
+
+
+def _ensure_config_dir() -> None:
+    """Ensure the config directory exists."""
+    _get_config_dir().mkdir(parents=True, exist_ok=True)
+
+
+def _load_state() -> dict:
+    """Load state from state file."""
+    state_file = _get_state_file()
+    if state_file.exists():
+        import json
+
+        try:
+            return json.loads(state_file.read_text())
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def _save_state(state: dict) -> None:
+    """Save state to state file."""
+    import json
+
+    _ensure_config_dir()
+    _get_state_file().write_text(json.dumps(state, indent=2))
+
+
+def get_persisted_default_workspace() -> str | None:
+    """
+    Return the persisted default workspace ID, or None if not set.
+
+    This is set via `ag ws use <workspace>`.
+    """
+    state = _load_state()
+    return state.get("default_workspace")
+
+
+def set_persisted_default_workspace(workspace_id: str | None) -> None:
+    """
+    Set or clear the persisted default workspace.
+
+    Args:
+        workspace_id: The workspace ID to set as default, or None to clear.
+    """
+    state = _load_state()
+    if workspace_id is None:
+        state.pop("default_workspace", None)
+    else:
+        state["default_workspace"] = workspace_id
+    _save_state(state)

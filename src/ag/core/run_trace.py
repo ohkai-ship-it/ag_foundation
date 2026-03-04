@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Self
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .task_spec import ExecutionMode
 
@@ -42,6 +42,15 @@ class StepType(str, Enum):
     USER_INPUT = "user_input"
     # AF-0019: Planning step that generates subtasks
     PLANNING = "planning"
+
+
+class WorkspaceSource(str, Enum):
+    """Source of workspace resolution (AF-0030)."""
+
+    CLI = "cli"  # --workspace flag
+    PERSISTED = "persisted"  # persisted default
+    ENV = "env"  # AG_WORKSPACE env var
+    BOOTSTRAP = "bootstrap"  # auto-created default
 
 
 class Artifact(BaseModel):
@@ -136,6 +145,9 @@ class RunTrace(BaseModel):
         description="Unique run identifier",
     )
     workspace_id: str = Field(..., min_length=1, description="Workspace identifier")
+    workspace_source: WorkspaceSource | None = Field(
+        default=None, description="How workspace was resolved (AF-0030)"
+    )
     mode: ExecutionMode = Field(..., description="Execution mode used")
     playbook: PlaybookMetadata = Field(..., description="Playbook used for this run")
     started_at: datetime = Field(..., description="Run start timestamp")
@@ -149,6 +161,19 @@ class RunTrace(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 
     model_config = {"extra": "forbid"}
+
+    @model_validator(mode="after")
+    def validate_verifier_consistency(self) -> Self:
+        """Enforce verifier/final status consistency (AF-0029)."""
+        # If run completed successfully, verifier must not be pending
+        if self.final == FinalStatus.SUCCESS and self.verifier.status == VerifierStatus.PENDING:
+            raise ValueError("Verifier status cannot be PENDING when final status is SUCCESS")
+        # If verifier ran (not pending), checked_at must be set
+        if self.verifier.status != VerifierStatus.PENDING and self.verifier.checked_at is None:
+            raise ValueError(
+                f"Verifier checked_at must be set when status is {self.verifier.status.value}"
+            )
+        return self
 
     def to_json(self) -> str:
         """Serialize to JSON string."""

@@ -1,5 +1,7 @@
 # Completion Notes — Index
 
+> **⚠️ DEPRECATED (2026-03-03):** This folder is archived. Completion notes are now embedded directly in AF item files under `/docs/new_dev/backlog/items/`. See [INDEX_BACKLOG](/docs/new_dev/backlog/INDEX_BACKLOG.md) for the canonical location.
+
 This folder contains **completion notes** for finished backlog items. Each note documents what was implemented, test results, and acceptance criteria verification.
 
 ## File Naming Convention

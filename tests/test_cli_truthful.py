@@ -197,6 +197,41 @@ class TestTruthfulLabels:
         assert "duration_ms" in trace_data
         assert trace_data["duration_ms"] >= 0
 
+    def test_cli_workspace_source_matches_trace(
+        self, env_with_dev: None, workspace_setup: Path
+    ) -> None:
+        """AF-0030/AF-0031: CLI workspace_source label matches RunTrace field."""
+        result = runner.invoke(
+            app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
+        )
+
+        trace_data = json.loads(result.stdout)
+
+        # workspace_source should be present and valid
+        assert "workspace_source" in trace_data
+        assert trace_data["workspace_source"] in ["cli", "persisted", "env", "bootstrap", None]
+
+    def test_extract_labels_includes_workspace_source(
+        self, run_store: SQLiteRunStore, artifact_store: SQLiteArtifactStore
+    ) -> None:
+        """AF-0031: extract_labels includes workspace_source from trace."""
+        with create_runtime(
+            run_store=run_store,
+            artifact_store=artifact_store,
+        ) as runtime:
+            trace = runtime.execute(
+                prompt="Test task",
+                workspace="ws-test",
+                mode="manual",
+                workspace_source="cli",
+            )
+
+            labels = extract_labels(trace)
+
+            # workspace_source should be in labels and match trace
+            assert "workspace_source" in labels
+            assert labels["workspace_source"] == trace.workspace_source.value
+
 
 # ---------------------------------------------------------------------------
 # ag runs show --json Schema Conformance Tests
@@ -367,3 +402,55 @@ class TestLabelConsistency:
         assert run_labels["status"] == show_labels["status"]
         assert run_labels["verifier_status"] == show_labels["verifier_status"]
         assert run_labels["workspace_id"] == show_labels["workspace_id"]
+
+
+# ---------------------------------------------------------------------------
+# AF-0032: ag runs stats Tests
+# ---------------------------------------------------------------------------
+
+
+class TestRunsStats:
+    """Tests for ag runs stats command (AF-0032)."""
+
+    def test_stats_empty_workspace(self, temp_root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """ag runs stats on empty workspace shows zero runs."""
+        from ag.storage import Workspace
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(temp_root))
+        ws = Workspace("empty-stats-ws", temp_root)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["runs", "stats", "--workspace", "empty-stats-ws", "--json"],
+            env={"AG_WORKSPACE_DIR": str(temp_root)},
+        )
+
+        assert result.exit_code == 0
+        stats = json.loads(result.stdout)
+        assert stats["total_runs"] == 0
+
+    def test_stats_with_runs(self, env_with_dev: None, workspace_setup: Path) -> None:
+        """ag runs stats shows correct stats after creating runs."""
+        # Create a few runs
+        for _ in range(3):
+            runner.invoke(
+                app, ["run", "--mode", "manual", "--workspace", "ws-test", "--json", "Test"]
+            )
+
+        result = runner.invoke(app, ["runs", "stats", "--workspace", "ws-test", "--json"])
+
+        assert result.exit_code == 0
+        stats = json.loads(result.stdout)
+
+        # Should have at least 3 runs
+        assert stats["total_runs"] >= 3
+        assert "by_status" in stats
+        assert "by_verifier_status" in stats
+        assert "by_mode" in stats
+        assert "avg_duration_ms" in stats
+
+    def test_stats_requires_workspace(self) -> None:
+        """ag runs stats requires --workspace flag."""
+        result = runner.invoke(app, ["runs", "stats"])
+        assert result.exit_code == 1  # Should fail without workspace

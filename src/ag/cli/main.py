@@ -5,21 +5,27 @@ CLI v0 implementation for AF-0008.
 All labels are derived from persisted RunTrace (truthful UX).
 """
 
-import json
-import os
-import sys
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional
+# AF-0033: Load .env early, before any env var checks
+# This must happen before other imports that might check env vars
+from dotenv import load_dotenv
 
-import typer
-from rich.console import Console
-from rich.table import Table
+load_dotenv()  # Load .env from current directory or parents
 
-from ag import __version__
-from ag.config import get_workspace_dir
-from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime
-from ag.storage import SQLiteArtifactStore, SQLiteRunStore
+import json  # noqa: E402
+import os  # noqa: E402
+import sys  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Optional  # noqa: E402
+
+import typer  # noqa: E402
+from rich.console import Console  # noqa: E402
+from rich.table import Table  # noqa: E402
+
+from ag import __version__  # noqa: E402
+from ag.config import get_workspace_dir  # noqa: E402
+from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
 
 # Console for rich output
 console = Console()
@@ -90,7 +96,8 @@ def extract_labels(trace: RunTrace) -> dict[str, str]:
     All labels are derived from the actual trace data (truthful UX).
 
     Returns:
-        Dict with keys: mode, status, verifier_status, duration, playbook
+        Dict with keys: mode, status, verifier_status, duration, playbook,
+        run_id, workspace_id, workspace_source
     """
     return {
         "mode": trace.mode.value,
@@ -100,6 +107,7 @@ def extract_labels(trace: RunTrace) -> dict[str, str]:
         "playbook": f"{trace.playbook.name}@{trace.playbook.version}",
         "run_id": trace.run_id,
         "workspace_id": trace.workspace_id,
+        "workspace_source": trace.workspace_source.value if trace.workspace_source else "unknown",
     }
 
 
@@ -276,33 +284,65 @@ def run(
     resolved_quiet = quiet or cli_ctx.quiet
     resolved_verbose = verbose or cli_ctx.verbose
 
-    # AF-0026: Workspace selection policy enforcement
-    # Precedence: --workspace flag > AG_WORKSPACE env > error
-    from ag.config import get_default_workspace
+    # AF-0027: Workspace selection policy with new precedence
+    # 1. --workspace flag (highest priority)
+    # 2. Persisted default workspace (CLI-set via `ag ws use`)
+    # 3. AG_WORKSPACE env var
+    # 4. Bootstrap: create 'default' workspace if no workspaces exist
+    # 5. Error with guidance
+    from ag.config import get_persisted_default_workspace
     from ag.storage import Workspace
 
+    workspace_source = None  # Track where the workspace came from (for AF-0030)
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
-    if resolved_workspace is None:
-        # Try AG_WORKSPACE env var via get_default_workspace()
-        env_workspace = os.environ.get("AG_WORKSPACE")
-        if env_workspace:
-            resolved_workspace = env_workspace
 
-    # Fail if no workspace selected
-    if resolved_workspace is None:
-        err_console.print(
-            "[bold red]Error:[/bold red] No workspace specified."
-        )
-        err_console.print()
-        err_console.print("Specify a workspace using one of:")
-        err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
-        err_console.print("  2. [cyan]AG_WORKSPACE[/cyan] environment variable")
-        err_console.print()
-        err_console.print("To create a workspace: [cyan]ag ws create <name>[/cyan]")
-        err_console.print("To list workspaces:    [cyan]ag ws list[/cyan]")
-        raise typer.Exit(code=1)
+    if resolved_workspace is not None:
+        workspace_source = "cli"
+    else:
+        # Try persisted default workspace
+        persisted_default = get_persisted_default_workspace()
+        if persisted_default:
+            resolved_workspace = persisted_default
+            workspace_source = "persisted"
+        else:
+            # Try AG_WORKSPACE env var
+            env_workspace = os.environ.get("AG_WORKSPACE")
+            if env_workspace:
+                resolved_workspace = env_workspace
+                workspace_source = "env"
 
-    # Validate workspace exists
+    # If still no workspace, check for bootstrap case
+    if resolved_workspace is None:
+        workspaces_root = get_workspace_dir()
+        existing_workspaces = []
+        if workspaces_root.exists():
+            existing_workspaces = [d for d in workspaces_root.iterdir() if d.is_dir()]
+
+        if not existing_workspaces:
+            # Bootstrap case: no workspaces exist, create 'default'
+            resolved_workspace = "default"
+            workspace_source = "bootstrap"
+            ws = Workspace(resolved_workspace, workspaces_root)
+            ws.ensure_exists()
+            if not resolved_quiet and not resolved_json:
+                console.print(f"[dim]Created default workspace:[/dim] {resolved_workspace}")
+        else:
+            # Workspaces exist but none selected
+            err_console.print("[bold red]Error:[/bold red] No workspace specified.")
+            err_console.print()
+            err_console.print("Specify a workspace using one of:")
+            err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
+            err_console.print("  2. [cyan]ag ws use <name>[/cyan] to set a default")
+            err_console.print("  3. [cyan]AG_WORKSPACE[/cyan] environment variable")
+            err_console.print()
+            err_console.print("Available workspaces:")
+            for ws_dir in sorted(existing_workspaces)[:5]:
+                err_console.print(f"  - {ws_dir.name}")
+            if len(existing_workspaces) > 5:
+                err_console.print(f"  ... and {len(existing_workspaces) - 5} more")
+            raise typer.Exit(code=1)
+
+    # Validate workspace exists (unless we just created it)
     ws = Workspace(resolved_workspace, get_workspace_dir())
     if not ws.exists():
         err_console.print(
@@ -341,6 +381,7 @@ def run(
             workspace=resolved_workspace,
             mode=mode,
             playbook=playbook,
+            workspace_source=workspace_source,
         )
 
         # Output results
@@ -425,7 +466,7 @@ def runs_list(
                 return
 
             table = Table(title=f"Runs in workspace '{resolved_workspace}'")
-            table.add_column("Run ID", style="cyan")
+            table.add_column("Run ID", style="cyan", no_wrap=True)
             table.add_column("Status")
             table.add_column("Verifier")
             table.add_column("Mode")
@@ -435,7 +476,7 @@ def runs_list(
             for run in runs:
                 labels = extract_labels(run)
                 table.add_row(
-                    run.run_id[:12] + "...",
+                    run.run_id,
                     format_status(run.final),
                     format_verifier(run.verifier.status),
                     labels["mode"],
@@ -489,6 +530,7 @@ def runs_show(
             console.print(f"[bold]Run {trace.run_id}[/bold]")
             console.print()
             console.print(f"  Workspace: {labels['workspace_id']}")
+            console.print(f"  Workspace Source: {labels['workspace_source']}")
             console.print(f"  Mode: {labels['mode']}")
             console.print(f"  Status: {format_status(trace.final)}")
             console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
@@ -541,6 +583,96 @@ def runs_trace(
     runs_show(ctx=ctx, run_id=run_id, workspace=workspace, json_output=True)
 
 
+@runs_app.command("stats")
+def runs_stats(
+    ctx: typer.Context,
+    workspace: Optional[str] = typer.Option(
+        None, "--workspace", "-w", help="Workspace to get stats for."
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Show aggregate statistics for runs (AF-0032)."""
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs stats")
+        raise typer.Exit(code=1)
+
+    run_store = _get_run_store()
+
+    try:
+        # Get all runs (use high limit for stats)
+        runs = run_store.list(resolved_workspace, limit=1000)
+
+        if not runs:
+            if resolved_json:
+                console.print(json.dumps({"total_runs": 0}))
+            else:
+                console.print(f"No runs found in workspace '{resolved_workspace}'")
+            return
+
+        # Calculate statistics
+        total = len(runs)
+        by_status: dict[str, int] = {}
+        by_verifier: dict[str, int] = {}
+        by_mode: dict[str, int] = {}
+        total_duration_ms = 0
+        runs_with_duration = 0
+
+        for run in runs:
+            # Count by status
+            status = run.final.value
+            by_status[status] = by_status.get(status, 0) + 1
+
+            # Count by verifier status
+            vstat = run.verifier.status.value
+            by_verifier[vstat] = by_verifier.get(vstat, 0) + 1
+
+            # Count by mode
+            mode = run.mode.value
+            by_mode[mode] = by_mode.get(mode, 0) + 1
+
+            # Sum durations
+            if run.duration_ms:
+                total_duration_ms += run.duration_ms
+                runs_with_duration += 1
+
+        avg_duration_ms = total_duration_ms // runs_with_duration if runs_with_duration else 0
+
+        if resolved_json:
+            stats = {
+                "workspace": resolved_workspace,
+                "total_runs": total,
+                "by_status": by_status,
+                "by_verifier_status": by_verifier,
+                "by_mode": by_mode,
+                "avg_duration_ms": avg_duration_ms,
+            }
+            console.print(json.dumps(stats, indent=2))
+        else:
+            console.print(f"[bold]Statistics for workspace '{resolved_workspace}'[/bold]")
+            console.print()
+            console.print(f"  Total runs: {total}")
+            console.print(f"  Average duration: {avg_duration_ms}ms")
+            console.print()
+            console.print("[bold]By Status:[/bold]")
+            for status, count in sorted(by_status.items()):
+                console.print(f"  {status}: {count}")
+            console.print()
+            console.print("[bold]By Verifier Status:[/bold]")
+            for vstat, count in sorted(by_verifier.items()):
+                console.print(f"  {vstat}: {count}")
+            console.print()
+            console.print("[bold]By Mode:[/bold]")
+            for mode, count in sorted(by_mode.items()):
+                console.print(f"  {mode}: {count}")
+
+    finally:
+        run_store.close()
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ag ws (workspace)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -549,24 +681,35 @@ def runs_trace(
 @ws_app.command("list")
 def ws_list() -> None:
     """List all workspaces."""
+    from ag.config import get_persisted_default_workspace
+
     workspaces_root = get_workspace_dir()
+    default_ws = get_persisted_default_workspace()
+
     if not workspaces_root.exists():
         console.print("[dim]No workspaces found.[/dim]")
+        console.print("Create one with: [cyan]ag ws create <name>[/cyan]")
         return
 
     workspace_dirs = [d for d in workspaces_root.iterdir() if d.is_dir()]
     if not workspace_dirs:
         console.print("[dim]No workspaces found.[/dim]")
+        console.print("Create one with: [cyan]ag ws create <name>[/cyan]")
         return
 
     table = Table(title="Workspaces")
     table.add_column("Workspace ID", style="cyan")
+    table.add_column("Default", style="green")
     table.add_column("Path")
 
     for ws_dir in sorted(workspace_dirs):
-        table.add_row(ws_dir.name, str(ws_dir))
+        is_default = "✓" if ws_dir.name == default_ws else ""
+        table.add_row(ws_dir.name, is_default, str(ws_dir))
 
     console.print(table)
+
+    if default_ws:
+        console.print(f"\n[dim]Default workspace:[/dim] {default_ws}")
 
 
 @ws_app.command("create")
@@ -586,9 +729,25 @@ def ws_create(name: str = typer.Argument(..., help="Workspace name.")) -> None:
 
 @ws_app.command("use")
 def ws_use(workspace_id: str = typer.Argument(..., help="Workspace ID to switch to.")) -> None:
-    """Switch to a workspace."""
-    console.print(f"[dim]Switching to:[/dim] {workspace_id}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0006)[/yellow]")
+    """Switch to a workspace (sets as default for future commands)."""
+    from ag.config import get_persisted_default_workspace, set_persisted_default_workspace
+    from ag.storage import Workspace
+
+    # Validate workspace exists
+    ws = Workspace(workspace_id, get_workspace_dir())
+    if not ws.exists():
+        err_console.print(f"[bold red]Error:[/bold red] Workspace '{workspace_id}' does not exist.")
+        err_console.print(f"Create it first: [cyan]ag ws create {workspace_id}[/cyan]")
+        raise typer.Exit(code=1)
+
+    # Set as persisted default
+    set_persisted_default_workspace(workspace_id)
+    console.print(f"[green]Default workspace set to:[/green] {workspace_id}")
+
+    # Show current default
+    current = get_persisted_default_workspace()
+    if current == workspace_id:
+        console.print("  Future commands will use this workspace by default.")
 
 
 @ws_app.command("show")
@@ -596,8 +755,37 @@ def ws_show(
     workspace_id: Optional[str] = typer.Argument(None, help="Workspace ID (default: current)."),
 ) -> None:
     """Show workspace details."""
-    console.print(f"[dim]Workspace:[/dim] {workspace_id or 'current'}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0006)[/yellow]")
+    from ag.config import get_persisted_default_workspace
+    from ag.storage import Workspace
+
+    # If no workspace specified, use the default
+    if workspace_id is None:
+        workspace_id = get_persisted_default_workspace()
+
+    if workspace_id is None:
+        err_console.print("[bold red]Error:[/bold red] No workspace specified and no default set.")
+        err_console.print("Specify a workspace: [cyan]ag ws show <workspace_id>[/cyan]")
+        err_console.print("Or set a default:    [cyan]ag ws use <workspace_id>[/cyan]")
+        raise typer.Exit(code=1)
+
+    ws = Workspace(workspace_id, get_workspace_dir())
+    if not ws.exists():
+        err_console.print(f"[bold red]Error:[/bold red] Workspace '{workspace_id}' does not exist.")
+        raise typer.Exit(code=1)
+
+    default_ws = get_persisted_default_workspace()
+    is_default = workspace_id == default_ws
+
+    console.print(f"[bold]Workspace:[/bold] {workspace_id}")
+    console.print(f"  Path: {ws.path}")
+    console.print(f"  Default: {'Yes' if is_default else 'No'}")
+
+    # Count runs if store exists
+    runs_db = ws.path / "runs.db"
+    if runs_db.exists():
+        console.print(f"  Database: {runs_db}")
+    else:
+        console.print("  Database: [dim]not created yet[/dim]")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

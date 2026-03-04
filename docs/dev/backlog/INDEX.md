@@ -1,14 +1,36 @@
 # ag_foundation Backlog Index
 
+> **⚠️ DEPRECATED (2026-03-03):** This index is archived. The canonical backlog is now at `/docs/new_dev/backlog/INDEX_BACKLOG.md`. AF items have been migrated to `/docs/new_dev/backlog/items/` with the new naming convention.
+
 Status legend: Proposed → Ready → In Progress → Done (or Blocked / Dropped)
 
-## Backlog
+## Backlog (KEEP THIS SECTION ALWAYS ON TOP)
 
 | ID | Priority | Status | Title | Area | Owner |
 |---:|:--:|:--|---|---|---|
+| AF-0034 | P0 | Ready | Workspace error message hardening (no identifier leakage) | CLI | Jacob |
+| AF-0037 | P1 | Ready | Standardize workspace error messages | CLI | Jacob |
+| AF-0038 | P1 | Ready | JSON error path consistency | CLI | Jacob |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob |
 | AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob |
 | AF-0015 | P2 | Ready | Resolve storage DB filename mismatch (docs vs code) | Storage | Jacob |
+| AF-0035 | P2 | Ready | Clarify --workspace flag help text | CLI | Jacob |
+| AF-0036 | P1 | Proposed | Remove global CLI flags (needs design) | CLI | Jacob |
+
+---
+
+## Sprint 03 Items (Observability & Truthful UX) — COMPLETED
+
+| ID | Priority | Status | Title | Area | Owner |
+|---:|:--:|:--|---|---|---|
+| AF-0027 | P0 | Done | Default workspace policy (intuitive precedence) | CLI/Core/Storage | Jacob |
+| AF-0028 | P0 | Done | Run ID truncation fix | CLI | Jacob |
+| AF-0029 | P0 | Done | RunTrace verification hardening | Core/Storage | Jacob |
+| AF-0030 | P0 | Done | RunTrace metadata completeness (workspace_source) | Core/Storage | Jacob |
+| AF-0031 | P0 | Done | CLI truthfulness enforcement | CLI | Jacob |
+| AF-0032 | P0 | Done | Observability command expansion | CLI | Jacob |
+| AF-0033 | P0 | Done | Early .env loading + manual mode gate fix | CLI | Jacob |
+| BUG-0006 | P1 | Fixed | Manual mode .env loading defect | CLI | Jacob |
 
 ## Sprint 02 Items (Agent network v0 + LLM provider) — COMPLETED
 

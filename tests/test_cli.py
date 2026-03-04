@@ -121,6 +121,48 @@ class TestManualModeGate:
         # Should NOT print dev mode banner
         assert "DEV MODE" not in result.stdout
 
+    def test_manual_mode_with_dotenv_file_succeeds(self, tmp_path):
+        """AF-0033/BUG-0006: --mode manual should work when AG_DEV=1 is in .env file."""
+        import subprocess
+        import sys
+
+        from ag.storage import Workspace
+
+        # Create workspace
+        ws = Workspace("dotenv-test-ws", tmp_path)
+        ws.ensure_exists()
+
+        # Create .env file with AG_DEV=1
+        dotenv_path = tmp_path / ".env"
+        dotenv_path.write_text("AG_DEV=1\n")
+
+        # Run CLI via subprocess from tmp_path (where .env is located)
+        # This ensures a fresh process that will load .env
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ag.cli.main",
+                "run",
+                "--mode",
+                "manual",
+                "--workspace",
+                "dotenv-test-ws",
+                "test dotenv loading",
+            ],
+            cwd=str(tmp_path),
+            capture_output=True,
+            text=True,
+            env={
+                **{k: v for k, v in __import__("os").environ.items()},
+                "AG_WORKSPACE_DIR": str(tmp_path),
+            },
+        )
+
+        # Should succeed because .env contains AG_DEV=1
+        assert result.returncode == 0, f"stderr: {result.stderr}, stdout: {result.stdout}"
+        assert "DEV MODE" in result.stdout
+
 
 class TestRunCommand:
     """Test ag run command options."""
@@ -207,22 +249,55 @@ class TestWorkspaceLifecycle:
         assert "does not exist" in result.stdout or "does not exist" in (result.stderr or "")
         assert "ag ws create" in result.stdout or "ag ws create" in (result.stderr or "")
 
-    def test_run_without_workspace_fails(self, monkeypatch, tmp_path):
-        """ag run without --workspace should fail with clear error (AF-0026)."""
+    def test_run_without_workspace_bootstraps_default(self, monkeypatch, tmp_path):
+        """AF-0027: ag run without workspace creates 'default' when no workspaces exist."""
         monkeypatch.delenv(DEV_ENV_VAR, raising=False)
         monkeypatch.delenv("AG_WORKSPACE", raising=False)
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
+
+        # Ensure no workspaces exist
+        assert not list(tmp_path.iterdir())
 
         result = runner.invoke(
             app,
             ["run", "Test prompt"],
-            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+            env={"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")},
         )
 
+        # Should succeed by bootstrapping 'default' workspace
+        assert result.exit_code == 0, f"stdout: {result.stdout}, stderr: {result.stderr}"
+        assert "Workspace: default" in result.stdout
+        # Verify default workspace was created
+        assert (tmp_path / "default").is_dir()
+
+    def test_run_without_workspace_fails_when_workspaces_exist(self, monkeypatch, tmp_path):
+        """AF-0027: ag run without workspace fails when workspaces exist but none selected."""
+        monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
+
+        # Create an existing workspace but don't select it
+        from ag.storage import Workspace
+
+        ws = Workspace("existing-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "Test prompt"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")},
+        )
+
+        # Should fail with guidance
         assert result.exit_code == 1
-        assert "No workspace specified" in (result.stderr or "") or "No workspace specified" in result.stdout
+        assert (
+            "No workspace specified" in (result.stderr or "")
+            or "No workspace specified" in result.stdout
+        )
         assert "--workspace" in (result.stderr or "") or "--workspace" in result.stdout
-        assert "AG_WORKSPACE" in (result.stderr or "") or "AG_WORKSPACE" in result.stdout
+        assert "ag ws use" in (result.stderr or "") or "ag ws use" in result.stdout
 
     def test_ws_create_command(self, monkeypatch, tmp_path):
         """ag ws create should create a new workspace."""
@@ -311,14 +386,16 @@ class TestWorkspaceLifecycle:
 
 
 class TestWorkspaceSelectionPolicy:
-    """Tests for workspace selection policy enforcement (AF-0026, BUG-0005).
+    """Tests for workspace selection policy enforcement (AF-0026, AF-0027, BUG-0005).
 
-    Policy:
+    Policy (AF-0027):
     1. --workspace flag → use specified workspace
-    2. AG_WORKSPACE env var → use as default
-    3. No selection → fail with explicit error
+    2. Persisted default workspace (via `ag ws use`)
+    3. AG_WORKSPACE env var → use as default
+    4. Bootstrap: if no workspaces exist, create 'default'
+    5. Error with guidance if workspaces exist but none selected
 
-    Implicit workspace creation is NOT allowed.
+    Implicit workspace creation is NOT allowed (except bootstrap case).
     """
 
     def test_workspace_flag_takes_precedence(self, monkeypatch, tmp_path):
@@ -342,17 +419,22 @@ class TestWorkspaceSelectionPolicy:
         assert "flag-ws" in result.stdout
 
     def test_ag_workspace_env_var_used_when_no_flag(self, monkeypatch, tmp_path):
-        """AG_WORKSPACE env var is used when --workspace not provided."""
+        """AG_WORKSPACE env var is used when no --workspace flag and no persisted default."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate
         monkeypatch.setenv("AG_WORKSPACE", "env-default-ws")
-        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_WORKSPACE": "env-default-ws"}
+        env = {
+            "AG_WORKSPACE_DIR": str(tmp_path),
+            "AG_CONFIG_DIR": str(tmp_path / ".ag"),
+            "AG_WORKSPACE": "env-default-ws",
+        }
 
         # Create the workspace specified by AG_WORKSPACE
         from ag.storage import Workspace
 
         Workspace("env-default-ws", tmp_path).ensure_exists()
 
-        # Run without --workspace flag (should use AG_WORKSPACE)
+        # Run without --workspace flag (should use AG_WORKSPACE since no persisted default)
         result = runner.invoke(
             app,
             ["run", "Test"],
@@ -361,11 +443,17 @@ class TestWorkspaceSelectionPolicy:
         assert result.exit_code == 0
         assert "env-default-ws" in result.stdout
 
-    def test_no_workspace_selection_fails(self, monkeypatch, tmp_path):
-        """Without workspace selection, ag run fails with clear error."""
+    def test_no_workspace_selection_fails_when_workspaces_exist(self, monkeypatch, tmp_path):
+        """AF-0027: Without workspace selection, ag run fails if workspaces already exist."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
         monkeypatch.delenv("AG_WORKSPACE", raising=False)
-        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")}
+
+        # Create a workspace but don't select it
+        from ag.storage import Workspace
+
+        Workspace("existing-ws", tmp_path).ensure_exists()
 
         result = runner.invoke(
             app,
@@ -377,13 +465,40 @@ class TestWorkspaceSelectionPolicy:
         output = result.stdout + (result.stderr or "")
         assert "No workspace specified" in output
         assert "--workspace" in output
-        assert "AG_WORKSPACE" in output
+        assert "ag ws use" in output  # AF-0027: now suggests ag ws use
 
-    def test_no_implicit_workspace_creation(self, monkeypatch, tmp_path):
-        """ag run must not implicitly create workspaces."""
+    def test_bootstrap_creates_default_when_no_workspaces(self, monkeypatch, tmp_path):
+        """AF-0027: Bootstrap case creates 'default' workspace when none exist."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
         monkeypatch.delenv("AG_WORKSPACE", raising=False)
-        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")}
+
+        # Ensure no workspaces exist
+        assert not list(tmp_path.iterdir()) if tmp_path.exists() else True
+
+        # Run without workspace (should bootstrap 'default')
+        result = runner.invoke(
+            app,
+            ["run", "Test"],
+            env=env,
+        )
+        assert result.exit_code == 0
+
+        # Verify 'default' workspace was created
+        assert (tmp_path / "default").is_dir(), f"Expected 'default' workspace in {tmp_path}"
+
+    def test_no_implicit_workspace_creation_when_workspaces_exist(self, monkeypatch, tmp_path):
+        """AF-0027: ag run must not implicitly create new workspaces when some exist."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")}
+
+        # Create one workspace
+        from ag.storage import Workspace
+
+        Workspace("existing-ws", tmp_path).ensure_exists()
 
         # Run without workspace (should fail)
         result = runner.invoke(
@@ -393,9 +508,11 @@ class TestWorkspaceSelectionPolicy:
         )
         assert result.exit_code == 1
 
-        # Verify no workspace was created
+        # Verify no additional workspace was created
         workspaces = list(tmp_path.iterdir()) if tmp_path.exists() else []
-        assert len(workspaces) == 0, f"Unexpected workspaces created: {workspaces}"
+        # Only count workspace dirs, exclude .ag config dir
+        ws_dirs = [w for w in workspaces if w.name != ".ag"]
+        assert len(ws_dirs) == 1, f"Should only have 'existing-ws', got: {ws_dirs}"
 
     def test_repeated_runs_reuse_workspace(self, monkeypatch, tmp_path):
         """Repeated ag run with same workspace reuse same DB."""
@@ -403,7 +520,7 @@ class TestWorkspaceSelectionPolicy:
         env = {"AG_WORKSPACE_DIR": str(tmp_path)}
 
         # Create workspace explicitly
-        from ag.storage import Workspace, SQLiteRunStore
+        from ag.storage import SQLiteRunStore, Workspace
 
         Workspace("stable-ws", tmp_path).ensure_exists()
 
@@ -421,3 +538,33 @@ class TestWorkspaceSelectionPolicy:
         with SQLiteRunStore(tmp_path) as store:
             runs = store.list("stable-ws")
             assert len(runs) == 3
+
+    def test_persisted_default_workspace_used(self, monkeypatch, tmp_path):
+        """AF-0027: Persisted default workspace is used when no flag or env var."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path / ".ag"))  # Isolate state
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), "AG_CONFIG_DIR": str(tmp_path / ".ag")}
+
+        # Create workspace and set as default via ag ws use
+        from ag.storage import Workspace
+
+        Workspace("my-default-ws", tmp_path).ensure_exists()
+
+        # Set default via CLI
+        result = runner.invoke(
+            app,
+            ["ws", "use", "my-default-ws"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        assert "Default workspace set to" in result.stdout
+
+        # Run without --workspace flag (should use persisted default)
+        result = runner.invoke(
+            app,
+            ["run", "Test using persisted default"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        assert "my-default-ws" in result.stdout

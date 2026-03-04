@@ -28,6 +28,7 @@ from .run_trace import (
     StepType,
     Verifier,
     VerifierStatus,
+    WorkspaceSource,
 )
 from .runtime import (
     Runtime,
@@ -64,6 +65,7 @@ __all__ = [
     "Verifier",
     "VerifierStatus",
     "FinalStatus",
+    "WorkspaceSource",
     # playbook
     "Playbook",
     "PlaybookBuilder",

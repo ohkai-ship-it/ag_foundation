@@ -31,6 +31,7 @@ from ag.core import (
     TaskSpecBuilder,
     Verifier,
     VerifierStatus,
+    WorkspaceSource,
 )
 
 # ===========================================================================
@@ -129,12 +130,13 @@ class TestRunTraceContract:
 
     def test_version_field_present(self) -> None:
         """Version field must exist with correct default."""
+        now = datetime.now(UTC)
         trace = RunTrace(
             workspace_id="ws-1",
             mode=ExecutionMode.MANUAL,
             playbook=PlaybookMetadata(name="default", version="1.0"),
-            started_at=datetime.now(UTC),
-            verifier=Verifier(status=VerifierStatus.PENDING),
+            started_at=now,
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now),
             final=FinalStatus.SUCCESS,
         )
         assert trace.trace_version == "0.1"
@@ -193,12 +195,13 @@ class TestRunTraceContract:
 
     def test_stable_defaults(self) -> None:
         """Default values must be stable."""
+        now = datetime.now(UTC)
         trace = RunTrace(
             workspace_id="ws-1",
             mode=ExecutionMode.MANUAL,
             playbook=PlaybookMetadata(name="default", version="1.0"),
-            started_at=datetime.now(UTC),
-            verifier=Verifier(status=VerifierStatus.PENDING),
+            started_at=now,
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now),
             final=FinalStatus.SUCCESS,
         )
         assert trace.steps == []
@@ -222,6 +225,72 @@ class TestRunTraceContract:
         assert trace.verifier.status == VerifierStatus.PASSED
         assert trace.final == FinalStatus.SUCCESS
 
+    def test_verifier_pending_with_success_rejected(self) -> None:
+        """AF-0029: PENDING verifier with SUCCESS final status must be rejected."""
+        with pytest.raises(Exception, match="Verifier status cannot be PENDING"):
+            RunTrace(
+                workspace_id="ws-1",
+                mode=ExecutionMode.MANUAL,
+                playbook=PlaybookMetadata(name="default", version="1.0"),
+                started_at=datetime.now(UTC),
+                verifier=Verifier(status=VerifierStatus.PENDING),
+                final=FinalStatus.SUCCESS,
+            )
+
+    def test_verifier_non_pending_requires_checked_at(self) -> None:
+        """AF-0029: Non-PENDING verifier must have checked_at set."""
+        with pytest.raises(Exception, match="checked_at must be set"):
+            RunTrace(
+                workspace_id="ws-1",
+                mode=ExecutionMode.MANUAL,
+                playbook=PlaybookMetadata(name="default", version="1.0"),
+                started_at=datetime.now(UTC),
+                verifier=Verifier(status=VerifierStatus.PASSED),  # Missing checked_at
+                final=FinalStatus.SUCCESS,
+            )
+
+    def test_verifier_pending_without_checked_at_allowed(self) -> None:
+        """PENDING verifier status does not require checked_at."""
+        trace = RunTrace(
+            workspace_id="ws-1",
+            mode=ExecutionMode.MANUAL,
+            playbook=PlaybookMetadata(name="default", version="1.0"),
+            started_at=datetime.now(UTC),
+            verifier=Verifier(status=VerifierStatus.PENDING),
+            final=FinalStatus.ABORTED,  # Not SUCCESS, so PENDING is OK
+        )
+        assert trace.verifier.status == VerifierStatus.PENDING
+        assert trace.verifier.checked_at is None
+
+    def test_workspace_source_field_optional(self) -> None:
+        """AF-0030: workspace_source field is optional for backwards compatibility."""
+        now = datetime.now(UTC)
+        trace = RunTrace(
+            workspace_id="ws-1",
+            mode=ExecutionMode.MANUAL,
+            playbook=PlaybookMetadata(name="default", version="1.0"),
+            started_at=now,
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now),
+            final=FinalStatus.SUCCESS,
+            # workspace_source not provided
+        )
+        assert trace.workspace_source is None
+
+    def test_workspace_source_all_values(self) -> None:
+        """AF-0030: workspace_source accepts all defined enum values."""
+        now = datetime.now(UTC)
+        for source in WorkspaceSource:
+            trace = RunTrace(
+                workspace_id="ws-1",
+                workspace_source=source,
+                mode=ExecutionMode.MANUAL,
+                playbook=PlaybookMetadata(name="default", version="1.0"),
+                started_at=now,
+                verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now),
+                final=FinalStatus.SUCCESS,
+            )
+            assert trace.workspace_source == source
+
 
 class TestRunTraceAdditiveEvolution:
     """Guardrail tests: v0.1 fields must remain additive-only."""
@@ -230,6 +299,7 @@ class TestRunTraceAdditiveEvolution:
         "trace_version",
         "run_id",
         "workspace_id",
+        "workspace_source",  # AF-0030
         "mode",
         "playbook",
         "started_at",
@@ -349,13 +419,14 @@ class TestSchemaIntegration:
 
     def test_taskspec_mode_matches_runtrace_mode(self) -> None:
         """ExecutionMode enum is shared across TaskSpec and RunTrace."""
+        now = datetime.now(UTC)
         spec = TaskSpec(prompt="test", workspace_id="ws-1", mode=ExecutionMode.SUPERVISED)
         trace = RunTrace(
             workspace_id="ws-1",
             mode=ExecutionMode.SUPERVISED,
             playbook=PlaybookMetadata(name="default", version="1.0"),
-            started_at=datetime.now(UTC),
-            verifier=Verifier(status=VerifierStatus.PENDING),
+            started_at=now,
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now),
             final=FinalStatus.SUCCESS,
         )
         assert spec.mode == trace.mode
