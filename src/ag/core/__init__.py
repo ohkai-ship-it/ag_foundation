@@ -41,6 +41,14 @@ from .runtime import (
     V0Verifier,
     create_runtime,
 )
+from .schema_verifier import (
+    SchemaValidator,
+    ValidationAttempt,
+    ValidationResult,
+    create_verification_step,
+    record_validation_steps,
+    run_validation_loop,
+)
 from .task_spec import (
     Budgets,
     Constraints,
@@ -94,4 +102,11 @@ __all__ = [
     "V0Verifier",
     "V0Recorder",
     "create_runtime",
+    # schema_verifier (AF-0050)
+    "SchemaValidator",
+    "ValidationAttempt",
+    "ValidationResult",
+    "create_verification_step",
+    "record_validation_steps",
+    "run_validation_loop",
 ]
