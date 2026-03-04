@@ -1,25 +1,23 @@
-# Decisions (ADRs) — Index
+# INDEX_DECISIONS
+# Version number: v0.2
 
-This folder contains **Architecture Decision Records (ADRs)** for ag_foundation.
+> **Location (new):** `/docs/dev/decisions/INDEX_DECISIONS.md`  
+> **Naming (required):** `ADR###_<three_word_description>.md` in `/docs/dev/decisions/files/`
 
-## What Goes Here
-ADRs document significant technical decisions, especially:
-- P1+ changes to architecture, schemas, or module boundaries
-- Adoption of major dependencies (frameworks, libraries)
-- Changes to core contracts (TaskSpec, RunTrace, CLI)
+---
 
 ## Current ADRs
+| ID | Status | Title | New file (target path) |
+|---:|:--:|---|---|
+| ADR-0001 | Accepted | Architecture baseline | `/docs/dev/decisions/files/ADR001_architecture_baseline.md` |
+| ADR-0002 | Accepted | Trace versioning strategy | `/docs/dev/decisions/files/ADR002_trace_versioning_strategy.md` |
+| ADR-0003 | Accepted | Manual mode gating | `/docs/dev/decisions/files/ADR003_manual_mode_gating.md` |
+| ADR-0004 | Accepted | Storage baseline | `/docs/dev/decisions/files/ADR004_storage_baseline.md` |
+| ADR-0005 | Accepted | Orchestrator threshold | `/docs/dev/decisions/files/ADR005_orchestrator_threshold.md` |
 
-| ID | Title | Status |
-|---:|---|:--:|
-| ADR-0001 | [Architecture baseline](ADR-0001-architecture-baseline.md) | Accepted |
-| ADR-0002 | [Trace versioning strategy](ADR-0002-trace-versioning.md) | Accepted |
-| ADR-0003 | [Manual mode gating](ADR-0003-manual-mode-gating.md) | Accepted |
-| ADR-0004 | [Storage baseline](ADR-0004-storage-baseline.md) | Accepted |
-| ADR-0005 | [Orchestrator threshold](ADR-0005-orchestrator-threshold.md) | Accepted |
+---
 
-## How to Use
-1. Use `templates/ADR_TEMPLATE.md` to create a new ADR.
-2. Name it `ADR-XXXX-<short-title>.md` (sequential numbering).
-3. Link the ADR from the relevant backlog item and PR.
-4. Mark status: Proposed → Accepted → Superseded (if replaced).
+## How to use
+1. Create ADR from `/docs/dev/decisions/templates/ADR_TEMPLATE.md`
+2. Link ADR from the relevant AF item + PR
+3. Update status: Proposed → Accepted → Superseded/Deprecated

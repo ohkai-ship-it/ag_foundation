@@ -1,36 +1,75 @@
-# ADR-XXXX — <Decision title>
-# Version number: v0.1
+# ADR### — <three_word_description>
+# Version number: v0.2
+
+> **File naming (required):** `ADR###_<three_word_description>.md`  
+> Status values: `Proposed | Accepted | Superseded | Deprecated`
+
+---
 
 ## Metadata
-- **ADR:** ADR-XXXX
+- **ADR:** ADR###
 - **Status:** Proposed | Accepted | Superseded | Deprecated
 - **Date:** YYYY-MM-DD
-- **Owners:** <name(s)>
-- **Related backlog item(s):** AF-000x
+- **Owners:** Kai | Jeff | Jacob
+- **Reviewers:** Kai | Jeff | Jacob
+- **Related backlog item(s):** AF#### (required)
+- **Related bug(s):** BUG#### (optional)
 - **Related PR(s):** #<number> (optional)
-- **Reviewers:** <Kai / Jeff / ...>
+
+---
 
 ## Context
 What problem are we solving? What constraints matter? Why now?
 
+---
+
 ## Decision
 What did we decide? Keep it precise and testable.
 
+---
+
 ## Options considered
-1) **Option A:** ...
-   - Pros:
-   - Cons:
-2) **Option B:** ...
-   - Pros:
-   - Cons:
+
+### Option A — <name>
+**Pros**
+- ...
+
+**Cons**
+- ...
+
+### Option B — <name>
+**Pros**
+- ...
+
+**Cons**
+- ...
+
+(Add more options if needed.)
+
+---
 
 ## Consequences
 What becomes easier/harder? What follow-up work does this imply?
 
+---
+
 ## Guardrails / invariants
-What must remain true going forward? (e.g., truthful UX, workspace isolation)
+What must remain true going forward?
+Examples:
+- Truthful UX (labels trace-derived)
+- Workspace isolation
+- Manual mode remains dev/test-only
+- Interfaces remain swappable
+
+---
+
+## Implementation notes (optional)
+What code/docs will change? Any migration concerns?
+
+---
 
 ## Links
-- ARCHITECTURE section: ...
-- PROJECT_PLAN section: ...
-- Any relevant issues/docs: ...
+- ARCHITECTURE.md section: ...
+- CLI_REFERENCE.md section: ...
+- REVIEW_GUIDE.md section: ...
+- Any PRs/issues/docs: ...
