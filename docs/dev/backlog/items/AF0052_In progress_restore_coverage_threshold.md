@@ -6,11 +6,11 @@
 
 -   **ID:** AF0052
 -   **Type:** Foundation
--   **Status:** Ready
+-   **Status:** In progress
 -   **Priority:** P0
 -   **Area:** Testing / CI
 -   **Owner:** Jacob
--   **Target sprint:** Sprint06 --- TBD
+-   **Target sprint:** Sprint05 --- High_Pressure_Skills (follow-up)
 
 ------------------------------------------------------------------------
 

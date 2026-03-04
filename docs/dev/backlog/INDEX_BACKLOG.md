@@ -21,10 +21,6 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 ## Active backlog (current)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
 |---:|:--:|:--|---|---|---|---|
-| AF-0052 | P0 | Ready | Restore coverage threshold | Testing | Jacob | `/docs/dev/backlog/items/AF0052_Ready_restore_coverage_threshold.md` |
-| AF-0053 | P0 | Ready | Provider test stability | Testing | Jacob | `/docs/dev/backlog/items/AF0053_Ready_provider_test_stability.md` |
-| AF-0054 | P1 | Ready | Citation model unification | Core | Jacob | `/docs/dev/backlog/items/AF0054_Ready_citation_model_unification.md` |
-| AF-0055 | P1 | Ready | Verifier loop bounding | Verifier | Jacob | `/docs/dev/backlog/items/AF0055_Ready_verifier_loop_bounding.md` |
 | AF-0047 | P0 | Done | Foundation consolidation refactor | Docs/Process | Jacob | `/docs/dev/backlog/items/AF0047_Done_foundation_consolidation.md` |
 | AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `/docs/dev/backlog/items/AF0046_Proposed_test_isolation_framework.md` |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `/docs/dev/backlog/items/AF0012_Ready_cli_reference_surface.md` |
@@ -33,6 +29,14 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 | AF-0036 | P1 | Proposed | Remove global CLI flags (needs design) | CLI | Jacob | `/docs/dev/backlog/items/AF0036_Proposed_remove_global_cli.md` |
 
 ---
+
+## Sprint 05 items — in progress (follow-ups)
+| ID | Priority | Status | Title | Area | Owner | New file (target path) |
+|---:|:--:|:--|---|---|---|---|
+| AF-0052 | P0 | In progress | Restore coverage threshold | Testing | Jacob | `/docs/dev/backlog/items/AF0052_In progress_restore_coverage_threshold.md` |
+| AF-0053 | P0 | Ready | Provider test stability | Testing | Jacob | `/docs/dev/backlog/items/AF0053_Ready_provider_test_stability.md` |
+| AF-0054 | P1 | Ready | Citation model unification | Core | Jacob | `/docs/dev/backlog/items/AF0054_Ready_citation_model_unification.md` |
+| AF-0055 | P1 | Ready | Verifier loop bounding | Verifier | Jacob | `/docs/dev/backlog/items/AF0055_Ready_verifier_loop_bounding.md` |
 
 ## Sprint 05 items — completed (ACCEPT WITH FOLLOW-UPS)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
