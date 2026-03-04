@@ -44,6 +44,8 @@ from .runtime import (
     create_runtime,
 )
 from .schema_verifier import (
+    DEFAULT_MAX_VALIDATION_ATTEMPTS,
+    MAX_VALIDATION_ATTEMPTS_CEILING,
     SchemaValidator,
     ValidationAttempt,
     ValidationResult,

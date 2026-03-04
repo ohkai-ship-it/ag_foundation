@@ -1,4 +1,4 @@
-"""Tests for schema verifier with repair loop (AF-0050)."""
+"""Tests for schema verifier with repair loop (AF-0050, AF-0055)."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ import pytest
 from pydantic import BaseModel, Field
 
 from ag.core import (
+    DEFAULT_MAX_VALIDATION_ATTEMPTS,
+    MAX_VALIDATION_ATTEMPTS_CEILING,
     ExecutionMode,
     RunTraceBuilder,
     SchemaValidator,
@@ -583,3 +585,153 @@ class TestSchemaVerifierContracts:
                 total_attempts=1,
                 extra_field="not allowed",  # type: ignore
             )
+
+
+# ---------------------------------------------------------------------------
+# Loop bounding tests (AF-0055)
+# ---------------------------------------------------------------------------
+
+
+class TestLoopBounding:
+    """Tests for verifier loop bounding (AF-0055)."""
+
+    def test_default_max_attempts_constant(self) -> None:
+        """Verify DEFAULT_MAX_VALIDATION_ATTEMPTS is 3."""
+        assert DEFAULT_MAX_VALIDATION_ATTEMPTS == 3
+
+    def test_max_attempts_ceiling_constant(self) -> None:
+        """Verify MAX_VALIDATION_ATTEMPTS_CEILING is 10."""
+        assert MAX_VALIDATION_ATTEMPTS_CEILING == 10
+
+    def test_validator_uses_default_max_attempts(self) -> None:
+        """Validator defaults to DEFAULT_MAX_VALIDATION_ATTEMPTS."""
+        validator = SchemaValidator(SimpleOutput)
+        assert validator.max_attempts == DEFAULT_MAX_VALIDATION_ATTEMPTS
+
+    def test_validator_rejects_exceeding_ceiling(self) -> None:
+        """Validator rejects max_attempts above ceiling."""
+        with pytest.raises(ValueError, match="cannot exceed"):
+            SchemaValidator(SimpleOutput, max_attempts=11)
+
+    def test_validator_accepts_ceiling_value(self) -> None:
+        """Validator accepts exactly the ceiling value."""
+        validator = SchemaValidator(SimpleOutput, max_attempts=MAX_VALIDATION_ATTEMPTS_CEILING)
+        assert validator.max_attempts == MAX_VALIDATION_ATTEMPTS_CEILING
+
+    def test_loop_terminates_at_max_attempts(self) -> None:
+        """Loop terminates exactly at max_attempts, not before or after."""
+        for max_atts in [1, 2, 3, 5, 10]:
+            validator = SchemaValidator(SimpleOutput, max_attempts=max_atts)
+            call_count = 0
+
+            def counting_repair(data: dict, errors: list[str]) -> tuple[dict, str]:
+                nonlocal call_count
+                call_count += 1
+                return data, f"repair {call_count}"
+
+            # Always-invalid data
+            result = validator.validate_with_repair(
+                {"answer": "", "confidence": 0.5},
+                repair_fn=counting_repair,
+            )
+
+            # Should have exactly max_atts attempts
+            assert result.total_attempts == max_atts
+            # Repair called (max_atts - 1) times (between attempts)
+            assert call_count == max_atts - 1
+            assert not result.success
+
+    def test_loop_terminates_on_success(self) -> None:
+        """Loop terminates early on successful validation."""
+        repair_count = 0
+
+        def fixing_repair(data: dict, errors: list[str]) -> tuple[dict, str]:
+            nonlocal repair_count
+            repair_count += 1
+            # Fix the data on second repair
+            if repair_count >= 2:
+                return {"answer": "fixed", "confidence": 0.8}, "fixed data"
+            return data, "not fixed yet"
+
+        validator = SchemaValidator(SimpleOutput, max_attempts=10)
+        result = validator.validate_with_repair(
+            {"answer": "", "confidence": 0.5},
+            repair_fn=fixing_repair,
+        )
+
+        # Should succeed after 3 attempts (1 initial + 2 repairs)
+        assert result.success is True
+        assert result.total_attempts == 3
+        assert repair_count == 2
+
+    def test_infinite_repair_bounded(self) -> None:
+        """Even an infinite repair loop is bounded by max_attempts."""
+        infinite_call_count = 0
+
+        def infinite_repair(data: dict, errors: list[str]) -> tuple[dict, str]:
+            nonlocal infinite_call_count
+            infinite_call_count += 1
+            # Always return invalid data - simulates infinite loop potential
+            return {"answer": "", "confidence": 2.0}, f"repair {infinite_call_count}"
+
+        validator = SchemaValidator(SimpleOutput, max_attempts=5)
+        result = validator.validate_with_repair(
+            {"answer": "", "confidence": -1.0},
+            repair_fn=infinite_repair,
+        )
+
+        # Must terminate at 5 attempts
+        assert result.total_attempts == 5
+        assert not result.success
+        # Repair called exactly 4 times (max_attempts - 1)
+        assert infinite_call_count == 4
+
+    def test_retry_metadata_in_trace(self) -> None:
+        """Verify retry count is recorded in trace verifier evidence."""
+        builder = RunTraceBuilder(
+            workspace_id="test-bounding",
+            mode=ExecutionMode.MANUAL,
+            playbook_name="test",
+            playbook_version="1.0",
+        )
+
+        # Run validation that will fail (single attempt, no repair)
+        result, builder = run_validation_loop(
+            builder=builder,
+            data={"answer": "", "confidence": 0.5},
+            schema_model=SimpleOutput,
+            repair_fn=None,
+            max_attempts=1,
+        )
+
+        # Build trace and check verifier evidence
+        trace = builder.build()
+        assert trace.verifier.status == VerifierStatus.FAILED
+        assert trace.verifier.evidence is not None
+        assert trace.verifier.evidence.get("attempts") == 1
+        assert trace.verifier.evidence.get("schema") == "SimpleOutput"
+
+    def test_retry_metadata_in_trace_after_repairs(self) -> None:
+        """Verify retry count reflects all attempts in trace."""
+        builder = RunTraceBuilder(
+            workspace_id="test-bounding-repairs",
+            mode=ExecutionMode.MANUAL,
+            playbook_name="test",
+            playbook_version="1.0",
+        )
+
+        def bad_repair(data: dict, errors: list[str]) -> tuple[dict, str]:
+            return data, "bad repair"
+
+        result, builder = run_validation_loop(
+            builder=builder,
+            data={"answer": "", "confidence": 0.5},
+            schema_model=SimpleOutput,
+            repair_fn=bad_repair,
+            max_attempts=4,
+        )
+
+        trace = builder.build()
+        assert trace.verifier.status == VerifierStatus.FAILED
+        assert trace.verifier.evidence is not None
+        assert trace.verifier.evidence.get("attempts") == 4

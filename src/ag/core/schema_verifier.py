@@ -2,6 +2,16 @@
 
 Implements JSON schema validation with automatic repair attempts,
 recording all validation steps in RunTrace.
+
+Loop Bounding (AF-0055):
+    All validation loops are bounded by configurable limits to prevent
+    unbounded retries. The default is DEFAULT_MAX_VALIDATION_ATTEMPTS (3).
+    Bounds can be configured per-validator or per-call.
+
+    Infinite retry scenarios are impossible:
+    - max_attempts must be >= 1 (enforced in SchemaValidator.__init__)
+    - Loop counter counts from 1 to max_attempts (inclusive)
+    - No early exits that bypass the loop counter
 """
 
 from __future__ import annotations
@@ -19,6 +29,18 @@ from .run_trace import (
     StepType,
     VerifierStatus,
 )
+
+# ---------------------------------------------------------------------------
+# Constants (AF-0055: Loop bounding)
+# ---------------------------------------------------------------------------
+
+#: Default maximum validation attempts. Set conservatively to avoid
+#: runaway retries while allowing reasonable repair attempts.
+DEFAULT_MAX_VALIDATION_ATTEMPTS: int = 3
+
+#: Absolute maximum allowed for max_attempts (safety ceiling).
+#: Prevents misconfiguration from causing excessive retries.
+MAX_VALIDATION_ATTEMPTS_CEILING: int = 10
 
 
 class ValidationAttempt(BaseModel):
@@ -61,23 +83,40 @@ RepairFn = Callable[[dict[str, Any], list[str]], tuple[dict[str, Any], str]]
 
 
 class SchemaValidator:
-    """Validates data against a Pydantic model with repair loop support."""
+    """Validates data against a Pydantic model with repair loop support.
+
+    Loop bounding (AF-0055):
+        - max_attempts defaults to DEFAULT_MAX_VALIDATION_ATTEMPTS (3)
+        - max_attempts is capped at MAX_VALIDATION_ATTEMPTS_CEILING (10)
+        - Loop is guaranteed to terminate after max_attempts iterations
+    """
 
     def __init__(
         self,
         schema_model: type[BaseModel],
-        max_attempts: int = 3,
+        max_attempts: int = DEFAULT_MAX_VALIDATION_ATTEMPTS,
     ) -> None:
         """Initialize validator.
 
         Args:
             schema_model: Pydantic model class to validate against
-            max_attempts: Maximum validation attempts (including initial)
+            max_attempts: Maximum validation attempts (including initial).
+                          Default: DEFAULT_MAX_VALIDATION_ATTEMPTS (3).
+                          Max: MAX_VALIDATION_ATTEMPTS_CEILING (10).
+
+        Raises:
+            TypeError: If schema_model is not a Pydantic BaseModel subclass.
+            ValueError: If max_attempts < 1 or > MAX_VALIDATION_ATTEMPTS_CEILING.
         """
         if not isinstance(schema_model, type) or not issubclass(schema_model, BaseModel):
             raise TypeError("schema_model must be a Pydantic BaseModel subclass")
         if max_attempts < 1:
             raise ValueError("max_attempts must be at least 1")
+        if max_attempts > MAX_VALIDATION_ATTEMPTS_CEILING:
+            raise ValueError(
+                f"max_attempts cannot exceed {MAX_VALIDATION_ATTEMPTS_CEILING} "
+                f"(got {max_attempts})"
+            )
 
         self._schema_model = schema_model
         self._max_attempts = max_attempts
@@ -223,18 +262,23 @@ def run_validation_loop(
     data: dict[str, Any],
     schema_model: type[BaseModel],
     repair_fn: RepairFn | None = None,
-    max_attempts: int = 3,
+    max_attempts: int = DEFAULT_MAX_VALIDATION_ATTEMPTS,
 ) -> tuple[ValidationResult, RunTraceBuilder]:
     """Run full validation loop with RunTrace recording.
 
     This is the main entry point for schema validation with repair loop.
+
+    Loop bounding (AF-0055):
+        - max_attempts defaults to DEFAULT_MAX_VALIDATION_ATTEMPTS (3)
+        - max_attempts is capped at MAX_VALIDATION_ATTEMPTS_CEILING (10)
+        - Retry count is recorded in verifier evidence for trace visibility
 
     Args:
         builder: RunTraceBuilder to record steps
         data: Data to validate
         schema_model: Pydantic model to validate against
         repair_fn: Optional repair function for failed validations
-        max_attempts: Maximum validation attempts
+        max_attempts: Maximum validation attempts (capped at ceiling)
 
     Returns:
         Tuple of (ValidationResult, updated RunTraceBuilder)

@@ -30,13 +30,13 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 
 ---
 
-## Sprint 05 items — in progress (follow-ups)
+## Sprint 05 items — completed (follow-ups)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
 |---:|:--:|:--|---|---|---|---|
 | AF-0052 | P0 | Done | Restore coverage threshold | Testing | Jacob | `/docs/dev/backlog/items/AF0052_Done_restore_coverage_threshold.md` |
 | AF-0053 | P0 | Done | Provider test stability | Testing | Jacob | `/docs/dev/backlog/items/AF0053_Done_provider_test_stability.md` |
 | AF-0054 | P1 | Done | Citation model unification | Core | Jacob | `/docs/dev/backlog/items/AF0054_Done_citation_model_unification.md` |
-| AF-0055 | P1 | Ready | Verifier loop bounding | Verifier | Jacob | `/docs/dev/backlog/items/AF0055_Ready_verifier_loop_bounding.md` |
+| AF-0055 | P1 | Done | Verifier loop bounding | Verifier | Jacob | `/docs/dev/backlog/items/AF0055_Done_verifier_loop_bounding.md` |
 
 ## Sprint 05 items — completed (ACCEPT WITH FOLLOW-UPS)
 | ID | Priority | Status | Title | Area | Owner | New file (target path) |
