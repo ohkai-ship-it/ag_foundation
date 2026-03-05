@@ -5,7 +5,7 @@
 ## Metadata
 
 -   ID: BUG-0006
--   Status: Resolved
+-   Status: Fixed
 -   Severity: P1
 -   Area: CLI
 -   Reported by: Kai

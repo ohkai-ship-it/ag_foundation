@@ -118,7 +118,8 @@ The error handling code uses the resolved workspace name regardless of how it wa
 ---
 
 ## Notes
-Consider also improving the `ag ws use <name>` error — while the name is explicit, the suggestion to create might be inappropriate if user just mistyped.
+- Consider also improving the `ag ws use <name>` error — while the name is explicit, the suggestion to create might be inappropriate if user just mistyped.
+- Related: Review what information `ag ws list` displays. If we're being careful about not leaking implicit state, we should also consider what this command reveals and whether it's appropriate.
 
 ---
 

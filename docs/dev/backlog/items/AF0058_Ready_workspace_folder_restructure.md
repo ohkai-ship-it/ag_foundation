@@ -25,6 +25,7 @@
 - **Area:** Storage
 - **Owner:** Jacob
 - **Target sprint:** Sprint06 (or later)
+- **Related ADR(s):** ADR006 (workspace folder structure)
 
 ---
 
@@ -143,9 +144,25 @@ dev01/
 
 | Risk | Mitigation |
 |------|------------|
-| Breaking existing workspaces | Document that v0.x workspaces need manual migration; provide migration script as optional |
 | Path changes break tests | Update tests incrementally, run after each component change |
 | Skills hardcoded to workspace root | Abstract via `workspace.inputs_path` property |
+
+**Note:** Migration is not a concern — v0.x workspaces can be deleted and recreated clean.
+
+---
+
+## Related
+- BUG0011 (workspace name leak) — workspace context improvements
+- AF0060 (Skill definition framework) — skills need workspace path abstraction
+
+---
+
+## Documentation impact
+This change may require:
+- **ADR:** If significant design decisions are made (e.g., migration strategy, path conventions)
+- **ARCHITECTURE.md:** Update workspace/storage sections with new folder structure
+- **CLI_REFERENCE.md:** Update any path references in command examples
+- **README.md:** Update workspace setup instructions if changed
 
 ---
 

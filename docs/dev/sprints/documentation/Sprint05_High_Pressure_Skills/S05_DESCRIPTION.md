@@ -28,7 +28,7 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Accepted
+- **State:** Closed
 
 ---
 
@@ -127,10 +127,23 @@ Force the architecture to prove itself under a realistic multi-step, evidence-he
 ---
 
 ## 10) Completed work
+
+### Original scope (ACCEPT WITH FOLLOW-UPS)
 - ✅ AF0048 — Structured brief skill (commit `5399e28`)
 - ✅ AF0049 — Evidence capture discipline (commit `16090ce`)
 - ✅ AF0050 — Verifier schema loop (commit `b73783a`)
 - ✅ AF0051 — Artifact export hardening (commit `6560de2`)
+
+### Follow-ups completed (before close)
+- ✅ AF0052 — Restore coverage threshold (P0)
+- ✅ AF0053 — Provider test stability (P0)
+- ✅ AF0054 — Citation model unification (P1)
+- ✅ AF0055 — Verifier loop bounding (P1)
+
+### Bug fixes (Sprint 05 review period)
+- ✅ BUG0008 — Fixed skill routing missing
+- ✅ BUG0009 — Fixed direct skill skips verifier
+- ✅ BUG0010 — Fixed skill trace missing artifacts
 
 ---
 
@@ -141,16 +154,16 @@ Force the architecture to prove itself under a realistic multi-step, evidence-he
 
 ## 12) Evidence
 - Review file(s):
-  - `S05_REVIEW_01.md` (pending)
+  - `S05_REVIEW_01.md` (completed)
 - Representative commits:
   - `5399e28` — feat(AF0048): implement strategic_brief skill
   - `16090ce` — feat(AF0049): add EvidenceRef for citation traceability
   - `b73783a` — feat(AF0050): implement schema verifier with repair loop
   - `6560de2` — feat(AF0051): add typed artifacts and deterministic export
-- Test summary:
-  - `pytest -W error`: 276 passed (excluding 2 pre-existing provider test failures)
-  - Coverage: 79% overall
-  - New tests: 25 (strategic_brief) + 8 (evidence) + 34 (schema_verifier) + 21 (artifacts) = 88 new tests
+- Test summary (final):
+  - `pytest -W error`: 337 passed (2 pre-existing provider test warnings)
+  - Coverage: 87% overall (threshold restored)
+  - New tests: 88+ tests across strategic_brief, evidence, schema_verifier, artifacts
 
 ---
 
