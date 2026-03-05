@@ -381,10 +381,11 @@ def run(
             raise typer.Exit(code=1)
 
         try:
-            # Execute skill directly with prompt as workspace parameter
+            # Execute skill directly with prompt and workspace path
             skill_params = {
                 "prompt": prompt,
                 "workspace": resolved_workspace,
+                "workspace_path": str(ws.path),  # Full path for skills that need it
             }
             success, output_summary, result = registry.execute(skill, skill_params)
 
