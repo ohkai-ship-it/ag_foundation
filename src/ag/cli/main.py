@@ -410,18 +410,18 @@ def run(
                 # Strategic brief skill returns nested structure with citations
                 brief_data = result.get("brief", {})
                 sections = brief_data.get("sections", [])
+                seen_refs: set[str] = set()  # Deduplicate by source_path
                 for section in sections:
                     citations = section.get("citations", [])
-                    for citation in citations:
-                        # Convert citation dict to EvidenceRef
-                        sources = brief_data.get("sources", [])
-                        source_idx = citation.get("source_index", 0)
-                        if 0 <= source_idx < len(sources):
-                            source = sources[source_idx]
+                    for idx, citation in enumerate(citations):
+                        # Citation has source_path directly
+                        source_path = citation.get("source_path", "")
+                        if source_path and source_path not in seen_refs:
+                            seen_refs.add(source_path)
                             evidence_refs.append(EvidenceRef(
-                                ref_id=f"cite-{source_idx}-{citation.get('excerpt_index', 0)}",
+                                ref_id=f"cite-{len(evidence_refs)}",
                                 source_type="file",
-                                source_path=source.get("path", ""),
+                                source_path=source_path,
                                 excerpt=citation.get("excerpt", "")[:200] if citation.get("excerpt") else None,
                             ))
 
