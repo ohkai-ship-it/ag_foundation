@@ -25,6 +25,7 @@ from rich.table import Table  # noqa: E402
 from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
 from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.core.task_spec import ExecutionMode  # noqa: E402
 from ag.skills import get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
 
@@ -372,6 +373,11 @@ def run(
 
     # Direct skill execution mode (bypasses playbook)
     if skill:
+        from datetime import UTC, datetime
+        from uuid import uuid4
+
+        from ag.core.run_trace import PlaybookMetadata, Verifier, Step, StepType
+
         registry = get_default_registry()
         if not registry.has(skill):
             err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill}")
@@ -379,6 +385,10 @@ def run(
             for name in sorted(registry.list()):
                 err_console.print(f"  - {name}")
             raise typer.Exit(code=1)
+
+        # Generate run ID and timestamps
+        run_id = str(uuid4())
+        started_at = datetime.now(UTC)
 
         try:
             # Execute skill directly with prompt and workspace path
@@ -389,20 +399,109 @@ def run(
             }
             success, output_summary, result = registry.execute(skill, skill_params)
 
+            ended_at = datetime.now(UTC)
+            duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+            # Create step record for the skill execution
+            step = Step(
+                step_id=f"{run_id}-step-0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                skill_name=skill,
+                input_summary=prompt[:100] if prompt else "",
+                output_summary=output_summary,
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=duration_ms,
+                error=None if success else output_summary,
+            )
+
+            # Create RunTrace for persistence
+            trace = RunTrace(
+                run_id=run_id,
+                workspace_id=resolved_workspace,
+                workspace_source=None,
+                mode=ExecutionMode.SUPERVISED,
+                playbook=PlaybookMetadata(name=f"skill:{skill}", version="1.0.0"),
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=duration_ms,
+                steps=[step],
+                artifacts=[],
+                verifier=Verifier(
+                    status=VerifierStatus.SKIPPED,
+                    checked_at=ended_at,
+                    message="Direct skill execution - verifier skipped",
+                ),
+                final=FinalStatus.SUCCESS if success else FinalStatus.FAILED,
+                error=None if success else output_summary,
+            )
+
+            # Persist run to storage
+            run_store = _get_run_store()
+            artifact_store = _get_artifact_store()
+            run_store.save(trace)
+
+            # Save skill result as artifacts
+            from ag.core.run_trace import Artifact
+
+            artifacts_saved = []
+            if result:
+                # Save JSON result
+                json_artifact_id = f"{run_id}-{skill}_result"
+                json_content = json.dumps(result, indent=2, default=str).encode("utf-8")
+                json_artifact = Artifact(
+                    artifact_id=json_artifact_id,
+                    path=f"{skill}_result.json",
+                    artifact_type="application/json",
+                    size_bytes=len(json_content),
+                )
+                artifact_store.save(
+                    workspace_id=resolved_workspace,
+                    run_id=run_id,
+                    artifact=json_artifact,
+                    content=json_content,
+                )
+                artifacts_saved.append(json_artifact_id)
+
+                # If result has markdown output, save that too
+                if "brief_md" in result:
+                    md_artifact_id = f"{run_id}-{skill}_brief"
+                    md_content = result["brief_md"].encode("utf-8")
+                    md_artifact = Artifact(
+                        artifact_id=md_artifact_id,
+                        path=f"{skill}_brief.md",
+                        artifact_type="text/markdown",
+                        size_bytes=len(md_content),
+                    )
+                    artifact_store.save(
+                        workspace_id=resolved_workspace,
+                        run_id=run_id,
+                        artifact=md_artifact,
+                        content=md_content,
+                    )
+                    artifacts_saved.append(md_artifact_id)
+
             if resolved_json:
                 console.print(json.dumps({
+                    "run_id": run_id,
                     "skill": skill,
                     "success": success,
                     "output": output_summary,
                     "result": result,
+                    "artifacts": artifacts_saved,
                 }, indent=2))
             else:
                 status = "[green]✓ Success[/green]" if success else "[red]✗ Failed[/red]"
                 if not resolved_quiet:
                     console.print()
                     console.print(f"[bold]Skill executed:[/bold] {skill}")
+                    console.print(f"  Run ID: {run_id}")
                     console.print(f"  Status: {status}")
                     console.print(f"  Output: {output_summary}")
+                    console.print(f"  Duration: {duration_ms}ms")
+                    if artifacts_saved:
+                        console.print(f"  Artifacts: {len(artifacts_saved)} saved")
 
                     if resolved_verbose and result:
                         console.print()
