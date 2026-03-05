@@ -467,7 +467,7 @@ def run(
             from ag.core.runtime import V0Verifier
 
             verifier = V0Verifier()
-            final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILED
+            final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
             verify_status, verify_message = verifier.verify_components([step], final_status)
 
             # Create RunTrace for persistence (artifacts will be updated after saving)

@@ -21,6 +21,7 @@
 | BUG-0007 | P1 | Open | OpenAI provider test isolation failure | Testing | `/docs/dev/bugs/reports/BUG0007_Open_openai_test_isolation.md` |
 | BUG-0002 | P2 | Open | Missing ag run options per CLI reference | CLI | `/docs/dev/bugs/reports/BUG0002_Open_missing_ag_run.md` |
 | BUG-0003 | P2 | Open | Missing CLI subcommands per reference spec | CLI | `/docs/dev/bugs/reports/BUG0003_Open_missing_cli_subcommands.md` |
+| BUG-0011 | P2 | Open | Default workspace name leaked in error | CLI | `/docs/dev/bugs/reports/BUG0011_Open_default_workspace_name_leaked.md` |
 
 ---
 
