@@ -376,7 +376,7 @@ def run(
         from datetime import UTC, datetime
         from uuid import uuid4
 
-        from ag.core.run_trace import PlaybookMetadata, Verifier, Step, StepType
+        from ag.core.run_trace import PlaybookMetadata, Step, StepType, Verifier
 
         registry = get_default_registry()
         if not registry.has(skill):
@@ -410,11 +410,11 @@ def run(
                 # Strategic brief skill returns nested structure with citations
                 brief_data = result.get("brief", {})
                 sections = brief_data.get("sections", [])
-                
+
                 # Build source map for excerpt lookup
                 sources = brief_data.get("sources", [])
                 source_map: dict[str, dict] = {s.get("path", ""): s for s in sources}
-                
+
                 seen_refs: set[str] = set()  # Deduplicate by source_path
                 for section in sections:
                     citations = section.get("citations", [])
@@ -422,12 +422,12 @@ def run(
                         source_path = citation.get("source_path", "")
                         if source_path and source_path not in seen_refs:
                             seen_refs.add(source_path)
-                            
+
                             # Look up excerpt details from source
                             excerpt: str | None = None
                             line_start: int | None = None
                             line_end: int | None = None
-                            
+
                             source_data = source_map.get(source_path, {})
                             excerpt_idx = citation.get("excerpt_index")
                             if excerpt_idx is not None:
@@ -437,16 +437,18 @@ def run(
                                     excerpt = exc.get("content", "")[:200]
                                     line_start = exc.get("line_start")
                                     line_end = exc.get("line_end")
-                            
-                            evidence_refs.append(EvidenceRef(
-                                ref_id=f"cite-{len(evidence_refs)}",
-                                source_type="file",
-                                source_path=source_path,
-                                excerpt=excerpt,
-                                line_start=line_start,
-                                line_end=line_end,
-                                relevance=citation.get("context") or None,
-                            ))
+
+                            evidence_refs.append(
+                                EvidenceRef(
+                                    ref_id=f"cite-{len(evidence_refs)}",
+                                    source_type="file",
+                                    source_path=source_path,
+                                    excerpt=excerpt,
+                                    line_start=line_start,
+                                    line_end=line_end,
+                                    relevance=citation.get("context") or None,
+                                )
+                            )
 
             # Create step record for the skill execution
             step = Step(
@@ -541,19 +543,28 @@ def run(
             run_store.save(trace)
 
             if resolved_json:
-                console.print(json.dumps({
-                    "run_id": run_id,
-                    "skill": skill,
-                    "success": success,
-                    "verified": verify_status,
-                    "verification_message": verify_message,
-                    "output": output_summary,
-                    "result": result,
-                    "artifacts": artifact_ids,
-                }, indent=2))
+                console.print(
+                    json.dumps(
+                        {
+                            "run_id": run_id,
+                            "skill": skill,
+                            "success": success,
+                            "verified": verify_status,
+                            "verification_message": verify_message,
+                            "output": output_summary,
+                            "result": result,
+                            "artifacts": artifact_ids,
+                        },
+                        indent=2,
+                    )
+                )
             else:
                 status = "[green]✓ Success[/green]" if success else "[red]✗ Failed[/red]"
-                verified_display = f"[green]{verify_status}[/green]" if verify_status == "PASS" else f"[yellow]{verify_status}[/yellow]"
+                verified_display = (
+                    f"[green]{verify_status}[/green]"
+                    if verify_status == "PASS"
+                    else f"[yellow]{verify_status}[/yellow]"
+                )
                 if not resolved_quiet:
                     console.print()
                     console.print(f"[bold]Skill executed:[/bold] {skill}")

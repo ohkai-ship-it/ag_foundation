@@ -114,8 +114,7 @@ class SchemaValidator:
             raise ValueError("max_attempts must be at least 1")
         if max_attempts > MAX_VALIDATION_ATTEMPTS_CEILING:
             raise ValueError(
-                f"max_attempts cannot exceed {MAX_VALIDATION_ATTEMPTS_CEILING} "
-                f"(got {max_attempts})"
+                f"max_attempts cannot exceed {MAX_VALIDATION_ATTEMPTS_CEILING} (got {max_attempts})"
             )
 
         self._schema_model = schema_model
