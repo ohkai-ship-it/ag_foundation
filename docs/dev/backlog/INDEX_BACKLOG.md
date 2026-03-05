@@ -29,6 +29,7 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 | AF-0061 | P2 | Proposed | Status CAPS convention | Docs/Process | Kai | `AF0061_Proposed_status_caps_convention.md` |
 | AF-0062 | P1 | Proposed | Trace LLM model tracking | Core | Kai | `AF0062_Proposed_trace_llm_model_tracking.md` |
 | AF-0063 | P2 | Proposed | Schema inventory documentation | Docs/Core | Kai | `AF0063_Proposed_schema_inventory_documentation.md` |
+| AF-0064 | P1 | Proposed | Sprint PR timing clarification | Process/Docs | Kai | `AF0064_Proposed_sprint_pr_timing_clarification.md` |
 | AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `AF0046_Proposed_test_isolation_framework.md` |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `AF0012_Ready_cli_reference_surface.md` |
 | AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob | `AF0013_Ready_contract_inventory_hardening.md` |
