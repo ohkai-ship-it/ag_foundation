@@ -15,13 +15,15 @@
 ---
 
 ## Current ADRs
-| ID | Status | Title | New file (target path) |
+| ID | Status | Title | Filename |
 |---:|:--:|---|---|
-| ADR-0001 | Accepted | Architecture baseline | `/docs/dev/decisions/files/ADR001_architecture_baseline.md` |
-| ADR-0002 | Accepted | Trace versioning strategy | `/docs/dev/decisions/files/ADR002_trace_versioning_strategy.md` |
-| ADR-0003 | Accepted | Manual mode gating | `/docs/dev/decisions/files/ADR003_manual_mode_gating.md` |
-| ADR-0004 | Accepted | Storage baseline | `/docs/dev/decisions/files/ADR004_storage_baseline.md` |
-| ADR-0005 | Accepted | Orchestrator threshold | `/docs/dev/decisions/files/ADR005_orchestrator_threshold.md` |
+| ADR-0001 | Accepted | Architecture baseline | `ADR001_architecture_baseline.md` |
+| ADR-0002 | Accepted | Trace versioning strategy | `ADR002_trace_versioning_strategy.md` |
+| ADR-0003 | Accepted | Manual mode gating | `ADR003_manual_mode_gating.md` |
+| ADR-0004 | Accepted | Storage baseline | `ADR004_storage_baseline.md` |
+| ADR-0005 | Accepted | Orchestrator threshold | `ADR005_orchestrator_threshold.md` |
+| ADR-0006 | Proposed | Workspace folder structure | `ADR006_workspace_folder_structure.md` |
+| ADR-0007 | Proposed | Configuration state separation | `ADR007_configuration_state_separation.md` |
 
 ---
 

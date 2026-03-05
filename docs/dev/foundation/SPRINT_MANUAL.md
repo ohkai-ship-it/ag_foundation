@@ -24,6 +24,8 @@ Read these documents completely before starting:
 - [ ] Confirm sprint scope matches INDEX entries
 - [ ] Confirm all AF statuses are `Ready` (not `Proposed`)
 - [ ] Confirm naming conventions are applied to all files
+- [ ] Create sprint folder and move description file into it
+- [ ] Update all index files
 - [ ] Confirm no filename ↔ status mismatches exist
 - [ ] Ask clarifying questions in chat if anything unclear
 - [ ] **Wait for explicit "proceed" from Kai before implementation**

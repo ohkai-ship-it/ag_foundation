@@ -171,7 +171,18 @@ Every run must produce a trace with:
   - errors + retries
 - final status: success/failure + verifier result
 
-### 6.2 Truthful output rule
+### 6.2 Citation models (AF0054)
+Two citation layers exist:
+
+| Model | Layer | Location | Purpose |
+|-------|-------|----------|---------|
+| `EvidenceRef` | Core | `run_trace.py` | Trace-level evidence tracking for steps |
+| `Citation` | Skill | e.g., `strategic_brief.py` | Skill output artifact schema |
+
+**Ownership rule**: Skills define lightweight citation models for their output artifacts.
+When recording to the trace, convert to `EvidenceRef` using `to_evidence_ref()`.
+
+### 6.3 Truthful output rule
 CLI/API/UI output labels must derive from trace facts, e.g.:
 - “used retrieval” only if Retriever invoked
 - “verified” only if Verifier recorded pass

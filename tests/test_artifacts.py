@@ -14,7 +14,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 
 from ag.cli.main import app
-from ag.core import Artifact, create_runtime
+from ag.core import Artifact, ArtifactCategory, create_runtime, infer_artifact_category
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
 
 runner = CliRunner()
@@ -300,3 +300,232 @@ class TestArtifactsIntegration:
         # For now, we just verify the command runs without error
         # The actual file won't be found because paths don't match
         assert result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# AF-0051: Artifact category and export tests
+# ---------------------------------------------------------------------------
+
+
+class TestArtifactCategory:
+    """Tests for ArtifactCategory enum (AF-0051)."""
+
+    def test_category_values(self) -> None:
+        """Test that ArtifactCategory has expected values."""
+        assert ArtifactCategory.RESULT.value == "result"
+        assert ArtifactCategory.LOG.value == "log"
+        assert ArtifactCategory.TRACE.value == "trace"
+        assert ArtifactCategory.CONFIG.value == "config"
+        assert ArtifactCategory.DOCUMENT.value == "document"
+        assert ArtifactCategory.DATA.value == "data"
+        assert ArtifactCategory.CODE.value == "code"
+        assert ArtifactCategory.IMAGE.value == "image"
+        assert ArtifactCategory.BINARY.value == "binary"
+        assert ArtifactCategory.UNKNOWN.value == "unknown"
+
+    def test_category_is_string_enum(self) -> None:
+        """Test that ArtifactCategory is a string enum."""
+        assert isinstance(ArtifactCategory.RESULT, str)
+        assert ArtifactCategory.RESULT == "result"
+
+
+class TestInferArtifactCategory:
+    """Tests for infer_artifact_category function (AF-0051)."""
+
+    def test_infer_result_from_path(self) -> None:
+        """Test inferring RESULT category from path."""
+        assert infer_artifact_category("text/markdown", "result.md") == ArtifactCategory.RESULT
+        assert infer_artifact_category("text/plain", "my_result.txt") == ArtifactCategory.RESULT
+
+    def test_infer_trace_from_path(self) -> None:
+        """Test inferring TRACE category from path."""
+        assert infer_artifact_category("application/json", "trace.json") == ArtifactCategory.TRACE
+
+    def test_infer_log_from_path(self) -> None:
+        """Test inferring LOG category from path."""
+        assert infer_artifact_category("text/plain", "output.log") == ArtifactCategory.LOG
+        assert infer_artifact_category("log", "file.txt") == ArtifactCategory.LOG
+
+    def test_infer_config_from_path(self) -> None:
+        """Test inferring CONFIG category from path."""
+        assert infer_artifact_category("application/json", "config.json") == ArtifactCategory.CONFIG
+        assert infer_artifact_category("text/yaml", "settings.yaml") == ArtifactCategory.CONFIG
+
+    def test_infer_document_from_mime(self) -> None:
+        """Test inferring DOCUMENT category from MIME type."""
+        assert infer_artifact_category("text/markdown", "file.md") == ArtifactCategory.DOCUMENT
+        assert infer_artifact_category("text/plain", "readme.txt") == ArtifactCategory.DOCUMENT
+
+    def test_infer_data_from_mime(self) -> None:
+        """Test inferring DATA category from MIME type."""
+        assert infer_artifact_category("application/json", "data.json") == ArtifactCategory.DATA
+
+    def test_infer_image_from_mime(self) -> None:
+        """Test inferring IMAGE category from MIME type."""
+        assert infer_artifact_category("image/png", "chart.png") == ArtifactCategory.IMAGE
+        assert infer_artifact_category("image/jpeg", "photo.jpg") == ArtifactCategory.IMAGE
+
+    def test_infer_code_from_extension(self) -> None:
+        """Test inferring CODE category from file extension."""
+        assert infer_artifact_category("text/plain", "script.py") == ArtifactCategory.CODE
+        assert infer_artifact_category("text/plain", "module.ts") == ArtifactCategory.CODE
+        assert infer_artifact_category("text/plain", "main.go") == ArtifactCategory.CODE
+
+    def test_infer_binary_from_mime(self) -> None:
+        """Test inferring BINARY category from MIME type."""
+        assert (
+            infer_artifact_category("application/octet-stream", "file.bin")
+            == ArtifactCategory.BINARY
+        )
+
+    def test_infer_unknown_fallback(self) -> None:
+        """Test fallback to UNKNOWN for unrecognized types."""
+        assert infer_artifact_category("application/weird", "file.xyz") == ArtifactCategory.UNKNOWN
+
+
+class TestArtifactGetCategory:
+    """Tests for Artifact.get_category method (AF-0051)."""
+
+    def test_explicit_category_returned(self) -> None:
+        """Test that explicit category is returned when set."""
+        artifact = Artifact(
+            artifact_id="test",
+            path="file.txt",
+            artifact_type="text/plain",
+            category=ArtifactCategory.DATA,
+        )
+        assert artifact.get_category() == ArtifactCategory.DATA
+
+    def test_inferred_category_when_not_set(self) -> None:
+        """Test that category is inferred when not set."""
+        artifact = Artifact(
+            artifact_id="test",
+            path="result.md",
+            artifact_type="text/markdown",
+        )
+        assert artifact.get_category() == ArtifactCategory.RESULT
+
+    def test_category_field_optional(self) -> None:
+        """Test that category field is optional (additive change)."""
+        artifact = Artifact(
+            artifact_id="test",
+            path="file.txt",
+            artifact_type="text/plain",
+        )
+        assert artifact.category is None
+
+
+class TestArtifactsExportCLI:
+    """Tests for ag artifacts export command (AF-0051)."""
+
+    def test_export_requires_workspace(self) -> None:
+        """ag artifacts export should require --workspace."""
+        result = runner.invoke(
+            app,
+            [
+                "artifacts",
+                "export",
+                "test-artifact",
+                "--run",
+                "test-run",
+                "--to",
+                "output.txt",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "--workspace is required" in result.output
+
+    def test_export_requires_run(self) -> None:
+        """ag artifacts export should require --run."""
+        result = runner.invoke(
+            app,
+            [
+                "artifacts",
+                "export",
+                "test-artifact",
+                "--workspace",
+                "test-ws",
+                "--to",
+                "output.txt",
+            ],
+        )
+        assert result.exit_code != 0
+
+    def test_export_requires_to_path(self) -> None:
+        """ag artifacts export should require --to."""
+        result = runner.invoke(
+            app,
+            [
+                "artifacts",
+                "export",
+                "test-artifact",
+                "--workspace",
+                "test-ws",
+                "--run",
+                "test-run",
+            ],
+        )
+        assert result.exit_code != 0
+
+    def test_export_artifact_not_found(self, tmp_path: Path, monkeypatch) -> None:
+        """ag artifacts export should error if artifact not found."""
+        from ag.storage.workspace import Workspace
+
+        monkeypatch.setenv("AG_WORKSPACES_ROOT", str(tmp_path))
+
+        ws = Workspace("export-test", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            [
+                "artifacts",
+                "export",
+                "nonexistent",
+                "--run",
+                "test-run",
+                "--workspace",
+                "export-test",
+                "--to",
+                str(tmp_path / "output.txt"),
+            ],
+        )
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+
+class TestArtifactsShowCLI:
+    """Tests for ag artifacts show command (AF-0051)."""
+
+    def test_show_requires_workspace(self) -> None:
+        """ag artifacts show should require --workspace."""
+        result = runner.invoke(
+            app,
+            ["artifacts", "show", "test-artifact", "--run", "test-run"],
+        )
+        assert result.exit_code == 1
+        assert "--workspace is required" in result.output
+
+    def test_show_artifact_not_found(self, tmp_path: Path, monkeypatch) -> None:
+        """ag artifacts show should error if artifact not found."""
+        from ag.storage.workspace import Workspace
+
+        monkeypatch.setenv("AG_WORKSPACES_ROOT", str(tmp_path))
+
+        ws = Workspace("show-test", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            [
+                "artifacts",
+                "show",
+                "nonexistent",
+                "--run",
+                "test-run",
+                "--workspace",
+                "show-test",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "not found" in result.output

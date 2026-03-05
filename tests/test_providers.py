@@ -164,15 +164,14 @@ class TestOpenAIProvider:
         if not _openai_sdk_available:
             pytest.skip("OpenAI SDK not installed - skipping SDK-dependent test")
 
-        config = ProviderConfig(provider="openai", model="gpt-4", api_key=None)
-        provider = get_provider(config)
-
-        # Clear any env var for this test
+        # Clear any env var BEFORE creating provider (reads key at init)
         import os
 
         original = os.environ.pop("OPENAI_API_KEY", None)
 
         try:
+            config = ProviderConfig(provider="openai", model="gpt-4", api_key=None)
+            provider = get_provider(config)
             with pytest.raises(ProviderError) as exc_info:
                 provider.validate_config()
             assert exc_info.value.error_type == "config_error"
@@ -187,15 +186,14 @@ class TestOpenAIProvider:
         if not _openai_sdk_available:
             pytest.skip("OpenAI SDK not installed - skipping SDK-dependent test")
 
-        config = ProviderConfig(provider="openai", model="gpt-4", api_key=None)
-        provider = get_provider(config)
-
-        # Clear any env var for this test
+        # Clear any env var BEFORE creating provider (reads key at init)
         import os
 
         original = os.environ.pop("OPENAI_API_KEY", None)
 
         try:
+            config = ProviderConfig(provider="openai", model="gpt-4", api_key=None)
+            provider = get_provider(config)
             messages = [ChatMessage(role=MessageRole.USER, content="Hello")]
             with pytest.raises(ProviderError) as exc_info:
                 provider.chat(messages)

@@ -20,6 +20,8 @@ from .playbook import (
 from .playbooks import DEFAULT_V0, get_playbook, list_playbooks
 from .run_trace import (
     Artifact,
+    ArtifactCategory,
+    EvidenceRef,
     FinalStatus,
     PlaybookMetadata,
     RunTrace,
@@ -29,6 +31,7 @@ from .run_trace import (
     Verifier,
     VerifierStatus,
     WorkspaceSource,
+    infer_artifact_category,
 )
 from .runtime import (
     Runtime,
@@ -39,6 +42,16 @@ from .runtime import (
     V0Recorder,
     V0Verifier,
     create_runtime,
+)
+from .schema_verifier import (
+    DEFAULT_MAX_VALIDATION_ATTEMPTS,
+    MAX_VALIDATION_ATTEMPTS_CEILING,
+    SchemaValidator,
+    ValidationAttempt,
+    ValidationResult,
+    create_verification_step,
+    record_validation_steps,
+    run_validation_loop,
 )
 from .task_spec import (
     Budgets,
@@ -59,6 +72,8 @@ __all__ = [
     "RunTrace",
     "RunTraceBuilder",
     "Artifact",
+    "ArtifactCategory",
+    "EvidenceRef",
     "Step",
     "StepType",
     "PlaybookMetadata",
@@ -66,6 +81,7 @@ __all__ = [
     "VerifierStatus",
     "FinalStatus",
     "WorkspaceSource",
+    "infer_artifact_category",
     # playbook
     "Playbook",
     "PlaybookBuilder",
@@ -92,4 +108,13 @@ __all__ = [
     "V0Verifier",
     "V0Recorder",
     "create_runtime",
+    # schema_verifier (AF-0050)
+    "SchemaValidator",
+    "ValidationAttempt",
+    "ValidationResult",
+    "create_verification_step",
+    "record_validation_steps",
+    "run_validation_loop",
+    "DEFAULT_MAX_VALIDATION_ATTEMPTS",
+    "MAX_VALIDATION_ATTEMPTS_CEILING",
 ]

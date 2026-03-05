@@ -25,6 +25,8 @@ from rich.table import Table  # noqa: E402
 from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
 from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.core.task_spec import ExecutionMode  # noqa: E402
+from ag.skills import get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
 
 # Console for rich output
@@ -262,6 +264,9 @@ def run(
     playbook: Optional[str] = typer.Option(
         None, "--playbook", "-p", help="Override playbook selection."
     ),
+    skill: Optional[str] = typer.Option(
+        None, "--skill", "-s", help="Run a specific skill directly (bypasses playbook)."
+    ),
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
@@ -365,6 +370,224 @@ def run(
             raise typer.Exit(code=1)
         if not resolved_quiet and not resolved_json:
             _print_manual_mode_banner()
+
+    # Direct skill execution mode (bypasses playbook)
+    if skill:
+        from datetime import UTC, datetime
+        from uuid import uuid4
+
+        from ag.core.run_trace import PlaybookMetadata, Step, StepType, Verifier
+
+        registry = get_default_registry()
+        if not registry.has(skill):
+            err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill}")
+            err_console.print("\nAvailable skills:")
+            for name in sorted(registry.list()):
+                err_console.print(f"  - {name}")
+            raise typer.Exit(code=1)
+
+        # Generate run ID and timestamps
+        run_id = str(uuid4())
+        started_at = datetime.now(UTC)
+
+        try:
+            # Execute skill directly with prompt and workspace path
+            skill_params = {
+                "prompt": prompt,
+                "workspace": resolved_workspace,
+                "workspace_path": str(ws.path),  # Full path for skills that need it
+            }
+            success, output_summary, result = registry.execute(skill, skill_params)
+
+            ended_at = datetime.now(UTC)
+            duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+            # BUG0010: Extract evidence_refs from skill result (if present)
+            from ag.core.run_trace import Artifact, EvidenceRef
+
+            evidence_refs: list[EvidenceRef] = []
+            if result and "brief" in result:
+                # Strategic brief skill returns nested structure with citations
+                brief_data = result.get("brief", {})
+                sections = brief_data.get("sections", [])
+
+                # Build source map for excerpt lookup
+                sources = brief_data.get("sources", [])
+                source_map: dict[str, dict] = {s.get("path", ""): s for s in sources}
+
+                seen_refs: set[str] = set()  # Deduplicate by source_path
+                for section in sections:
+                    citations = section.get("citations", [])
+                    for citation in citations:
+                        source_path = citation.get("source_path", "")
+                        if source_path and source_path not in seen_refs:
+                            seen_refs.add(source_path)
+
+                            # Look up excerpt details from source
+                            excerpt: str | None = None
+                            line_start: int | None = None
+                            line_end: int | None = None
+
+                            source_data = source_map.get(source_path, {})
+                            excerpt_idx = citation.get("excerpt_index")
+                            if excerpt_idx is not None:
+                                excerpts = source_data.get("excerpts", [])
+                                if 0 <= excerpt_idx < len(excerpts):
+                                    exc = excerpts[excerpt_idx]
+                                    excerpt = exc.get("content", "")[:200]
+                                    line_start = exc.get("line_start")
+                                    line_end = exc.get("line_end")
+
+                            evidence_refs.append(
+                                EvidenceRef(
+                                    ref_id=f"cite-{len(evidence_refs)}",
+                                    source_type="file",
+                                    source_path=source_path,
+                                    excerpt=excerpt,
+                                    line_start=line_start,
+                                    line_end=line_end,
+                                    relevance=citation.get("context") or None,
+                                )
+                            )
+
+            # Create step record for the skill execution
+            step = Step(
+                step_id=f"{run_id}-step-0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                skill_name=skill,
+                input_summary=prompt[:100] if prompt else "",
+                output_summary=output_summary,
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=duration_ms,
+                error=None if success else output_summary,
+                evidence_refs=evidence_refs if evidence_refs else None,
+            )
+
+            # BUG0009: Run verifier on step (not skipped)
+            from ag.core.runtime import V0Verifier
+
+            verifier = V0Verifier()
+            final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
+            verify_status, verify_message = verifier.verify_components([step], final_status)
+
+            # Create RunTrace for persistence (artifacts will be updated after saving)
+            trace = RunTrace(
+                run_id=run_id,
+                workspace_id=resolved_workspace,
+                workspace_source=None,
+                mode=ExecutionMode.SUPERVISED,
+                playbook=PlaybookMetadata(name=f"skill:{skill}", version="1.0.0"),
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=duration_ms,
+                steps=[step],
+                artifacts=[],  # Will be updated after artifact save
+                verifier=Verifier(
+                    status=VerifierStatus(verify_status),
+                    checked_at=ended_at,
+                    message=verify_message,
+                ),
+                final=final_status,
+                error=None if success else output_summary,
+            )
+
+            # Persist run to storage
+            run_store = _get_run_store()
+            artifact_store = _get_artifact_store()
+
+            # Save skill result as artifacts
+            artifacts_saved: list[Artifact] = []
+            artifact_ids: list[str] = []
+            if result:
+                # Save JSON result
+                json_artifact_id = f"{run_id}-{skill}_result"
+                json_content = json.dumps(result, indent=2, default=str).encode("utf-8")
+                json_artifact = Artifact(
+                    artifact_id=json_artifact_id,
+                    path=f"{skill}_result.json",
+                    artifact_type="application/json",
+                    size_bytes=len(json_content),
+                )
+                artifact_store.save(
+                    workspace_id=resolved_workspace,
+                    run_id=run_id,
+                    artifact=json_artifact,
+                    content=json_content,
+                )
+                artifacts_saved.append(json_artifact)
+                artifact_ids.append(json_artifact_id)
+
+                # If result has markdown output, save that too
+                if "brief_md" in result:
+                    md_artifact_id = f"{run_id}-{skill}_brief"
+                    md_content = result["brief_md"].encode("utf-8")
+                    md_artifact = Artifact(
+                        artifact_id=md_artifact_id,
+                        path=f"{skill}_brief.md",
+                        artifact_type="text/markdown",
+                        size_bytes=len(md_content),
+                    )
+                    artifact_store.save(
+                        workspace_id=resolved_workspace,
+                        run_id=run_id,
+                        artifact=md_artifact,
+                        content=md_content,
+                    )
+                    artifacts_saved.append(md_artifact)
+                    artifact_ids.append(md_artifact_id)
+
+            # BUG0010: Update trace with Artifact objects before saving
+            trace.artifacts = artifacts_saved
+            run_store.save(trace)
+
+            if resolved_json:
+                console.print(
+                    json.dumps(
+                        {
+                            "run_id": run_id,
+                            "skill": skill,
+                            "success": success,
+                            "verified": verify_status,
+                            "verification_message": verify_message,
+                            "output": output_summary,
+                            "result": result,
+                            "artifacts": artifact_ids,
+                        },
+                        indent=2,
+                    )
+                )
+            else:
+                status = "[green]✓ Success[/green]" if success else "[red]✗ Failed[/red]"
+                verified_display = (
+                    f"[green]{verify_status}[/green]"
+                    if verify_status == "PASS"
+                    else f"[yellow]{verify_status}[/yellow]"
+                )
+                if not resolved_quiet:
+                    console.print()
+                    console.print(f"[bold]Skill executed:[/bold] {skill}")
+                    console.print(f"  Run ID: {run_id}")
+                    console.print(f"  Status: {status}")
+                    console.print(f"  Verified: {verified_display}")
+                    console.print(f"  Output: {output_summary}")
+                    console.print(f"  Duration: {duration_ms}ms")
+                    if artifact_ids:
+                        console.print(f"  Artifacts: {len(artifact_ids)} saved")
+
+                    if resolved_verbose and result:
+                        console.print()
+                        console.print("[dim]Result data:[/dim]")
+                        console.print(json.dumps(result, indent=2, default=str))
+
+            raise typer.Exit(code=0 if success else 1)
+
+        except typer.Exit:
+            raise  # Re-raise typer.Exit unchanged
+        except Exception as e:
+            err_console.print(f"[bold red]Error executing skill:[/bold red] {e}")
+            raise typer.Exit(code=1)
 
     # Create and execute runtime
     run_store = _get_run_store()
@@ -864,10 +1087,137 @@ def artifacts_list(
 
 
 @artifacts_app.command("show")
-def artifacts_show(artifact_id: str = typer.Argument(..., help="Artifact ID.")) -> None:
-    """Show artifact details."""
-    console.print(f"[dim]Artifact:[/dim] {artifact_id}")
-    console.print("[yellow]⚠ Stub — not implemented yet (see AF-0009)[/yellow]")
+def artifacts_show(
+    ctx: typer.Context,
+    artifact_id: str = typer.Argument(..., help="Artifact ID."),
+    run_id: str = typer.Option(..., "--run", "-r", help="Run ID."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Show artifact details and preview content."""
+    from ag.core import ArtifactCategory
+
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required for artifact show.")
+        raise typer.Exit(code=1)
+
+    artifact_store = _get_artifact_store()
+
+    result = artifact_store.get(resolved_workspace, run_id, artifact_id)
+    if result is None:
+        err_console.print(f"[bold red]Error:[/bold red] Artifact {artifact_id} not found.")
+        artifact_store.close()
+        raise typer.Exit(code=1)
+
+    artifact, content = result
+
+    if resolved_json:
+        json_data = {
+            "artifact_id": artifact.artifact_id,
+            "path": artifact.path,
+            "artifact_type": artifact.artifact_type,
+            "category": artifact.get_category().value,
+            "size_bytes": artifact.size_bytes,
+            "checksum": artifact.checksum,
+            "created_at": artifact.created_at.isoformat() if artifact.created_at else None,
+            "metadata": artifact.metadata,
+        }
+        print(json.dumps(json_data, indent=2))
+    else:
+        category = artifact.get_category()
+        console.print(f"[bold]Artifact:[/bold] {artifact.artifact_id}")
+        console.print(f"  [dim]Path:[/dim] {artifact.path}")
+        console.print(f"  [dim]Type:[/dim] {artifact.artifact_type}")
+        console.print(f"  [dim]Category:[/dim] {category.value}")
+        if artifact.size_bytes is not None:
+            console.print(f"  [dim]Size:[/dim] {artifact.size_bytes} bytes")
+        if artifact.checksum:
+            console.print(f"  [dim]Checksum:[/dim] {artifact.checksum}")
+        if artifact.created_at:
+            console.print(f"  [dim]Created:[/dim] {artifact.created_at.isoformat()}")
+
+        # Preview content for text-based artifacts
+        if category in (
+            ArtifactCategory.RESULT,
+            ArtifactCategory.DOCUMENT,
+            ArtifactCategory.LOG,
+            ArtifactCategory.CODE,
+            ArtifactCategory.DATA,
+            ArtifactCategory.CONFIG,
+        ):
+            try:
+                text = content.decode("utf-8")
+                lines = text.split("\n")
+                preview_lines = lines[:20]
+                console.print("\n[bold]Content preview:[/bold]")
+                for line in preview_lines:
+                    console.print(f"  {line}")
+                if len(lines) > 20:
+                    console.print(f"  [dim]... ({len(lines) - 20} more lines)[/dim]")
+            except UnicodeDecodeError:
+                console.print("\n[dim]Binary content - cannot preview[/dim]")
+        else:
+            console.print(f"\n[dim]Binary content ({len(content)} bytes)[/dim]")
+
+    artifact_store.close()
+
+
+@artifacts_app.command("export")
+def artifacts_export(
+    ctx: typer.Context,
+    artifact_id: str = typer.Argument(..., help="Artifact ID to export."),
+    run_id: str = typer.Option(..., "--run", "-r", help="Run ID."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    output_path: str = typer.Option(..., "--to", "-o", help="Destination path for export."),
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite if file exists."),
+) -> None:
+    """Export artifact content to a local file.
+
+    Copies the artifact content to the specified destination path.
+    Use --force to overwrite existing files.
+    """
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+
+    if not resolved_workspace:
+        err_console.print(
+            "[bold red]Error:[/bold red] --workspace is required for artifact export."
+        )
+        raise typer.Exit(code=1)
+
+    # Check if output path already exists
+    output = Path(output_path)
+    if output.exists() and not force:
+        err_console.print(
+            f"[bold red]Error:[/bold red] {output_path} already exists. Use --force to overwrite."
+        )
+        raise typer.Exit(code=1)
+
+    artifact_store = _get_artifact_store()
+
+    result = artifact_store.get(resolved_workspace, run_id, artifact_id)
+    if result is None:
+        err_console.print(f"[bold red]Error:[/bold red] Artifact {artifact_id} not found.")
+        artifact_store.close()
+        raise typer.Exit(code=1)
+
+    artifact, content = result
+
+    # Create parent directories if needed
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write content to file
+    output.write_bytes(content)
+
+    console.print(f"[green]✓[/green] Exported {artifact.artifact_id} to {output_path}")
+    console.print(f"  [dim]Size: {len(content)} bytes[/dim]")
+    console.print(f"  [dim]Category: {artifact.get_category().value}[/dim]")
+
+    artifact_store.close()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -878,14 +1228,40 @@ def artifacts_show(artifact_id: str = typer.Argument(..., help="Artifact ID.")) 
 @skills_app.command("list")
 def skills_list() -> None:
     """List available skills."""
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    registry = get_default_registry()
+    skills = sorted(registry.list())
+
+    if not skills:
+        console.print("[dim]No skills registered.[/dim]")
+        return
+
+    table = Table(title="Registered Skills")
+    table.add_column("Name", style="cyan")
+    table.add_column("Description")
+
+    for name in skills:
+        info = registry.get(name)
+        desc = info.description if info else ""
+        table.add_row(name, desc)
+
+    console.print(table)
 
 
 @skills_app.command("info")
 def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> None:
     """Show skill details."""
-    console.print(f"[dim]Skill:[/dim] {skill_name}")
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    registry = get_default_registry()
+    info = registry.get(skill_name)
+
+    if not info:
+        err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill_name}")
+        err_console.print("\nAvailable skills:")
+        for name in sorted(registry.list()):
+            err_console.print(f"  - {name}")
+        raise typer.Exit(code=1)
+
+    console.print(f"[bold]Skill:[/bold] {info.name}")
+    console.print(f"[bold]Description:[/bold] {info.description}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ from ag.core import (
     Artifact,
     Budgets,
     Constraints,
+    EvidenceRef,
     ExecutionMode,
     FinalStatus,
     Playbook,
@@ -290,6 +291,155 @@ class TestRunTraceContract:
                 final=FinalStatus.SUCCESS,
             )
             assert trace.workspace_source == source
+
+
+class TestEvidenceRefContract:
+    """Contract tests for EvidenceRef v0.1 (AF-0049)."""
+
+    def test_required_fields(self) -> None:
+        """EvidenceRef has required fields."""
+        ref = EvidenceRef(
+            ref_id="ref-1",
+            source_type="file",
+            source_path="/docs/readme.md",
+        )
+        assert ref.ref_id == "ref-1"
+        assert ref.source_type == "file"
+        assert ref.source_path == "/docs/readme.md"
+
+    def test_optional_fields_default_none(self) -> None:
+        """Optional fields default to None."""
+        ref = EvidenceRef(
+            ref_id="ref-1",
+            source_type="file",
+            source_path="/docs/readme.md",
+        )
+        assert ref.excerpt is None
+        assert ref.line_start is None
+        assert ref.line_end is None
+        assert ref.relevance is None
+        assert ref.confidence is None
+        assert ref.metadata == {}
+
+    def test_full_evidence_ref(self) -> None:
+        """EvidenceRef with all fields populated."""
+        ref = EvidenceRef(
+            ref_id="ref-123",
+            source_type="file",
+            source_path="/docs/architecture.md",
+            excerpt="The system uses a layered architecture...",
+            line_start=10,
+            line_end=25,
+            relevance="Describes core architecture principles",
+            confidence=0.95,
+            metadata={"section": "overview", "heading": "Architecture"},
+        )
+        assert ref.ref_id == "ref-123"
+        assert ref.excerpt == "The system uses a layered architecture..."
+        assert ref.line_start == 10
+        assert ref.line_end == 25
+        assert ref.relevance == "Describes core architecture principles"
+        assert ref.confidence == 0.95
+        assert ref.metadata["section"] == "overview"
+
+    def test_confidence_bounds(self) -> None:
+        """Confidence must be between 0 and 1."""
+        # Valid bounds
+        ref_low = EvidenceRef(ref_id="r1", source_type="file", source_path="/a.md", confidence=0.0)
+        ref_high = EvidenceRef(ref_id="r2", source_type="file", source_path="/b.md", confidence=1.0)
+        assert ref_low.confidence == 0.0
+        assert ref_high.confidence == 1.0
+
+        # Invalid bounds
+        with pytest.raises(Exception):
+            EvidenceRef(ref_id="r3", source_type="file", source_path="/c.md", confidence=-0.1)
+        with pytest.raises(Exception):
+            EvidenceRef(ref_id="r4", source_type="file", source_path="/d.md", confidence=1.1)
+
+    def test_line_numbers_positive(self) -> None:
+        """Line numbers must be positive (1-indexed)."""
+        ref = EvidenceRef(
+            ref_id="r1",
+            source_type="file",
+            source_path="/a.md",
+            line_start=1,
+            line_end=10,
+        )
+        assert ref.line_start == 1
+
+        with pytest.raises(Exception):
+            EvidenceRef(ref_id="r2", source_type="file", source_path="/b.md", line_start=0)
+
+    def test_step_with_evidence_refs(self) -> None:
+        """Step can include evidence_refs field (AF-0049)."""
+        now = datetime.now(UTC)
+        refs = [
+            EvidenceRef(
+                ref_id="ref-1",
+                source_type="file",
+                source_path="/docs/readme.md",
+                excerpt="Project overview",
+            ),
+            EvidenceRef(
+                ref_id="ref-2",
+                source_type="file",
+                source_path="/docs/design.md",
+                line_start=1,
+                line_end=20,
+            ),
+        ]
+        step = Step(
+            step_id="step-1",
+            step_number=0,
+            step_type=StepType.SKILL_CALL,
+            skill_name="strategic_brief",
+            started_at=now,
+            evidence_refs=refs,
+        )
+        assert step.evidence_refs is not None
+        assert len(step.evidence_refs) == 2
+        assert step.evidence_refs[0].source_path == "/docs/readme.md"
+        assert step.evidence_refs[1].line_end == 20
+
+    def test_step_evidence_refs_optional(self) -> None:
+        """evidence_refs is optional (backward compatible)."""
+        now = datetime.now(UTC)
+        step = Step(
+            step_id="step-1",
+            step_number=0,
+            step_type=StepType.SKILL_CALL,
+            started_at=now,
+        )
+        assert step.evidence_refs is None
+
+    def test_builder_with_evidence_refs(self) -> None:
+        """RunTraceBuilder supports evidence_refs on steps."""
+        refs = [
+            EvidenceRef(
+                ref_id="ref-1",
+                source_type="file",
+                source_path="/data/source.md",
+            )
+        ]
+        builder = RunTraceBuilder(
+            workspace_id="ws-1",
+            mode=ExecutionMode.MANUAL,
+            playbook_name="test",
+            playbook_version="1.0",
+        )
+        builder.add_step(
+            step_type=StepType.SKILL_CALL,
+            skill_name="read_sources",
+            evidence_refs=refs,
+        )
+        builder.verify(VerifierStatus.PASSED)
+        builder.complete(FinalStatus.SUCCESS)
+        trace = builder.build()
+
+        assert len(trace.steps) == 1
+        assert trace.steps[0].evidence_refs is not None
+        assert len(trace.steps[0].evidence_refs) == 1
+        assert trace.steps[0].evidence_refs[0].source_path == "/data/source.md"
 
 
 class TestRunTraceAdditiveEvolution:

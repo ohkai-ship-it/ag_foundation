@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from ag.skills.strategic_brief import strategic_brief_skill
+
 # Skill function signature: (params: dict) -> tuple[bool, str, dict]
 # Returns: (success, output_summary, result_data)
 SkillFn = Callable[[dict[str, Any]], tuple[bool, str, dict[str, Any]]]
@@ -248,6 +250,13 @@ def create_default_registry() -> SkillRegistry:
     # Failure testing skills
     registry.register("fail_skill", "Always fails (for testing)", _fail_skill)
     registry.register("error_skill", "Always raises exception (for testing)", _error_skill)
+
+    # AF-0048: Strategic brief skill
+    registry.register(
+        "strategic_brief",
+        "Generate strategic brief from workspace markdown files",
+        strategic_brief_skill,
+    )
 
     return registry
 
