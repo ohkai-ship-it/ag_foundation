@@ -410,19 +410,42 @@ def run(
                 # Strategic brief skill returns nested structure with citations
                 brief_data = result.get("brief", {})
                 sections = brief_data.get("sections", [])
+                
+                # Build source map for excerpt lookup
+                sources = brief_data.get("sources", [])
+                source_map: dict[str, dict] = {s.get("path", ""): s for s in sources}
+                
                 seen_refs: set[str] = set()  # Deduplicate by source_path
                 for section in sections:
                     citations = section.get("citations", [])
-                    for idx, citation in enumerate(citations):
-                        # Citation has source_path directly
+                    for citation in citations:
                         source_path = citation.get("source_path", "")
                         if source_path and source_path not in seen_refs:
                             seen_refs.add(source_path)
+                            
+                            # Look up excerpt details from source
+                            excerpt: str | None = None
+                            line_start: int | None = None
+                            line_end: int | None = None
+                            
+                            source_data = source_map.get(source_path, {})
+                            excerpt_idx = citation.get("excerpt_index")
+                            if excerpt_idx is not None:
+                                excerpts = source_data.get("excerpts", [])
+                                if 0 <= excerpt_idx < len(excerpts):
+                                    exc = excerpts[excerpt_idx]
+                                    excerpt = exc.get("content", "")[:200]
+                                    line_start = exc.get("line_start")
+                                    line_end = exc.get("line_end")
+                            
                             evidence_refs.append(EvidenceRef(
                                 ref_id=f"cite-{len(evidence_refs)}",
                                 source_type="file",
                                 source_path=source_path,
-                                excerpt=citation.get("excerpt", "")[:200] if citation.get("excerpt") else None,
+                                excerpt=excerpt,
+                                line_start=line_start,
+                                line_end=line_end,
+                                relevance=citation.get("context") or None,
                             ))
 
             # Create step record for the skill execution
