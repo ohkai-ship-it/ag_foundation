@@ -18,6 +18,8 @@
 ## Open bugs
 | ID | Severity | Status | Title | Area | New file (target path) |
 |---:|:--:|:--|---|---|---|
+| BUG-0009 | P0 | Open | Direct skill skips verifier | CLI/Core/Verifier | `/docs/dev/bugs/reports/BUG0009_Open_direct_skill_skips_verifier.md` |
+| BUG-0010 | P0 | Open | Skill trace missing artifacts evidence | Core/Recorder/Skills | `/docs/dev/bugs/reports/BUG0010_Open_skill_trace_missing_artifacts.md` |
 | BUG-0007 | P1 | Open | OpenAI provider test isolation failure | Testing | `/docs/dev/bugs/reports/BUG0007_Open_openai_test_isolation.md` |
 | BUG-0002 | P2 | Open | Missing ag run options per CLI reference | CLI | `/docs/dev/bugs/reports/BUG0002_Open_missing_ag_run.md` |
 | BUG-0003 | P2 | Open | Missing CLI subcommands per reference spec | CLI | `/docs/dev/bugs/reports/BUG0003_Open_missing_cli_subcommands.md` |
