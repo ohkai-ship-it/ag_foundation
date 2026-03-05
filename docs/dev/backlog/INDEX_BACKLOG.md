@@ -23,6 +23,7 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 |---:|:--:|:--|---|---|---|---|
 | AF-0056 | P0 | Ready | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `/docs/dev/backlog/items/AF0056_Ready_direct_skill_runs_verifier.md` |
 | AF-0057 | P0 | Ready | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `/docs/dev/backlog/items/AF0057_Ready_skill_emits_trace_artifacts_evidence.md` |
+| AF-0058 | P1 | Ready | Workspace folder restructure | Storage | Jacob | `/docs/dev/backlog/items/AF0058_Ready_workspace_folder_restructure.md` |
 | AF-0047 | P0 | Done | Foundation consolidation refactor | Docs/Process | Jacob | `/docs/dev/backlog/items/AF0047_Done_foundation_consolidation.md` |
 | AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `/docs/dev/backlog/items/AF0046_Proposed_test_isolation_framework.md` |
 | AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `/docs/dev/backlog/items/AF0012_Ready_cli_reference_surface.md` |

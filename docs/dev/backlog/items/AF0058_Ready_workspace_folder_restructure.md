@@ -1,0 +1,178 @@
+# BACKLOG ITEM — AF0058 — workspace_folder_restructure
+# Version number: v0.1
+
+> **FOUNDATION GOVERNANCE**
+> This file is governed by:
+> `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+>
+> Critical invariants in this context:
+> - Truthful UX (trace-derived labels)
+> - Workspace isolation
+> - CI discipline (ruff + pytest -W error + coverage)
+> - 1 PR = 1 primary AF
+> - INDEX update rule (status ↔ filename integrity)
+
+> **File naming (required):** `AF####_<Status>_<three_word_description>.md`
+> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+
+---
+
+## Metadata
+- **ID:** AF0058
+- **Type:** Refactor
+- **Status:** Ready
+- **Priority:** P1
+- **Area:** Storage
+- **Owner:** Jacob
+- **Target sprint:** Sprint06 (or later)
+
+---
+
+## Problem
+Current workspace folder structure mixes user input files with system-generated
+artifacts and run traces at the workspace root. This causes:
+
+1. **Unclear boundaries** - User doesn't know which files are safe to edit
+2. **Cluttered root** - Run artifacts pollute the workspace directory
+3. **Hard to export** - No clean way to package a single run with all its data
+4. **Artifact naming** - Long prefixed filenames to avoid collisions
+
+**Current structure:**
+```
+dev01/
+├── db.sqlite
+├── CODING_GUIDELINES.md      # User input
+├── TESTING_GUIDELINES.md     # User input
+├── artifacts/
+│   └── <run_id>/
+│       └── <run_id>-<artifact_name>.json
+└── runs/
+    └── <run_id>.json
+```
+
+---
+
+## Goal
+Reorganize workspace folders to clearly separate user inputs from system outputs,
+and make each run self-contained for easy export/deletion.
+
+**Target structure:**
+```
+dev01/
+├── db.sqlite                 # Index layer (workspace root)
+├── inputs/                   # User content (read by skills)
+│   ├── CODING_GUIDELINES.md
+│   ├── TESTING_GUIDELINES.md
+│   └── subdir/
+│       └── nested_doc.md
+└── runs/                     # System outputs (per-run folders)
+    └── <run_id>/
+        ├── trace.json        # Simplified name (run_id in folder)
+        └── artifacts/
+            ├── brief.md      # Simplified names (scoped by folder)
+            └── result.json
+```
+
+---
+
+## Non-goals
+- Migration of existing workspaces (manual cleanup acceptable for v0.x)
+- Changing the SQLite schema
+- Changing the RunTrace JSON schema
+
+---
+
+## Acceptance criteria (Definition of Done)
+- [ ] `Workspace` class has `inputs_path` property returning `<ws>/inputs/`
+- [ ] `Workspace.ensure_exists()` creates both `inputs/` and `runs/` folders
+- [ ] `RunStore` saves traces to `runs/<run_id>/trace.json`
+- [ ] `ArtifactStore` saves to `runs/<run_id>/artifacts/<name>`
+- [ ] Artifact filenames no longer include run_id prefix
+- [ ] `strategic_brief` skill reads from `inputs/` folder
+- [ ] All existing tests pass with updated paths
+- [ ] New tests verify folder structure creation
+- [ ] `ag ws create` creates the new structure
+- [ ] `ruff check src tests` passes
+- [ ] `pytest -W error` passes
+- [ ] Coverage threshold maintained
+
+---
+
+## Implementation notes
+
+### Files to modify:
+
+| File | Changes |
+|------|---------|
+| `src/ag/storage/workspace.py` | Add `inputs_path`, `runs_path` properties; update `ensure_exists()` |
+| `src/ag/storage/sqlite_store.py` | Update `SQLiteRunStore` path: `runs/<id>/trace.json` |
+| `src/ag/storage/sqlite_store.py` | Update `SQLiteArtifactStore` path: `runs/<id>/artifacts/` |
+| `src/ag/cli/main.py` | Update artifact naming (remove run_id prefix) |
+| `src/ag/skills/strategic_brief.py` | Read from `workspace_path / "inputs"` |
+| `tests/test_storage.py` | Update path expectations |
+| `tests/test_cli.py` | Update artifact path checks |
+
+### Key changes:
+
+1. **Workspace class:**
+   ```python
+   @property
+   def inputs_path(self) -> Path:
+       return self._path / "inputs"
+   
+   @property
+   def runs_path(self) -> Path:
+       return self._path / "runs"
+   ```
+
+2. **Run trace path:**
+   ```python
+   # Before: runs/<run_id>.json
+   # After:  runs/<run_id>/trace.json
+   ```
+
+3. **Artifact path:**
+   ```python
+   # Before: artifacts/<run_id>/<run_id>-<name>.json
+   # After:  runs/<run_id>/artifacts/<name>.json
+   ```
+
+---
+
+## Risks
+
+| Risk | Mitigation |
+|------|------------|
+| Breaking existing workspaces | Document that v0.x workspaces need manual migration; provide migration script as optional |
+| Path changes break tests | Update tests incrementally, run after each component change |
+| Skills hardcoded to workspace root | Abstract via `workspace.inputs_path` property |
+
+---
+
+# Completion section (fill when done)
+
+## 1) Metadata
+- **Backlog item (primary):** AF0058
+- **PR:** #___
+- **Author:** ___
+- **Date:** ___
+- **Branch:** feat/workspace-restructure
+- **Risk level:** P1
+- **Runtime mode used for verification:** manual
+
+---
+
+## 2) Acceptance criteria verification
+(Copy from above when completing)
+
+---
+
+## 3) What changed (file-level)
+(Fill when completing)
+
+---
+
+## 4) Architecture alignment (mandatory)
+- **Layering:** Storage layer change only; core and CLI adapt via Workspace abstraction
+- **Workspace isolation:** Maintained - each workspace has isolated inputs/runs
+- **Truthful UX:** Unchanged - trace paths updated but content identical
