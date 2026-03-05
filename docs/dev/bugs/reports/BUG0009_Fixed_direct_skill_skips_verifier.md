@@ -1,4 +1,4 @@
-# BUG REPORT --- BUG0010 --- skill_trace_missing_artifacts
+# BUG REPORT --- BUG0009 --- direct_skill_skips_verifier
 
 # Version number: v0.1
 
@@ -18,13 +18,14 @@
 
 ## Metadata
 
--   **ID:** BUG0010
--   **Status:** Open
+-   **ID:** BUG0009
+-   **Status:** Fixed
 -   **Severity:** P0
--   **Area:** Core Runtime \| Recorder \| Skills \| Storage
+-   **Area:** CLI \| Core Runtime \| Verifier
 -   **Reported by:** Kai
 -   **Date:** 2026-03-05
--   **Related backlog item(s):** AF0057 (proposed)
+-   **Fixed date:** 2026-03-05
+-   **Related backlog item(s):** AF0056 (proposed)
 -   **Related ADR(s):** (optional)
 -   **Related PR(s):** (optional)
 
@@ -32,89 +33,86 @@
 
 ## Summary
 
-Direct execution of `strategic_brief` produces output files, but
-RunTrace does not record artifacts or evidence refs: - `artifacts: []` -
-`evidence_refs: null`
-
-This makes outputs undiscoverable via trace-derived UX and breaks audit
-expectations.
+Direct skill execution path (playbook `skill:<name>` or
+`ag run --skill ...`) skips verifier, producing
+`verifier.status = skipped` while still reporting run `final = success`.
 
 ------------------------------------------------------------------------
 
 ## Expected behavior
 
-RunTrace should include: - step-level artifacts (brief.md, brief.json,
-result json, etc.) - run-level artifact aggregation - evidence refs for
-cited material where applicable
+Verifier should run by default for direct skill execution and record
+validation results (including schema validation / repair loop outcomes)
+in RunTrace.
 
 ------------------------------------------------------------------------
 
 ## Actual behavior
 
-RunTrace shows empty artifacts and null evidence_refs even when outputs
-include citations/excerpts.
+RunTrace contains: - `verifier.status: "skipped"` -
+`verifier.message: "Direct skill execution - verifier skipped"`
 
 ------------------------------------------------------------------------
 
 ## Reproduction steps
 
-1.  Run:
+1.  Create / use a workspace with markdown files (e.g., `sprint05_demo`)
+2.  Run (after CLI routing bug fix):
     -   `ag run --workspace sprint05_demo --skill strategic_brief "Generate a structured strategic brief ..."`
-2.  Inspect trace:
+3.  Inspect trace:
     -   `ag runs show --workspace sprint05_demo <run_id> --json`
-3.  Observe `artifacts: []` and `evidence_refs: null`.
+4.  Observe verifier skipped.
 
 ------------------------------------------------------------------------
 
 ## Evidence
 
 -   **RunTrace ID(s):** `21971e86-6e45-4986-b996-da8e01487e2d`
--   **Artifacts (filesystem):**
-    -   `21971e86-...-strategic_brief_brief_strategic_brief_brief.md`
-    -   `21971e86-...-strategic_brief_result_strategic_brief_result.json`
+-   **CLI output:** run reports `success` while verifier skipped (see
+    RunTrace).
+-   **Artifacts:** brief + result JSON produced externally.
 -   **Environment:** Windows, PowerShell, venv; commit hash: (fill)
 
 ------------------------------------------------------------------------
 
 ## Impact
 
--   User cannot discover outputs via `ag runs show` / trace-derived UX.
--   Breaks evidence capture invariant and weakens trust in citations.
--   Sprint05 exit criteria (evidence traceability + artifact lifecycle
-    discipline) not validated in human path.
+-   Breaks "truthful UX" invariant: user sees success without
+    verification.
+-   Sprint05 exit criteria (verifier loop) not validated in the human
+    path.
+-   Reduces trust in structured outputs.
 
 ------------------------------------------------------------------------
 
 ## Suspected cause (optional)
 
-Skill writes files directly (or returns output) without emitting
-artifact descriptors into the recorder/trace pipeline.
+Direct skill path bypasses orchestrator/verifier stage and finalizes run
+immediately after skill completion.
 
 ------------------------------------------------------------------------
 
 ## Proposed fix (optional)
 
-Standardize skill return contract to include artifact descriptors and
-evidence refs; recorder persists them into trace and artifact registry.
+Route direct skill execution through verifier by default; add
+`--no-verify` if needed.
 
 ------------------------------------------------------------------------
 
 ## Acceptance criteria (for verification)
 
 -   [ ] Repro steps no longer trigger the issue
--   [ ] Tests added/updated (integration test asserts
-    artifacts/evidence_refs in trace)
+-   [ ] Tests added/updated (integration test for `--skill` path)
 -   [ ] `pytest -W error` passes
 -   [ ] `ruff check src tests` passes
--   [ ] Evidence captured (new RunTrace ID showing populated artifacts +
-    evidence_refs)
+-   [ ] Evidence captured (new RunTrace ID showing verifier ran)
 
 ------------------------------------------------------------------------
 
 ## Notes
 
-Prefer reusing existing RunTrace fields (`artifacts`, `evidence_refs`)
-with additive-only changes.
+Ensure verifier results are trace-derived and user-visible via
+`ag runs show`.
 
 ------------------------------------------------------------------------
 

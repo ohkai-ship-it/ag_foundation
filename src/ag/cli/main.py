@@ -402,6 +402,29 @@ def run(
             ended_at = datetime.now(UTC)
             duration_ms = int((ended_at - started_at).total_seconds() * 1000)
 
+            # BUG0010: Extract evidence_refs from skill result (if present)
+            from ag.core.run_trace import Artifact, EvidenceRef
+
+            evidence_refs: list[EvidenceRef] = []
+            if result and "brief" in result:
+                # Strategic brief skill returns nested structure with citations
+                brief_data = result.get("brief", {})
+                sections = brief_data.get("sections", [])
+                for section in sections:
+                    citations = section.get("citations", [])
+                    for citation in citations:
+                        # Convert citation dict to EvidenceRef
+                        sources = brief_data.get("sources", [])
+                        source_idx = citation.get("source_index", 0)
+                        if 0 <= source_idx < len(sources):
+                            source = sources[source_idx]
+                            evidence_refs.append(EvidenceRef(
+                                ref_id=f"cite-{source_idx}-{citation.get('excerpt_index', 0)}",
+                                source_type="file",
+                                source_path=source.get("path", ""),
+                                excerpt=citation.get("excerpt", "")[:200] if citation.get("excerpt") else None,
+                            ))
+
             # Create step record for the skill execution
             step = Step(
                 step_id=f"{run_id}-step-0",
@@ -414,9 +437,17 @@ def run(
                 ended_at=ended_at,
                 duration_ms=duration_ms,
                 error=None if success else output_summary,
+                evidence_refs=evidence_refs if evidence_refs else None,
             )
 
-            # Create RunTrace for persistence
+            # BUG0009: Run verifier on step (not skipped)
+            from ag.core.runtime import V0Verifier
+
+            verifier = V0Verifier()
+            final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILED
+            verify_status, verify_message = verifier.verify_components([step], final_status)
+
+            # Create RunTrace for persistence (artifacts will be updated after saving)
             trace = RunTrace(
                 run_id=run_id,
                 workspace_id=resolved_workspace,
@@ -427,25 +458,23 @@ def run(
                 ended_at=ended_at,
                 duration_ms=duration_ms,
                 steps=[step],
-                artifacts=[],
+                artifacts=[],  # Will be updated after artifact save
                 verifier=Verifier(
-                    status=VerifierStatus.SKIPPED,
+                    status=VerifierStatus(verify_status),
                     checked_at=ended_at,
-                    message="Direct skill execution - verifier skipped",
+                    message=verify_message,
                 ),
-                final=FinalStatus.SUCCESS if success else FinalStatus.FAILED,
+                final=final_status,
                 error=None if success else output_summary,
             )
 
             # Persist run to storage
             run_store = _get_run_store()
             artifact_store = _get_artifact_store()
-            run_store.save(trace)
 
             # Save skill result as artifacts
-            from ag.core.run_trace import Artifact
-
-            artifacts_saved = []
+            artifacts_saved: list[Artifact] = []
+            artifact_ids: list[str] = []
             if result:
                 # Save JSON result
                 json_artifact_id = f"{run_id}-{skill}_result"
@@ -462,7 +491,8 @@ def run(
                     artifact=json_artifact,
                     content=json_content,
                 )
-                artifacts_saved.append(json_artifact_id)
+                artifacts_saved.append(json_artifact)
+                artifact_ids.append(json_artifact_id)
 
                 # If result has markdown output, save that too
                 if "brief_md" in result:
@@ -480,28 +510,37 @@ def run(
                         artifact=md_artifact,
                         content=md_content,
                     )
-                    artifacts_saved.append(md_artifact_id)
+                    artifacts_saved.append(md_artifact)
+                    artifact_ids.append(md_artifact_id)
+
+            # BUG0010: Update trace with Artifact objects before saving
+            trace.artifacts = artifacts_saved
+            run_store.save(trace)
 
             if resolved_json:
                 console.print(json.dumps({
                     "run_id": run_id,
                     "skill": skill,
                     "success": success,
+                    "verified": verify_status,
+                    "verification_message": verify_message,
                     "output": output_summary,
                     "result": result,
-                    "artifacts": artifacts_saved,
+                    "artifacts": artifact_ids,
                 }, indent=2))
             else:
                 status = "[green]✓ Success[/green]" if success else "[red]✗ Failed[/red]"
+                verified_display = f"[green]{verify_status}[/green]" if verify_status == "PASS" else f"[yellow]{verify_status}[/yellow]"
                 if not resolved_quiet:
                     console.print()
                     console.print(f"[bold]Skill executed:[/bold] {skill}")
                     console.print(f"  Run ID: {run_id}")
                     console.print(f"  Status: {status}")
+                    console.print(f"  Verified: {verified_display}")
                     console.print(f"  Output: {output_summary}")
                     console.print(f"  Duration: {duration_ms}ms")
-                    if artifacts_saved:
-                        console.print(f"  Artifacts: {len(artifacts_saved)} saved")
+                    if artifact_ids:
+                        console.print(f"  Artifacts: {len(artifact_ids)} saved")
 
                     if resolved_verbose and result:
                         console.print()
