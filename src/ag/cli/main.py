@@ -25,6 +25,7 @@ from rich.table import Table  # noqa: E402
 from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
 from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.skills import get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
 
 # Console for rich output
@@ -262,6 +263,9 @@ def run(
     playbook: Optional[str] = typer.Option(
         None, "--playbook", "-p", help="Override playbook selection."
     ),
+    skill: Optional[str] = typer.Option(
+        None, "--skill", "-s", help="Run a specific skill directly (bypasses playbook)."
+    ),
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
@@ -365,6 +369,52 @@ def run(
             raise typer.Exit(code=1)
         if not resolved_quiet and not resolved_json:
             _print_manual_mode_banner()
+
+    # Direct skill execution mode (bypasses playbook)
+    if skill:
+        registry = get_default_registry()
+        if not registry.has(skill):
+            err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill}")
+            err_console.print("\nAvailable skills:")
+            for name in sorted(registry.list()):
+                err_console.print(f"  - {name}")
+            raise typer.Exit(code=1)
+
+        try:
+            # Execute skill directly with prompt as workspace parameter
+            skill_params = {
+                "prompt": prompt,
+                "workspace": resolved_workspace,
+            }
+            success, output_summary, result = registry.execute(skill, skill_params)
+
+            if resolved_json:
+                console.print(json.dumps({
+                    "skill": skill,
+                    "success": success,
+                    "output": output_summary,
+                    "result": result,
+                }, indent=2))
+            else:
+                status = "[green]✓ Success[/green]" if success else "[red]✗ Failed[/red]"
+                if not resolved_quiet:
+                    console.print()
+                    console.print(f"[bold]Skill executed:[/bold] {skill}")
+                    console.print(f"  Status: {status}")
+                    console.print(f"  Output: {output_summary}")
+
+                    if resolved_verbose and result:
+                        console.print()
+                        console.print("[dim]Result data:[/dim]")
+                        console.print(json.dumps(result, indent=2, default=str))
+
+            raise typer.Exit(code=0 if success else 1)
+
+        except typer.Exit:
+            raise  # Re-raise typer.Exit unchanged
+        except Exception as e:
+            err_console.print(f"[bold red]Error executing skill:[/bold red] {e}")
+            raise typer.Exit(code=1)
 
     # Create and execute runtime
     run_store = _get_run_store()
@@ -1005,14 +1055,40 @@ def artifacts_export(
 @skills_app.command("list")
 def skills_list() -> None:
     """List available skills."""
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    registry = get_default_registry()
+    skills = sorted(registry.list())
+
+    if not skills:
+        console.print("[dim]No skills registered.[/dim]")
+        return
+
+    table = Table(title="Registered Skills")
+    table.add_column("Name", style="cyan")
+    table.add_column("Description")
+
+    for name in skills:
+        info = registry.get(name)
+        desc = info.description if info else ""
+        table.add_row(name, desc)
+
+    console.print(table)
 
 
 @skills_app.command("info")
 def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> None:
     """Show skill details."""
-    console.print(f"[dim]Skill:[/dim] {skill_name}")
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    registry = get_default_registry()
+    info = registry.get(skill_name)
+
+    if not info:
+        err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill_name}")
+        err_console.print("\nAvailable skills:")
+        for name in sorted(registry.list()):
+            err_console.print(f"  - {name}")
+        raise typer.Exit(code=1)
+
+    console.print(f"[bold]Skill:[/bold] {info.name}")
+    console.print(f"[bold]Description:[/bold] {info.description}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

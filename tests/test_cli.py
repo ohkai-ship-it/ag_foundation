@@ -568,3 +568,111 @@ class TestWorkspaceSelectionPolicy:
         )
         assert result.exit_code == 0
         assert "my-default-ws" in result.stdout
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AF-0048: Skill CLI Commands (BUG0008 fix)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestSkillsCommands:
+    """Test ag skills CLI commands."""
+
+    def test_skills_list_shows_registered_skills(self):
+        """ag skills list should show all registered skills."""
+        result = runner.invoke(app, ["skills", "list"])
+        assert result.exit_code == 0
+        # Should show strategic_brief (AF-0048)
+        assert "strategic_brief" in result.output
+        # Should show some standard skills
+        assert "echo" in result.output
+        assert "Registered Skills" in result.output
+
+    def test_skills_info_shows_skill_details(self):
+        """ag skills info <name> should show skill description."""
+        result = runner.invoke(app, ["skills", "info", "strategic_brief"])
+        assert result.exit_code == 0
+        assert "strategic_brief" in result.output
+        assert "Description" in result.output
+
+    def test_skills_info_unknown_skill_fails(self):
+        """ag skills info <unknown> should fail with helpful message."""
+        result = runner.invoke(app, ["skills", "info", "nonexistent_skill"])
+        assert result.exit_code == 1
+        assert "Skill not found" in result.output
+        # Should list available skills
+        assert "Available skills" in result.output
+
+
+class TestRunWithSkillFlag:
+    """Test ag run --skill flag for direct skill execution."""
+
+    def test_run_with_skill_flag_executes_skill(self, tmp_path, monkeypatch):
+        """ag run --skill <name> should execute skill directly."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspace first
+        from ag.storage import Workspace
+
+        Workspace("skill-test-ws", tmp_path).ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--skill", "echo_tool", "--workspace", "skill-test-ws", "Hello world"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        assert "Skill executed" in result.output
+        assert "echo_tool" in result.output
+        assert "Success" in result.output
+
+    def test_run_with_skill_flag_unknown_skill_fails(self, tmp_path, monkeypatch):
+        """ag run --skill <unknown> should fail with helpful message."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        # Create workspace first
+        from ag.storage import Workspace
+
+        Workspace("skill-test-ws", tmp_path).ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--skill", "nonexistent", "--workspace", "skill-test-ws", "test"],
+            env=env,
+        )
+        assert result.exit_code == 1
+        assert "Skill not found" in result.output
+        assert "Available skills" in result.output
+
+    def test_run_skill_json_output(self, tmp_path, monkeypatch):
+        """ag run --skill --json should output JSON."""
+        import json
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+
+        from ag.storage import Workspace
+
+        Workspace("skill-test-ws", tmp_path).ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--skill", "echo_tool", "--json", "--workspace", "skill-test-ws", "test msg"],
+            env=env,
+        )
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["skill"] == "echo_tool"
+        assert data["success"] is True
+
+    def test_run_help_shows_skill_option(self):
+        """ag run --help should document --skill option."""
+        result = runner.invoke(app, ["run", "--help"])
+        assert result.exit_code == 0
+        assert "--skill" in result.output
+        assert "-s" in result.output
