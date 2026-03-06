@@ -25,7 +25,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0058 | P0 | DONE | Workspace folder restructure (+DB filename) | Storage | Jacob | `AF0058_DONE_workspace_folder_restructure.md` |
 | 2 | AF-0061 | P2 | DONE | Status CAPS convention | Docs/Process | Kai | `AF0061_DONE_status_caps_convention.md` |
-| 3 | AF-0060 | P0 | READY | Skill definition framework | Skills | Kai | `AF0060_READY_skill_definition_framework.md` |
+| 3 | AF-0060 | P0 | DONE | Skill definition framework | Skills | Kai | `AF0060_DONE_skill_definition_framework.md` |
 | 4 | AF-0063 | P1 | READY | Schema inventory documentation | Docs/Core | Kai | `AF0063_READY_schema_inventory_documentation.md` |
 | 5 | AF-0013 | P1 | READY | Contract inventory hardening | Contracts | Jacob | `AF0013_READY_contract_inventory_hardening.md` |
 

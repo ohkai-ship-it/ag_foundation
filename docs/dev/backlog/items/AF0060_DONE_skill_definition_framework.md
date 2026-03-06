@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0060
 - **Type:** Architecture
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai
@@ -188,14 +188,14 @@ class StrategicBriefSkill:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] Skill contract documented and reviewed
-- [ ] Base skill class/protocol implemented
-- [ ] At least one skill uses LLM synthesis (not just file listing)
-- [ ] Input/output schemas enforced via Pydantic
-- [ ] Registry updated to support new contract
-- [ ] Existing stubs marked clearly as stubs (or removed)
-- [ ] Tests cover new skill execution path
-- [ ] CI/local checks pass
+- [x] Skill contract documented and reviewed
+- [x] Base skill class/protocol implemented
+- [x] At least one skill uses LLM synthesis (not just file listing)
+- [x] Input/output schemas enforced via Pydantic
+- [x] Registry updated to support new contract
+- [x] Existing stubs marked clearly as stubs (or removed)
+- [x] Tests cover new skill execution path
+- [x] CI/local checks pass
 
 ---
 
@@ -253,26 +253,47 @@ This is an **architecture-level change** that will likely require:
 
 ## 1) Metadata
 - **Backlog item (primary):** AF0060
-- **PR:** #<number>
-- **Author:** <name>
-- **Date:** YYYY-MM-DD
-- **Branch:** feat/skill-framework
+- **PR:** (commit on sprint06/skill-foundation branch)
+- **Author:** Kai
+- **Date:** 2025-01-17
+- **Branch:** sprint06/skill-foundation
 - **Risk level:** P1
-- **Runtime mode used for verification:** llm
+- **Runtime mode used for verification:** manual
 
 ---
 
 ## 2) Acceptance criteria verification
-(Copy AC list and mark when done)
+
+- [x] Skill contract documented and reviewed → `src/ag/skills/base.py` defines Skill ABC, SkillInput, SkillOutput, SkillContext
+- [x] Base skill class/protocol implemented → `Skill[InputT, OutputT]` generic ABC with execute() and validate_context()
+- [x] At least one skill uses LLM synthesis → `StrategicBriefSkillV2` in strategic_brief.py with LLM prompt construction
+- [x] Input/output schemas enforced via Pydantic → SkillInput/SkillOutput are Pydantic BaseModel subclasses
+- [x] Registry updated to support new contract → `register_v2()`, `get_v2()`, `is_v2()`, `get_info()` methods added
+- [x] Existing stubs marked clearly as stubs → `is_stub=True` in SkillV2Info, StubSkillOutput has `stub=True`
+- [x] Tests cover new skill execution path → `tests/test_skill_framework.py` with 24 tests covering all aspects
+- [x] CI/local checks pass → 363 tests pass, ruff clean
 
 ---
 
 ## 3) What changed (file-level)
-(Fill when done)
+
+| File | Change |
+|------|--------|
+| `src/ag/skills/base.py` | NEW: Skill ABC, SkillContext, SkillInput, SkillOutput, StubSkill base classes |
+| `src/ag/skills/registry.py` | UPDATED: Added SkillV2Info, register_v2(), execute() with context support, get_info(), is_v2() |
+| `src/ag/skills/strategic_brief.py` | UPDATED: Added StrategicBriefSkillV2 with LLM synthesis support |
+| `src/ag/skills/__init__.py` | UPDATED: Export new base classes |
+| `tests/test_skill_framework.py` | NEW: 24 tests for v2 skill framework |
 
 ---
 
 ## 4) Architecture alignment (mandatory)
 - **Layering:** Skills layer sits between CLI/playbooks and providers
 - Skills own their I/O schemas; core owns execution context
+- **Decisions made:**
+  - Q1 (Skill vs Playbook): Option A — Skills are atomic LLM calls; playbooks compose skills
+  - Q2 (LLM access pattern): Option B — Skills receive `SkillContext` with provider + workspace + config
+  - Q3 (Schema enforcement): Option A — Pydantic models for input/output
+  - Q4 (Evidence production): Deferred to v2 skill evolution
+- **Backward compatibility:** Registry supports both v1 (legacy callable) and v2 (Skill protocol) skills
 

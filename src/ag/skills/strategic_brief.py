@@ -413,3 +413,319 @@ def strategic_brief_skill(params: dict[str, Any]) -> tuple[bool, str, dict[str, 
 
     except Exception as e:
         return False, f"Brief generation failed: {e}", {"error": str(e)}
+
+
+# ---------------------------------------------------------------------------
+# V2 Skill Implementation (AF0060)
+# ---------------------------------------------------------------------------
+
+
+class StrategicBriefInput(BaseModel):
+    """Input schema for strategic brief skill (v2)."""
+
+    prompt: str = Field(default="", description="User prompt or focus guidance")
+    title: str = Field(default="Strategic Brief", description="Title for the brief")
+    max_files: int = Field(
+        default=50, ge=1, le=200, description="Maximum files to process"
+    )
+    focus_areas: list[str] = Field(
+        default_factory=list, description="Optional focus areas to emphasize"
+    )
+    use_llm: bool = Field(
+        default=True, description="Whether to use LLM for synthesis (requires provider)"
+    )
+
+    model_config = {"extra": "forbid"}
+
+
+class StrategicBriefV2Output(BaseModel):
+    """Output schema for strategic brief skill (v2)."""
+
+    success: bool = Field(..., description="Whether generation succeeded")
+    summary: str = Field(..., description="Brief summary of the result")
+    error: str | None = Field(default=None, description="Error message if failed")
+
+    # Brief content
+    brief_md: str = Field(default="", description="Markdown formatted brief")
+    brief_json: str = Field(default="", description="JSON formatted brief")
+
+    # Metadata
+    source_count: int = Field(default=0, description="Number of source files processed")
+    section_count: int = Field(default=0, description="Number of sections generated")
+    llm_used: bool = Field(default=False, description="Whether LLM was used for synthesis")
+    sources: list[SourceFile] = Field(default_factory=list, description="Source files read")
+    citations: list[Citation] = Field(default_factory=list, description="All citations")
+
+    model_config = {"extra": "forbid"}
+
+    def to_legacy_tuple(self) -> tuple[bool, str, dict[str, Any]]:
+        """Convert to legacy skill return format."""
+        data = self.model_dump(exclude={"success", "summary"})
+        # Include brief as parsed dict for convenience
+        if self.brief_json:
+            try:
+                data["brief"] = json.loads(self.brief_json)
+            except json.JSONDecodeError:
+                pass
+        return (self.success, self.summary, data)
+
+
+def _build_llm_synthesis_prompt(
+    sources: list[SourceFile],
+    focus_areas: list[str],
+    user_prompt: str,
+) -> str:
+    """Build prompt for LLM synthesis of strategic brief."""
+    parts = [
+        "You are a strategic analyst. Synthesize the following source documents "
+        "into a coherent strategic brief.",
+        "",
+        "## Instructions",
+        "- Extract key themes, insights, and actionable items",
+        "- Organize content into logical sections",
+        "- Cite specific sources when making claims",
+        "- Keep the tone professional and concise",
+        "",
+    ]
+
+    if focus_areas:
+        parts.append("## Focus Areas")
+        for area in focus_areas:
+            parts.append(f"- {area}")
+        parts.append("")
+
+    if user_prompt:
+        parts.append("## User Guidance")
+        parts.append(user_prompt)
+        parts.append("")
+
+    parts.append("## Source Documents")
+    parts.append("")
+
+    for source in sources:
+        parts.append(f"### {source.path}")
+        if source.title:
+            parts.append(f"**Title:** {source.title}")
+        if source.excerpts:
+            for excerpt in source.excerpts:
+                parts.append(f"```\n{excerpt.content}\n```")
+        parts.append("")
+
+    parts.append("## Output Format")
+    parts.append("Provide your synthesis in the following format:")
+    parts.append("1. Executive Summary (2-3 sentences)")
+    parts.append("2. Key Themes (bullet points)")
+    parts.append("3. Detailed Sections with citations to source paths")
+    parts.append("4. Recommendations or Next Steps")
+
+    return "\n".join(parts)
+
+
+def _parse_llm_response_to_sections(
+    response_text: str,
+    sources: list[SourceFile],
+) -> tuple[list[BriefSection], str]:
+    """Parse LLM response into sections and summary.
+
+    Returns:
+        Tuple of (sections, summary)
+    """
+    # Simple parsing: split by headers
+    sections: list[BriefSection] = []
+    summary = ""
+
+    lines = response_text.split("\n")
+    current_heading = ""
+    current_content: list[str] = []
+
+    for line in lines:
+        if line.startswith("## ") or line.startswith("# "):
+            # Save previous section
+            if current_heading and current_content:
+                content_text = "\n".join(current_content).strip()
+                if "executive summary" in current_heading.lower():
+                    summary = content_text
+                else:
+                    # Simple citation extraction: find source paths mentioned
+                    citations = []
+                    for source in sources:
+                        if source.path in content_text:
+                            citations.append(
+                                Citation(
+                                    source_path=source.path,
+                                    excerpt_index=0 if source.excerpts else None,
+                                    context=f"Referenced in {current_heading}",
+                                )
+                            )
+                    sections.append(
+                        BriefSection(
+                            heading=current_heading,
+                            content=content_text,
+                            citations=citations,
+                        )
+                    )
+            # Start new section
+            current_heading = line.lstrip("#").strip()
+            current_content = []
+        else:
+            current_content.append(line)
+
+    # Don't forget last section
+    if current_heading and current_content:
+        content_text = "\n".join(current_content).strip()
+        if "executive summary" in current_heading.lower():
+            summary = content_text
+        elif content_text:
+            sections.append(
+                BriefSection(
+                    heading=current_heading,
+                    content=content_text,
+                    citations=[],
+                )
+            )
+
+    return sections, summary
+
+
+class StrategicBriefSkillV2:
+    """Strategic Brief skill using the v2 framework (AF0060).
+
+    This version supports LLM-powered synthesis when a provider is available,
+    falling back to file-based aggregation otherwise.
+    """
+
+    name = "strategic_brief_v2"
+    description = "Generate strategic brief from workspace files with optional LLM synthesis"
+    input_schema = StrategicBriefInput
+    output_schema = StrategicBriefV2Output
+    requires_llm = False  # LLM is optional, not required
+
+    def execute(
+        self,
+        input: StrategicBriefInput,
+        ctx: "SkillContext",
+    ) -> StrategicBriefV2Output:
+        """Execute the strategic brief skill.
+
+        Args:
+            input: Validated input parameters
+            ctx: Runtime context with provider $$ workspace
+
+        Returns:
+            StrategicBriefV2Output with brief content
+        """
+        from ag.providers.base import ChatMessage, MessageRole
+
+        # Determine workspace path
+        workspace_path = ctx.workspace_path
+        if workspace_path is None:
+            return StrategicBriefV2Output(
+                success=False,
+                summary="No workspace path provided",
+                error="missing_workspace_path",
+            )
+
+        if not workspace_path.exists():
+            return StrategicBriefV2Output(
+                success=False,
+                summary=f"Workspace path does not exist: {workspace_path}",
+                error="workspace_not_found",
+            )
+
+        # Read from inputs/ subfolder (AF0058 structure)
+        inputs_path = ctx.inputs_path or workspace_path
+        if not inputs_path.exists():
+            inputs_path = workspace_path
+
+        try:
+            # Read source files
+            sources = _read_markdown_files(inputs_path, max_files=input.max_files)
+
+            if not sources:
+                return StrategicBriefV2Output(
+                    success=False,
+                    summary=f"No markdown files found in {inputs_path}",
+                    error="no_sources",
+                )
+
+            # Decide whether to use LLM
+            use_llm = input.use_llm and ctx.has_provider
+
+            if use_llm and ctx.provider is not None:
+                # LLM-powered synthesis
+                prompt = _build_llm_synthesis_prompt(
+                    sources, input.focus_areas, input.prompt
+                )
+                messages = [ChatMessage(role=MessageRole.USER, content=prompt)]
+
+                try:
+                    response = ctx.provider.chat(messages)
+                    sections, summary = _parse_llm_response_to_sections(
+                        response.content, sources
+                    )
+                    llm_used = True
+                except Exception as e:
+                    # Fall back to non-LLM on error
+                    sections = _generate_sections_from_sources(sources)
+                    summary = _generate_summary(sources, sections)
+                    llm_used = False
+                    # Include LLM error in summary
+                    summary += f" (LLM fallback due to: {e})"
+            else:
+                # Non-LLM aggregation
+                sections = _generate_sections_from_sources(sources)
+                summary = _generate_summary(sources, sections)
+                llm_used = False
+
+            # Build the brief
+            brief = StrategicBrief(
+                title=input.title,
+                workspace_path=str(workspace_path),
+                sources=sources,
+                sections=sections,
+                summary=summary,
+                metadata={
+                    "max_files": input.max_files,
+                    "generator": "strategic_brief_v2",
+                    "version": "2.0",
+                    "llm_used": llm_used,
+                    "focus_areas": input.focus_areas,
+                },
+            )
+
+            # Generate outputs
+            brief_json = brief.model_dump_json(indent=2)
+            brief_md = _generate_markdown_output(brief)
+
+            # Collect all citations
+            all_citations = []
+            for section in sections:
+                all_citations.extend(section.citations)
+
+            return StrategicBriefV2Output(
+                success=True,
+                summary=(
+                    f"Generated strategic brief from {len(sources)} sources "
+                    f"({len(sections)} sections)"
+                    + (" with LLM synthesis" if llm_used else "")
+                ),
+                brief_md=brief_md,
+                brief_json=brief_json,
+                source_count=len(sources),
+                section_count=len(sections),
+                llm_used=llm_used,
+                sources=sources,
+                citations=all_citations,
+            )
+
+        except Exception as e:
+            return StrategicBriefV2Output(
+                success=False,
+                summary=f"Brief generation failed: {e}",
+                error=str(e),
+            )
+
+
+# Import for type checking - must be at end to avoid circular imports
+if TYPE_CHECKING:
+    from ag.skills.base import SkillContext
