@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0058
 - **Type:** Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Storage
 - **Owner:** Jacob
@@ -232,3 +232,4 @@ Manual testing performed:
 - **Layering:** Storage layer change only; core and CLI adapt via Workspace abstraction
 - **Workspace isolation:** Maintained - each workspace has isolated inputs/runs
 - **Truthful UX:** Unchanged - trace paths updated but content identical
+

@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0023
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs | CLI | Kernel
 - **Owner:** Jacob
@@ -68,3 +68,4 @@ CLI flag → env var → default
 
 **Deferred:**
 - Config file support (.ag.toml) — future sprint
+

@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0007
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Kernel
 - **Owner:** Jacob
@@ -72,3 +72,4 @@ Implemented the core runtime skeleton with explicit interfaces, v0 implementatio
    - 19 tests: interface protocols, playbook structure, skill registry, happy-path, failure-path
 
 **Test Results:** 19 passed
+

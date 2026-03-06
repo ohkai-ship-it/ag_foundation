@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0030
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -70,3 +70,4 @@ Added workspace_source field to RunTrace for audit trail.
 
 **Run Evidence:**
 - `ag runs show <run_id> --json` includes `"workspace_source": "CLI_FLAG"`
+

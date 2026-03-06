@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0024
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Storage | CLI
 - **Owner:** Jacob
@@ -73,3 +73,4 @@ Implemented proper workspace lifecycle via `ag ws create` and `ag ws list` comma
 **Deferred:**
 - `ag ws delete` command
 - `ag ws info` command
+

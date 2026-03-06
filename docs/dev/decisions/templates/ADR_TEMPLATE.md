@@ -12,14 +12,14 @@
 > - Interfaces remain swappable
 > - See "Guardrails / invariants" section below
 
-> **File naming (required):** `ADR###_<three_word_description>.md`
-> Status values: `Proposed | Accepted | Superseded | Deprecated`
+> **File naming (required):** `ADR###_<STATUS>_<three_word_description>.md`
+> Status values: `PROPOSED | ACCEPTED | SUPERSEDED | DEPRECATED`
 
 ---
 
 ## Metadata
 - **ADR:** ADR###
-- **Status:** Proposed | Accepted | Superseded | Deprecated
+- **Status:** PROPOSED | ACCEPTED | SUPERSEDED | DEPRECATED
 - **Date:** YYYY-MM-DD
 - **Owners:** Kai | Jeff | Jacob
 - **Reviewers:** Kai | Jeff | Jacob

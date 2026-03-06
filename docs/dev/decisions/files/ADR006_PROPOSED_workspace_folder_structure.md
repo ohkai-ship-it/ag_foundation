@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ADR:** ADR006
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Date:** 2026-03-05
 - **Owners:** Kai
 - **Reviewers:** Kai, Jeff
@@ -220,3 +220,4 @@ No migration needed. Existing workspaces can be deleted and recreated with the n
 - ARCHITECTURE.md section: Workspace and Storage (to be updated)
 - CLI_REFERENCE.md section: `ag ws create` (path examples)
 - AF0058: Implementation backlog item
+

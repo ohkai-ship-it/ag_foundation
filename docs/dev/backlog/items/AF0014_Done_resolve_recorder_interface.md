@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0014
 - **Type:** Quality
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Kernel
 - **Owner:** Jacob
@@ -63,3 +63,4 @@ Audit confirmed Recorder Protocol exists at `src/ag/core/interfaces.py` with `re
 - pytest tests/: PASS (173 passed)
 
 **Proof:** Recorder Protocol confirmed at correct location with correct signature.
+

@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0025
 - **Type:** Docs | Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs | Repo
 - **Owner:** Jacob
@@ -67,3 +67,4 @@ Enforced test discipline via Ruff linting and documentation of testing guideline
 
 **Deferred:**
 - Pre-commit hooks for automated enforcement
+

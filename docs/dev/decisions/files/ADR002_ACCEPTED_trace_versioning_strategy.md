@@ -2,7 +2,7 @@
 # Version number: v0.1
 
 ## Status
-Proposed (write/merge with AF-0005)
+ACCEPTED (merged with AF-0005)
 
 ## Date
 2026-02-24
@@ -34,4 +34,7 @@ Adopt explicit, self-describing schema version fields and an additive-first evol
 - AF-0005 — Contracts-first: TaskSpec + RunTrace v0 schemas and builders
 - CLI_REFERENCE.md (truthful UX requirements)
 - REVIEW_GUIDE.md (evidence + trace expectations)
+
+
+
 

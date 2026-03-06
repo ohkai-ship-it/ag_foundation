@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF0064_Proposed_process_documentation_hardening.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0064
 - **Type:** Process
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P1
 - **Area:** Process / Docs
 - **Owner:** Kai
@@ -130,3 +130,4 @@ PRs are created ONLY at sprint close, not during the sprint.
 - SPRINT_MANUAL.md Section 1, 5, 6
 - FOUNDATION_MANUAL.md PR rules (if any)
 - **AF0061 (Dropped)** — Status CAPS convention (absorbed into this AF)
+

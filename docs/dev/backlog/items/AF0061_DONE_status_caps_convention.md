@@ -13,18 +13,18 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0061
 - **Type:** Docs
-- **Status:** Proposed
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Docs/Process
 - **Owner:** Kai
-- **Target sprint:** TBD
+- **Target sprint:** Sprint06
 - **Related:** AF0064 (overlapping scope)
 
 ---
@@ -89,13 +89,13 @@ Deliverables:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] All status values use CAPS in filenames (e.g., `_PROPOSED_`, `_READY_`, `_DONE_`)
-- [ ] All status values use CAPS in metadata fields inside files
-- [ ] All INDEX files use CAPS in status columns
-- [ ] ADR files include status in filename
-- [ ] Templates updated with CAPS convention
-- [ ] FOUNDATION_MANUAL.md updated with CAPS status values
-- [ ] Cross-references updated (grep for old filenames/statuses)
+- [x] All status values use CAPS in filenames (e.g., `_PROPOSED_`, `_READY_`, `_DONE_`)
+- [x] All status values use CAPS in metadata fields inside files
+- [x] All INDEX files use CAPS in status columns
+- [x] ADR files include status in filename
+- [x] Templates updated with CAPS convention
+- [x] FOUNDATION_MANUAL.md updated with CAPS status values
+- [x] Cross-references updated (grep for old filenames/statuses)
 
 ---
 
@@ -161,24 +161,46 @@ ADR007_configuration_state_separation.md → ADR007_PROPOSED_configuration_state
 
 ## 1) Metadata
 - **Backlog item (primary):** AF0061
-- **PR:** #<number>
-- **Author:** <name>
-- **Date:** YYYY-MM-DD
-- **Branch:** chore/adr-filename-convention
+- **PR:** N/A (direct commit to sprint branch)
+- **Author:** Jacob
+- **Date:** 2026-03-06
+- **Branch:** sprint06/skill-foundation
 - **Risk level:** P2
 - **Runtime mode used for verification:** N/A (docs only)
 
 ---
 
 ## 2) Acceptance criteria verification
-(Copy AC list and mark when done)
+All criteria verified ✓ — see checklist above
 
 ---
 
 ## 3) What changed (file-level)
-(Fill when done)
+
+**Templates updated:**
+- `docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
+- `docs/dev/bugs/templates/BUG_REPORT_TEMPLATE.md`
+- `docs/dev/decisions/templates/ADR_TEMPLATE.md`
+
+**Foundation docs updated:**
+- `docs/dev/foundation/FOUNDATION_MANUAL.md`
+- `docs/dev/foundation/SPRINT_MANUAL.md`
+
+**Index files updated:**
+- `docs/dev/backlog/INDEX_BACKLOG.md`
+- `docs/dev/bugs/INDEX_BUGS.md`
+- `docs/dev/decisions/INDEX_DECISIONS.md`
+
+**Files renamed (67 AF, 11 BUG, 7 ADR):**
+- All AF files: `_Done_` → `_DONE_`, `_Ready_` → `_READY_`, `_Proposed_` → `_PROPOSED_`
+- All BUG files: `_Fixed_` → `_FIXED_`, `_Open_` → `_OPEN_`
+- All ADR files: Added status to filename (e.g., `ADR001_ACCEPTED_...`)
+
+**Metadata updated in all files:**
+- Status field changed to CAPS in all AF/BUG/ADR files
 
 ---
 
 ## 4) Architecture alignment (mandatory)
 - **Layering:** Docs/Process change only — no code impact
+

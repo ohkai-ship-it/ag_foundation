@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0041
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs/Backlog
 - **Owner:** Jacob
@@ -164,3 +164,4 @@ Large rename diff may be noisy; mitigate by doing it as a docs-only PR and keepi
 ## PR plan (PR-sized)
 1. PR: Create merged BACKLOG_ITEM_TEMPLATE in `/docs/dev/backlog/templates/`
 2. PR: Migrate AF items (rename + move) + embed completion notes + create/update INDEX_BACKLOG
+

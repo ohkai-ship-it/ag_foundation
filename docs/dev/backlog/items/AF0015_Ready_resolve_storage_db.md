@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0015
 - **Type:** Quality
-- **Status:** Dropped
+- **Status:** DROPPED
 - **Priority:** P2
 - **Area:** Storage
 - **Owner:** Jacob
@@ -44,3 +44,4 @@ Low: mainly naming; mitigate by updating tests and running full suite.
 # Completion section (fill when done)
 
 Pending completion.
+

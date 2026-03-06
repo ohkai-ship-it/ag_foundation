@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ADR:** ADR007
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Date:** 2026-03-05
 - **Owners:** Kai
 - **Reviewers:** Kai, Jeff
@@ -214,3 +214,4 @@ ag config list          # Shows all effective config with sources
 - CLI_REFERENCE.md section: Configuration (to be updated)
 - ARCHITECTURE.md section: Configuration (to be added)
 - Related: ADR004 (Storage baseline) — workspace storage patterns
+

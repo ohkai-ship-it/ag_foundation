@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0042
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs/Bugs/Decisions
 - **Owner:** Jacob
@@ -84,3 +84,4 @@ Link rot (AFs or sprint docs referencing old paths); mitigate by running a repo-
 ## PR plan (PR-sized)
 1. PR: Rename/move BUG reports + update BUG template + create/update INDEX_BUGS
 2. PR: Rename/move ADR files + update ADR template + create/update INDEX_DECISIONS
+

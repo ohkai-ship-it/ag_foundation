@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0004
 - **Type:** Docs
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs
 - **Owner:** Jeff
@@ -71,3 +71,4 @@ Established sprint tracking hygiene for ag_foundation: created central sprint lo
 - Updated: Multiple INDEX files as listed above
 
 **Verification:** All acceptance criteria verified via file inspection and grep search.
+

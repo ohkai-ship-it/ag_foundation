@@ -4,7 +4,7 @@
 
 ## Metadata
 - **ID:** BUG0007
-- **Status:** Open
+- **Status:** OPEN
 - **Severity:** P1
 - **Area:** Providers / Testing
 - **Reported by:** Sprint04 Review
@@ -64,3 +64,4 @@ def clean_openai_env(monkeypatch):
 
 ## Notes
 This is a **test isolation issue**, not a production runtime bug.
+

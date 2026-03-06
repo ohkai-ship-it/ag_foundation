@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0029
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -64,3 +64,4 @@ Verifier status validated in RunTrace. Consistent state enforced between final_s
 **Run Evidence:**
 - Invalid verifier states rejected at construction
 - Consistent traces accepted
+

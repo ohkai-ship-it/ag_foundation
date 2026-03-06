@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0066
 - **Type:** Testing
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P1
 - **Area:** Testing/Integration
 - **Owner:** Kai
@@ -159,3 +159,4 @@ class MockProvider(BaseProvider):
 # Completion section (fill when done)
 
 Pending completion.
+

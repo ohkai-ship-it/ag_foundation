@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF-0013
 - **Type:** Docs/Quality
-- **Status:** Ready
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Contracts
 - **Owner:** Jacob
@@ -134,3 +134,4 @@ def test_all_protocols_documented():
 # Completion section (fill when done)
 
 Pending completion.
+

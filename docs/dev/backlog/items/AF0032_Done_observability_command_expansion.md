@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0032
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -74,3 +74,4 @@ Failed: 1 (20%)
 **Follow-up:**
 - Consider time-range filtering for stats
 - Consider cross-workspace stats
+

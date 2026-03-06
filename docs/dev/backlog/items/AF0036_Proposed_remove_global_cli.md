@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0036
 - **Type:** Architecture
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P1
 - **Area:** CLI
 - **Owner:** TBD
@@ -37,3 +37,4 @@ N/A
 # Completion section (fill when done)
 
 Pending completion.
+

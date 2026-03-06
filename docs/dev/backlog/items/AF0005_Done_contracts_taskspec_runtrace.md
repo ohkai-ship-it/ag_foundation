@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0005
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Kernel
 - **Owner:** Jeff
@@ -74,3 +74,4 @@ Implemented v0.1 schemas for TaskSpec, RunTrace, and Playbook with Pydantic mode
    - 21 tests covering version fields, required fields, JSON round-trip, stable defaults, builders, additive evolution
 
 **Test Results:** 21 passed
+

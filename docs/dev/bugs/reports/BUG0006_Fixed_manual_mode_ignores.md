@@ -35,3 +35,4 @@ ag run --mode manual -w development01 "Test the pipeline"
 -   [ ] .env loaded early in CLI
 -   [ ] Manual mode works when AG_DEV=1 in .env
 -   [ ] Regression tests added
+

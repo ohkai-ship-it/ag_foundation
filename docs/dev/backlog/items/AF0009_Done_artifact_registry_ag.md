@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0009
 - **Type:** Feature
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Storage
 - **Owner:** Jacob
@@ -75,3 +75,4 @@ Implemented artifact registry v0 with artifact indexing, automatic `result.md` g
 ```
 
 **Test Results:** 11 passed
+

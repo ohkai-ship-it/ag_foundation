@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0022
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Integrations
 - **Owner:** Jacob
@@ -64,3 +64,4 @@ Achieved ≥95% test coverage on providers module. Filled gaps in stub provider 
 
 **Follow-up:**
 - Integration tests with real API keys (requires CI secret management)
+

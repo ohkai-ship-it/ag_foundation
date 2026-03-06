@@ -3,7 +3,7 @@
 
 ## Metadata
 - **ID:** BUG-0001
-- **Status:** Fixed
+- **Status:** FIXED
 - **Severity:** P1
 - **Area:** CLI
 - **Reported by:** Jacob
@@ -93,3 +93,4 @@ def main(
 
 ## Notes
 Typer supports context-based option inheritance. See: https://typer.tiangolo.com/tutorial/commands/context/
+

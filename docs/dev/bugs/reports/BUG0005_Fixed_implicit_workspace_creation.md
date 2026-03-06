@@ -60,3 +60,4 @@ runs must live inside an existing workspace.
 -   [x] Clear error shown if workspace not selected.
 -   [x] Repeated runs reuse same workspace DB.
 -   [x] Regression tests added.
+

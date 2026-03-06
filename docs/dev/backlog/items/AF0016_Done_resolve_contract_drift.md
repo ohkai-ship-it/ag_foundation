@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0016
 - **Type:** Quality
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Contracts
 - **Owner:** Jacob
@@ -65,3 +65,4 @@ Audit confirmed ReasoningMode enum has values: NONE, MINIMAL, DIRECT, EXTENDED (
 **Tests Executed:**
 - pytest tests/test_schemas.py -k ReasoningMode: PASS
 - pytest tests/: PASS (173 passed)
+

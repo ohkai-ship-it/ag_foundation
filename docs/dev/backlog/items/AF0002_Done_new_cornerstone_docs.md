@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0002
 - **Type:** Docs | Architecture
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs/Architecture/CLI/Review
 - **Owner:** Jeff
@@ -58,3 +58,4 @@ Created the new cornerstone docs under `/docs/dev/cornerstone/` with the IoT-in-
 - CLI_REFERENCE.md defined
 - REVIEW_GUIDE.md created
 - cornerstone/INDEX.md explains canonical docs
+

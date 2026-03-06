@@ -3,7 +3,7 @@
 
 ## Metadata
 - **ID:** BUG-0002
-- **Status:** Open
+- **Status:** OPEN
 - **Severity:** P2
 - **Area:** CLI
 - **Reported by:** Jacob
@@ -97,3 +97,4 @@ These options were likely deferred during AF-0008 to keep v0 scope minimal. The 
 ## Notes
 - `--allow-web` may remain a stub/flag until web skills are implemented
 - `--task` is primarily for dev/test workflows; may require `AG_DEV=1` gate like manual mode
+

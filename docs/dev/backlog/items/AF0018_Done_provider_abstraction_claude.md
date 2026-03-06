@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0018
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Providers
 - **Owner:** Jacob
@@ -66,3 +66,4 @@ Defined provider interface + registry and added non-functional stubs for Anthrop
 **Tests Executed:**
 - pytest tests/test_providers.py: PASS (34 tests)
 - pytest tests/: PASS (173 passed)
+

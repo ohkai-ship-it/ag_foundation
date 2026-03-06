@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0010
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Repo
 - **Owner:** Jacob
@@ -85,3 +85,4 @@ pytest -v
 ```
 
 **Test Results:** 19+ tests passed
+

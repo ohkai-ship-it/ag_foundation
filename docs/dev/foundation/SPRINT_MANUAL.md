@@ -68,14 +68,14 @@ Update `S##_DESCRIPTION.md` with branch name in the PR plan section.
 
 ### 2.1 Creating New AF File
 1. Copy template from `/docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
-2. Save to `/docs/dev/backlog/items/AF####_<Status>_<three_word_description>.md`
+2. Save to `/docs/dev/backlog/items/AF####_<STATUS>_<three_word_description>.md`
 3. Fill all metadata fields
 4. Ensure internal `Status:` field matches filename status
 
 ### 2.2 Naming Convention Enforcement
 ```
-Filename:  AF0047_Ready_feature_description.md
-Internal:  Status: Ready
+Filename:  AF0047_READY_feature_description.md
+Internal:  Status: READY
 ```
 
 **These MUST match. Mismatch is a blocking defect.**
@@ -84,7 +84,7 @@ Internal:  Status: Ready
 When status changes:
 1. Rename file:
    ```
-   AF0047_Ready_feature_description.md → AF0047_In progress_feature_description.md
+   AF0047_READY_feature_description.md → AF0047_IN_PROGRESS_feature_description.md
    ```
 2. Update internal `Status:` field to match
 3. Update INDEX_BACKLOG.md entry
@@ -93,7 +93,7 @@ When status changes:
 
 ### 2.4 Bug Report Creation
 1. Copy template from `/docs/dev/bugs/templates/BUG_REPORT_TEMPLATE.md`
-2. Save to `/docs/dev/bugs/reports/BUG####_<Status>_<three_word_description>.md`
+2. Save to `/docs/dev/bugs/reports/BUG####_<STATUS>_<three_word_description>.md`
 3. Fill all metadata fields
 4. Update `/docs/dev/bugs/INDEX_BUGS.md`
 
@@ -284,9 +284,9 @@ In AF completion section, include:
 ## 7. Post-Merge Ritual
 
 ### 7.1 Immediately After Merge
-1. Update AF status to `Done`:
-   - Rename file: `AF####_In progress_desc.md` → `AF####_Done_desc.md`
-   - Update internal `Status:` field to `Done`
+1. Update AF status to `DONE`:
+   - Rename file: `AF####_IN_PROGRESS_desc.md` → `AF####_DONE_desc.md`
+   - Update internal `Status:` field to `DONE`
 
 2. Fill completion section (if not already done):
    - All metadata filled

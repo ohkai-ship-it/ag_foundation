@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0017
 - **Type:** Feature
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Providers
 - **Owner:** Jacob
@@ -72,3 +72,4 @@ Implemented OpenAI provider adapter behind provider interface with config/env wi
 **Run Evidence:**
 - Mocked: pytest tests/test_providers.py::test_openai_chat_success
 - Real: Requires OPENAI_API_KEY env var
+

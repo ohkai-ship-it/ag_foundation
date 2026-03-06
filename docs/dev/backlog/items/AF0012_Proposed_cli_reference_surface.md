@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0012
 - **Type:** Feature
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob
@@ -59,3 +59,4 @@ Medium: more surface area and precedence confusion. Mitigate with explicit help 
 # Completion section (fill when done)
 
 Pending completion.
+

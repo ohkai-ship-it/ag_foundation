@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0059
 - **Type:** Feature
-- **Status:** Dropped
+- **Status:** DROPPED
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob
@@ -154,3 +154,4 @@ This change may require:
 
 ## 4) Architecture alignment (mandatory)
 - **Layering:** CLI layer calls core playbooks module for data, formats for display
+

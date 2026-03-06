@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0031
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -65,3 +65,4 @@ Ensured all CLI labels derive strictly from RunTrace fields. No hardcoded status
 **Run Evidence:**
 - `ag runs show <id>` — labels match trace fields
 - Every displayed label is trace-derived
+

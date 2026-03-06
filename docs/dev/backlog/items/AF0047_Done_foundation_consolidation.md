@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0047
 - **Type:** Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs/Process
 - **Owner:** Jacob
@@ -195,3 +195,4 @@ This is a docs-only change. No code tests required.
 CI validation:
 - All existing tests continue to pass
 - No coverage impact
+

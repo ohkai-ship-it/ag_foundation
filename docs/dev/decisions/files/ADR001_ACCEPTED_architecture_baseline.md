@@ -3,7 +3,7 @@
 
 ## Metadata
 - **ADR:** ADR-0001
-- **Status:** Accepted
+- **Status:** ACCEPTED
 - **Date:** 2026-02-23
 - **Owners:** Kai, Jeff
 - **Related backlog item(s):** AF-0002 (cornerstone docs)
@@ -49,3 +49,4 @@ We adopt the following baseline architecture:
 ## Links
 - `/docs/dev/cornerstone/ARCHITECTURE.md`
 - `/docs/dev/cornerstone/PROJECT_PLAN.md`
+

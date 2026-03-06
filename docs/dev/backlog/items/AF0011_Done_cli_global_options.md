@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0011
 - **Type:** Bugfix
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** CLI
 - **Owner:** Jacob
@@ -69,3 +69,4 @@ Implemented true global options via Typer callback + context propagation. All gl
 **Run Evidence:**
 - `$env:AG_DEV = "1"; ag --json run "test"` produces JSON with run_id
 - Workspace flag propagates correctly
+

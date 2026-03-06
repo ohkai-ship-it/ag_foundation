@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0065
 - **Type:** Feature
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai
@@ -147,3 +147,4 @@ default_playbook = Playbook(
 # Completion section (fill when done)
 
 Pending completion.
+

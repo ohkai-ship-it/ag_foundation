@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0003
 - **Type:** Architecture
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Kernel/IoT
 - **Owner:** Jeff/Jacob
@@ -59,3 +59,4 @@ Defined the minimal runtime model in the ARCHITECTURE doc. The core interfaces a
 - Runtime flow documented in ARCHITECTURE.md
 - Core interfaces defined (Normalizer, Planner, Orchestrator, Executor, Verifier, Recorder)
 - Pluggable adapter pattern established
+

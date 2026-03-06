@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0019
 - **Type:** Feature
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Kernel
 - **Owner:** Jacob
@@ -82,3 +82,4 @@ Shipped v0 delegated playbook with multi-step delegation. Planner produces subta
 $env:AG_DEV = "1"
 ag run "Test delegation" --playbook delegate_v0 --json
 ```
+

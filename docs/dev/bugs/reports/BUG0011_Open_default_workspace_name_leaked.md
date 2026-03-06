@@ -13,13 +13,13 @@
 > - Evidence capture requirement (RunTrace ID for CLI/runtime bugs)
 
 > **File naming (required):** `BUG####_<Status>_<three_word_description>.md`
-> Status values: `Open | In progress | Fixed | Verified | Dropped`
+> Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** BUG0011
-- **Status:** Open
+- **Status:** OPEN
 - **Severity:** P2
 - **Area:** CLI
 - **Reported by:** Kai
@@ -125,3 +125,4 @@ The error handling code uses the resolved workspace name regardless of how it wa
 
 ## Status log
 - 2026-03-05 — Opened by Kai
+

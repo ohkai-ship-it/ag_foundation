@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0062
 - **Type:** Feature
-- **Status:** Proposed
+- **Status:** PROPOSED
 - **Priority:** P1
 - **Area:** Core
 - **Owner:** Kai
@@ -211,3 +211,4 @@ Duration:  2.3s
 
 ## 4) Architecture alignment (mandatory)
 - **Layering:** Core schema change in run_trace.py, propagates to CLI display
+

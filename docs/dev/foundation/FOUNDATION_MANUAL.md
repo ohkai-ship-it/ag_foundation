@@ -143,16 +143,16 @@ Config must be:
 ### 3.2 Naming Conventions (Strict)
 
 **Backlog Items:**
-- File name: `AF####_<Status>_<three_word_description>.md`
-- Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+- File name: `AF####_<STATUS>_<three_word_description>.md`
+- Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 **Bug Reports:**
-- File name: `BUG####_<Status>_<three_word_description>.md`
-- Status values: `Open | In progress | Fixed | Verified | Dropped`
+- File name: `BUG####_<STATUS>_<three_word_description>.md`
+- Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
 
 **ADRs:**
-- File name: `ADR###_<three_word_description>.md`
-- Status inside file: `Proposed | Accepted | Superseded | Deprecated`
+- File name: `ADR###_<STATUS>_<three_word_description>.md`
+- Status values: `PROPOSED | ACCEPTED | SUPERSEDED | DEPRECATED`
 
 **Sprints:**
 - Folder: `Sprint##_three_word_description/`

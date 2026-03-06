@@ -12,14 +12,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 > - Evidence capture requirement (RunTrace ID for CLI/runtime bugs)
 
-> **File naming (required):** `BUG####_<Status>_<three_word_description>.md`
-> Status values: `Open | In progress | Fixed | Verified | Dropped`
+> **File naming (required):** `BUG####_<STATUS>_<three_word_description>.md`
+> Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** BUG####
-- **Status:** Open | In progress | Fixed | Verified | Dropped
+- **Status:** OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED
 - **Severity:** P0 | P1 | P2
 - **Area:** CLI | Core Runtime | Orchestrator | Skills | Storage | Docs | Process | CI
 - **Reported by:** <name>

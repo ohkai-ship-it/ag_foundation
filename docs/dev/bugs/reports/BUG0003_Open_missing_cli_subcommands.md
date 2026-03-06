@@ -3,7 +3,7 @@
 
 ## Metadata
 - **ID:** BUG-0003
-- **Status:** Open
+- **Status:** OPEN
 - **Severity:** P2
 - **Area:** CLI
 - **Reported by:** Jacob
@@ -125,3 +125,4 @@ def ws_config_set(
 - Stubs establish the API contract and allow early user feedback
 - Each stub can reference a future backlog item when created
 - This is separate from implementing the actual functionality
+

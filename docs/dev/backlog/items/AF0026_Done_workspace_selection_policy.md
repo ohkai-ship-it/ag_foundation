@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0026
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Runtime | Storage
 - **Owner:** Jacob
@@ -81,3 +81,4 @@ Implemented deterministic workspace selection policy. Implicit workspace creatio
 - Without workspace: `ag run "test"` → Error with helpful message
 - With flag: `ag --workspace test_ws run "test"` → Works
 - With env: `$env:AG_WORKSPACE = "test_ws"; ag run "test"` → Works
+

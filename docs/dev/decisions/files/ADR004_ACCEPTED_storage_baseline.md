@@ -2,7 +2,7 @@
 # Version number: v0.1
 
 ## Status
-Proposed (write/merge with AF-0006)
+ACCEPTED (merged with AF-0006)
 
 ## Date
 2026-02-24
@@ -32,4 +32,7 @@ Adopt workspace-scoped storage with:
 ## Related docs / links
 - AF-0006 — Workspace + storage baseline (sqlite + filesystem) with strict isolation
 - ARCHITECTURE.md (storage & workspace isolation sections)
+
+
+
 

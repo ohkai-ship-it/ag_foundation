@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0044
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs/Reviews
 - **Owner:** Jacob
@@ -81,3 +81,4 @@ Losing discoverability of review history; mitigate by ensuring INDEX_SPRINTS lin
 ## PR plan (PR-sized)
 1. PR: Add combined REVIEW_TEMPLATE to `/docs/dev/sprints/templates/` and document the new location convention
 2. PR: Add archive note/pointer to `/docs/dev/reviews/INDEX.md` (legacy) referencing the new sprint folder approach
+

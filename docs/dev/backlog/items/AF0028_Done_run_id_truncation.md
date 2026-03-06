@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0028
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -61,3 +61,4 @@ Display full run_id in `ag runs list` output. Run ID is now copyable for use wit
 
 **Run Evidence:**
 - `ag runs list --workspace <ws>` shows full UUID like `run_a1b2c3d4-e5f6-7890-abcd-ef1234567890`
+

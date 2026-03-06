@@ -107,3 +107,4 @@ Categories:
 - 32 tests in test_artifacts.py (21 new), all passing
 - 276 tests total (excluding provider tests), all passing
 - Coverage: 79% overall, 100% on run_trace.py
+

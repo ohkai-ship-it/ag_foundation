@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0021
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Storage
 - **Owner:** Jacob
@@ -64,3 +64,4 @@ Closed SQLite connections deterministically via context manager pattern. Elimina
 **Run Evidence:**
 - `pytest -W error` — no ResourceWarning
 - `with Workspace(...) as ws:` pattern works
+

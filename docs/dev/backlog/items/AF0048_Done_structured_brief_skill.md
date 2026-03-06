@@ -52,3 +52,4 @@ produces structured JSON + markdown artifact outputs.
 ------------------------------------------------------------------------
 
 # Completion section (to fill when done)
+

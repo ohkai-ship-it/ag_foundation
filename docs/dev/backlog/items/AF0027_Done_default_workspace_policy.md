@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0027
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -69,3 +69,4 @@ Implemented revised workspace precedence model with explicit source tracking in 
 **Follow-up:**
 - AF-0034: Error message hardening
 - AF-0035: Clarify --workspace help text
+

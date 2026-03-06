@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0060
 - **Type:** Architecture
-- **Status:** Ready
+- **Status:** READY
 - **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai
@@ -275,3 +275,4 @@ This is an **architecture-level change** that will likely require:
 ## 4) Architecture alignment (mandatory)
 - **Layering:** Skills layer sits between CLI/playbooks and providers
 - Skills own their I/O schemas; core owns execution context
+

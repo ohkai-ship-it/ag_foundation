@@ -2,7 +2,7 @@
 # Version number: v0.1
 
 ## Status
-Proposed (write/merge with AF-0008)
+ACCEPTED (merged with AF-0008)
 
 ## Date
 2026-02-24
@@ -32,4 +32,7 @@ Gate manual mode behind an explicit developer flag and record it in RunTrace:
 ## Related docs / links
 - AF-0008 — CLI v0: ag run + runs show --json, truthful labels, manual dev gate
 - WORKFLOW.md (evidence rules + CI expectations)
+
+
+
 

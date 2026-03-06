@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0008
 - **Type:** Feature
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI
 - **Owner:** Jacob
@@ -81,3 +81,4 @@ Implemented CLI v0 with `ag run`, `ag runs show --json`, and `ag runs list` comm
 | Playbook | trace.playbook.name@version |
 
 **Test Results:** 14 passed
+

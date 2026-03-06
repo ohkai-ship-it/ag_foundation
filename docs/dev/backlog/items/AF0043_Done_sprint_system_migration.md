@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0043
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs/Sprints
 - **Owner:** Jacob
@@ -57,3 +57,4 @@ Confusion during transition; mitigate by making Sprint04 the first sprint using 
 ## PR plan (PR-sized)
 1. PR: Add new sprint templates + INDEX_SPRINTS + Sprint04 folder structure
 2. PR (optional/P2): Archive Sprint00–Sprint03 docs into per-sprint folders and add pointers
+

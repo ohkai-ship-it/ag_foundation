@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0035
 - **Type:** Quality
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** TBD
@@ -35,3 +35,4 @@ N/A
 # Completion section (fill when done)
 
 Pending completion.
+

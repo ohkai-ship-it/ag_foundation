@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0045
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CI/Quality
 - **Owner:** Jacob
@@ -53,3 +53,4 @@ CI may fail initially due to existing lint debt; mitigate by scoping fixes to on
 ## PR plan (PR-sized)
 1. PR: Add pre-commit config + GitHub Actions workflow + minimal ruff/pytest/coverage wiring
 2. PR (optional): Fix any newly revealed lint/test failures (small, focused)
+

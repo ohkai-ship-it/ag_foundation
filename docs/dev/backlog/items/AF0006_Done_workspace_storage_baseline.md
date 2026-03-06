@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0006
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Storage
 - **Owner:** Jacob
@@ -72,3 +72,4 @@ Implemented workspace-scoped storage with SQLite indices and filesystem-based JS
 **Test Results:** 19 passed
 
 **Architecture Alignment:** Storage layer (ag.storage) - data persistence only, no business logic.
+

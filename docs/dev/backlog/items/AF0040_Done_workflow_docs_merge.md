@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0040
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs/Process
 - **Owner:** Kai/Jeff
@@ -22,3 +22,4 @@ No changes to actual process content beyond consolidation and de-duplication.
 
 ## Completion notes
 This AF was completed during sprint preparation (prep phase). The workflow and process documentation was consolidated into the new `/docs/dev/` structure as part of the overall documentation migration.
+

@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0033
 - **Type:** Foundation
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** CLI | Core | Storage
 - **Owner:** Jacob
@@ -67,3 +67,4 @@ Load .env at CLI entrypoint before mode validation. Manual mode now works when A
 3. Previously failed, now succeeds
 
 **Status:** BUG-0006 fully resolved
+

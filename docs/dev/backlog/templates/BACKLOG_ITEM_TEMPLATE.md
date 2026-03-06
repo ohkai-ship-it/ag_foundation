@@ -12,15 +12,15 @@
 > - 1 PR = 1 primary AF
 > - INDEX update rule (status ↔ filename integrity)
 
-> **File naming (required):** `AF####_<Status>_<three_word_description>.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> **File naming (required):** `AF####_<STATUS>_<three_word_description>.md`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF####
 - **Type:** Foundation | Docs | Architecture | Feature | Refactor | Process
-- **Status:** Proposed | Ready | In progress | Blocked | Done | Dropped
+- **Status:** PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED
 - **Priority:** P0 | P1 | P2
 - **Area:** Docs | CLI | Kernel | Skills | Storage | Process | Testing | CI
 - **Owner:** Kai | Jeff | Jacob

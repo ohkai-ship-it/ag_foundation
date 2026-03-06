@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF0039
 - **Type:** Docs | Refactor
-- **Status:** Done
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Docs/Process
 - **Owner:** Kai/Jeff
@@ -67,3 +67,4 @@ Broken links and references; mitigate by adding explicit pointers in legacy file
 ## PR plan (PR-sized)
 1. PR1: Create `/docs/dev` folders + add empty INDEX_* placeholders + move ARCHITECTURE/CLI_REFERENCE to root
 2. PR2 (optional): Add minimal deprecation notes/pointers in legacy docs/dev locations
+

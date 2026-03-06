@@ -13,14 +13,14 @@
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF0063_Proposed_schema_inventory_documentation.md`
-> Status values: `Proposed | Ready | In progress | Blocked | Done | Dropped`
+> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** AF0063
 - **Type:** Docs
-- **Status:** Ready
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Docs / Core
 - **Owner:** Kai
@@ -136,3 +136,4 @@ Rationale: ARCHITECTURE.md (400+ lines) covers architectural guidance; schema in
 - **SCHEMA_INVENTORY.md:** New file created
 - **SKILLS_ARCHITECTURE_0.1.md:** Add cross-reference to schema inventory
 - **BACKLOG_ITEM_TEMPLATE:** Consider adding schema-update checklist item
+
