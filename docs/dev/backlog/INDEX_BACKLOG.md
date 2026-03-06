@@ -23,10 +23,11 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 ### Sprint 06 Scope
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0058 | P0 | Ready | Workspace folder restructure (+DB filename) | Storage | Jacob | `AF0058_Ready_workspace_folder_restructure.md` |
-| 2 | AF-0060 | P0 | Ready | Skill definition framework | Skills | Kai | `AF0060_Ready_skill_definition_framework.md` |
-| 3 | AF-0063 | P1 | Ready | Schema inventory documentation | Docs/Core | Kai | `AF0063_Ready_schema_inventory_documentation.md` |
-| 4 | AF-0013 | P1 | Ready | Contract inventory hardening | Contracts | Jacob | `AF0013_Ready_contract_inventory_hardening.md` |
+| 1 | AF-0058 | P0 | Done | Workspace folder restructure (+DB filename) | Storage | Jacob | `AF0058_Done_workspace_folder_restructure.md` |
+| 2 | AF-0061 | P2 | Proposed | Status CAPS convention | Docs/Process | Kai | `AF0061_Proposed_status_caps_convention.md` |
+| 3 | AF-0060 | P0 | Ready | Skill definition framework | Skills | Kai | `AF0060_Ready_skill_definition_framework.md` |
+| 4 | AF-0063 | P1 | Ready | Schema inventory documentation | Docs/Core | Kai | `AF0063_Ready_schema_inventory_documentation.md` |
+| 5 | AF-0013 | P1 | Ready | Contract inventory hardening | Contracts | Jacob | `AF0013_Ready_contract_inventory_hardening.md` |
 
 ### Sprint 07 Scope (planned)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
@@ -43,7 +44,6 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 | AF-0056 | P0 | Proposed | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_Proposed_direct_skill_runs_verifier.md` |
 | AF-0057 | P0 | Proposed | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_Proposed_skill_emits_trace_artifacts_evidence.md` |
 | AF-0059 | P2 | Proposed | Implement playbooks list | CLI | Jacob | `AF0059_Proposed_implement_playbooks_list.md` |
-| AF-0061 | P2 | Proposed | Status CAPS convention | Docs/Process | Kai | `AF0061_Proposed_status_caps_convention.md` |
 | AF-0064 | P1 | Proposed | Process documentation hardening | Process/Docs | Kai | `AF0064_Proposed_process_documentation_hardening.md` |
 | AF-0012 | P2 | Proposed | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | `AF0012_Proposed_cli_reference_surface.md` |
 | AF-0036 | P1 | Proposed | Remove global CLI flags (needs design) | CLI | Jacob | `AF0036_Proposed_remove_global_cli.md` |
