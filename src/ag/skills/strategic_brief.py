@@ -318,7 +318,8 @@ def strategic_brief_skill(params: dict[str, Any]) -> tuple[bool, str, dict[str, 
     """Generate a strategic brief from workspace markdown files.
 
     Args (via params):
-        workspace_path: Path to workspace directory containing markdown files
+        workspace_path: Path to workspace root directory. Reads files from
+                       workspace_path/inputs/ subfolder (AF0058 structure).
         title: Optional title for the brief (default: "Strategic Brief")
         max_files: Maximum files to process (default: 50)
 
@@ -347,18 +348,28 @@ def strategic_brief_skill(params: dict[str, Any]) -> tuple[bool, str, dict[str, 
             {"error": "workspace_not_found"},
         )
 
+    # Read from inputs/ subfolder (AF0058 workspace structure)
+    inputs_path = workspace_path / "inputs"
+    if not inputs_path.exists():
+        # Fallback to workspace root for backward compatibility
+        inputs_path = workspace_path
+
     title = params.get("title", "Strategic Brief")
     max_files = params.get("max_files", 50)
 
     try:
-        # Read sources
-        sources = _read_markdown_files(workspace_path, max_files=max_files)
+        # Read sources from inputs path
+        sources = _read_markdown_files(inputs_path, max_files=max_files)
 
         if not sources:
             return (
                 False,
-                "No markdown files found in workspace",
-                {"error": "no_sources", "workspace_path": str(workspace_path)},
+                f"No markdown files found in {inputs_path}",
+                {
+                    "error": "no_sources",
+                    "workspace_path": str(workspace_path),
+                    "inputs_path": str(inputs_path),
+                },
             )
 
         # Generate sections

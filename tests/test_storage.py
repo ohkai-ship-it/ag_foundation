@@ -80,7 +80,7 @@ class TestWorkspace:
     """Tests for Workspace directory management."""
 
     def test_ensure_exists_creates_structure(self, temp_root: Path) -> None:
-        """Workspace creates required directories on demand."""
+        """Workspace creates required directories on demand (AF0058 structure)."""
         ws = Workspace("my-workspace", temp_root)
         assert not ws.exists()
 
@@ -88,8 +88,8 @@ class TestWorkspace:
 
         assert ws.exists()
         assert ws.path.exists()
-        assert ws.runs_dir.exists()
-        assert ws.artifacts_dir.exists()
+        assert ws.inputs_path.exists()  # AF0058: inputs/ folder for user content
+        assert ws.runs_path.exists()    # AF0058: runs/ folder for run outputs
 
     def test_path_safety_rejects_traversal(self, temp_root: Path) -> None:
         """Path components with traversal are rejected."""

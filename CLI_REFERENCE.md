@@ -108,6 +108,17 @@ Workspaces isolate:
 
 **Important:** Workspaces must be created explicitly with `ag ws create` before use. `ag run` will not auto-create workspaces (AF-0026).
 
+### Directory structure (AF0058)
+```
+<workspace>/
+├── db.sqlite      # Index database
+├── inputs/        # User content (place files here for skills to read)
+└── runs/          # Run outputs
+    └── <run_id>/
+        ├── trace.json
+        └── artifacts/
+```
+
 ---
 
 ## `ag runs` — run inspection

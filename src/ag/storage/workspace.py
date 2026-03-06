@@ -1,13 +1,15 @@
 """Workspace management and directory layout.
 
-Workspace structure:
+Workspace structure (v0.2 - AF0058):
     <workspace_root>/
         db.sqlite          # SQLite index for runs/artifacts
-        runs/              # RunTrace JSON files
-            <run_id>.json
-        artifacts/         # Artifact storage
+        inputs/            # User content (read by skills)
+            *.md, *.txt, etc.
+        runs/              # System outputs (per-run folders)
             <run_id>/
-                <artifact_id>_<filename>
+                trace.json     # RunTrace JSON
+                artifacts/     # Artifacts for this run
+                    <filename>
 """
 
 from __future__ import annotations
@@ -27,8 +29,8 @@ class WorkspaceError(Exception):
 class Workspace:
     """Manages a workspace directory and its structure."""
 
+    INPUTS_DIR = "inputs"
     RUNS_DIR = "runs"
-    ARTIFACTS_DIR = "artifacts"
     DB_FILE = "db.sqlite"
 
     def __init__(self, workspace_id: str, root_path: Path | None = None) -> None:
@@ -48,14 +50,20 @@ class Workspace:
         return self._path
 
     @property
-    def runs_dir(self) -> Path:
-        """Directory for RunTrace JSON files."""
-        return self._path / self.RUNS_DIR
+    def inputs_path(self) -> Path:
+        """Directory for user input files (read by skills)."""
+        return self._path / self.INPUTS_DIR
 
     @property
-    def artifacts_dir(self) -> Path:
-        """Directory for artifact storage."""
-        return self._path / self.ARTIFACTS_DIR
+    def runs_path(self) -> Path:
+        """Directory for run outputs (per-run folders)."""
+        return self._path / self.RUNS_DIR
+
+    # Backward compatibility alias
+    @property
+    def runs_dir(self) -> Path:
+        """Alias for runs_path (backward compatibility)."""
+        return self.runs_path
 
     @property
     def db_path(self) -> Path:
@@ -65,31 +73,43 @@ class Workspace:
     def ensure_exists(self) -> None:
         """Create workspace directory structure if it doesn't exist."""
         self._path.mkdir(parents=True, exist_ok=True)
-        self.runs_dir.mkdir(exist_ok=True)
-        self.artifacts_dir.mkdir(exist_ok=True)
+        self.inputs_path.mkdir(exist_ok=True)
+        self.runs_path.mkdir(exist_ok=True)
 
     def exists(self) -> bool:
         """Check if workspace exists."""
         return self._path.exists()
 
-    def run_path(self, run_id: str) -> Path:
-        """Get path for a specific run's JSON file."""
+    def run_dir(self, run_id: str) -> Path:
+        """Get directory for a specific run's outputs."""
         _validate_safe_path_component(run_id)
-        return self.runs_dir / f"{run_id}.json"
+        return self.runs_path / run_id
+
+    def run_path(self, run_id: str) -> Path:
+        """Get path for a specific run's trace JSON file."""
+        return self.run_dir(run_id) / "trace.json"
 
     def artifact_dir_for_run(self, run_id: str) -> Path:
         """Get artifact directory for a specific run."""
-        _validate_safe_path_component(run_id)
-        return self.artifacts_dir / run_id
+        return self.run_dir(run_id) / "artifacts"
 
     def artifact_path(self, run_id: str, artifact_id: str, filename: str) -> Path:
-        """Get path for a specific artifact."""
+        """Get path for a specific artifact.
+
+        Args:
+            run_id: Run identifier
+            artifact_id: Artifact identifier (used for uniqueness)
+            filename: Artifact filename
+
+        Returns:
+            Path: runs/<run_id>/artifacts/<artifact_id>_<filename>
+        """
         _validate_safe_path_component(run_id)
         _validate_safe_path_component(artifact_id)
         _validate_safe_filename(filename)
-        run_artifact_dir = self.artifact_dir_for_run(run_id)
-        run_artifact_dir.mkdir(exist_ok=True)
-        return run_artifact_dir / f"{artifact_id}_{filename}"
+        artifact_dir = self.artifact_dir_for_run(run_id)
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        return artifact_dir / f"{artifact_id}_{filename}"
 
 
 def _validate_safe_path_component(component: str) -> None:

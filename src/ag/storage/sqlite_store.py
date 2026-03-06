@@ -117,6 +117,10 @@ class SQLiteRunStore:
         ws = self._get_workspace(trace.workspace_id)
         conn = self._get_conn(trace.workspace_id)
 
+        # Ensure run directory exists (new in v0.2 structure)
+        run_dir = ws.run_dir(trace.run_id)
+        run_dir.mkdir(parents=True, exist_ok=True)
+
         # Write JSON to filesystem
         json_path = ws.run_path(trace.run_id)
         json_path.write_text(trace.to_json(), encoding="utf-8")

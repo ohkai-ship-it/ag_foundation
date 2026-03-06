@@ -114,9 +114,24 @@ Key schema groups:
   - must never be required for correctness
 
 ### 3.6 Storage Layer
-- Workspace state
-- Runs + traces
-- Artifacts registry
+
+**Workspace directory structure (AF0058):**
+```
+<workspace_id>/
+├── db.sqlite              # SQLite index for runs/artifacts
+├── inputs/                # User content (read by skills)
+│   └── *.md, *.txt, etc.
+└── runs/                  # System outputs (per-run folders)
+    └── <run_id>/
+        ├── trace.json     # RunTrace JSON
+        └── artifacts/     # Artifacts for this run
+            └── <filename>
+```
+
+Storage components:
+- Workspace state (db.sqlite)
+- Runs + traces (runs/<id>/trace.json)
+- Artifacts registry (runs/<id>/artifacts/)
 - Optional memory store
 - Config store
 
