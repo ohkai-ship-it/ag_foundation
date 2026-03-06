@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0063
 - **Type:** Docs
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Docs / Core
 - **Owner:** Kai
@@ -61,13 +61,13 @@ Create and maintain a schema inventory that:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] `docs/dev/additional/SCHEMA_INVENTORY.md` created (separate document)
-- [ ] `ARCHITECTURE.md` updated with reference to schema inventory
-- [ ] Each schema has: name, module path, purpose (1 line), version info
-- [ ] Dependency graph documented (which models contain/reference others)
-- [ ] Schema evolution guidelines added (additive-only for 0.x, versioning strategy)
-- [ ] Cross-reference to relevant AFs (AF0062, AF0060) added
-- [ ] INDEX file updated
+- [x] `docs/dev/additional/SCHEMA_INVENTORY.md` created (separate document)
+- [x] `ARCHITECTURE.md` updated with reference to schema inventory
+- [x] Each schema has: name, module path, purpose (1 line), version info
+- [x] Dependency graph documented (which models contain/reference others)
+- [x] Schema evolution guidelines added (additive-only for 0.x, versioning strategy)
+- [x] Cross-reference to relevant AFs (AF0062, AF0060) added
+- [x] INDEX file updated
 
 ---
 
@@ -136,4 +136,36 @@ Rationale: ARCHITECTURE.md (400+ lines) covers architectural guidance; schema in
 - **SCHEMA_INVENTORY.md:** New file created
 - **SKILLS_ARCHITECTURE_0.1.md:** Add cross-reference to schema inventory
 - **BACKLOG_ITEM_TEMPLATE:** Consider adding schema-update checklist item
+
+---
+
+# Completion section
+
+## 1) Metadata
+- **Backlog item (primary):** AF0063
+- **PR:** (commit on sprint06/skill-foundation branch)
+- **Author:** Kai
+- **Date:** 2026-03-06
+- **Branch:** sprint06/skill-foundation
+- **Risk level:** Low (documentation only)
+- **Runtime mode used for verification:** N/A
+
+## 2) Acceptance criteria verification
+- [x] `docs/dev/additional/SCHEMA_INVENTORY.md` created
+- [x] ARCHITECTURE.md updated with Section 3.4 Schema Reference
+- [x] All 21 Pydantic models documented with name, module, purpose, version
+- [x] Dependency graph documented (ASCII art)
+- [x] Evolution guidelines added
+- [x] Cross-references to AF0060, AF0062 added
+
+## 3) What changed (file-level)
+| File | Change |
+|------|--------|
+| `docs/dev/additional/SCHEMA_INVENTORY.md` | NEW: Schema inventory document |
+| `ARCHITECTURE.md` | UPDATED: Section 3.4 references |
+| `tests/test_documentation_drift.py` | NEW: Drift detection tests |
+
+## 4) Architecture alignment
+- **Location:** Separate file in `docs/dev/additional/` (not ARCHITECTURE.md)
+- **Drift detection:** CI tests verify schemas stay documented
 

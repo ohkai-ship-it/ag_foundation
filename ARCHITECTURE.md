@@ -104,8 +104,18 @@ All Pydantic models are documented in [SCHEMA_INVENTORY.md](docs/dev/additional/
 
 Key schema groups:
 - **Task/Run:** TaskSpec, RunTrace, Step, Artifact
-- **Skills:** SkillDefinition, SkillContext, SkillResult (AF-0060)
-- **Playbooks:** Playbook, PlaybookStep, InputMapping
+- **Skills:** SkillInput, SkillOutput, SkillContext (AF-0060)
+- **Playbooks:** Playbook, PlaybookStep
+
+### 3.4.1 Contract Reference
+
+All Protocol interfaces are documented in [CONTRACT_INVENTORY.md](docs/dev/additional/CONTRACT_INVENTORY.md) (AF-0013).
+
+Key protocol groups:
+- **Core Runtime:** Normalizer, Planner, Orchestrator, Executor, Verifier, Recorder
+- **Storage:** RunStore, ArtifactStore
+- **Providers:** LLMProvider
+- **Skills:** Skill (v2 ABC)
 
 ### 3.5 Knowledge & Intelligence (Optional modules)
 - **Retriever (RAG option)**: `retrieve(query, ctx) -> EvidenceBundle`

@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF-0013
 - **Type:** Docs/Quality
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Contracts
 - **Owner:** Jacob
@@ -62,13 +62,13 @@ Make contract documentation reliably reflect reality:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] CONTRACT_INVENTORY.md moved to `docs/dev/additional/CONTRACT_INVENTORY.md`
-- [ ] All Protocols in `interfaces.py` documented with signature + purpose
-- [ ] Discrepancies noted: (a) implemented but undocumented, or (b) documented but not implemented
-- [ ] Drift detection test added (`tests/test_contracts_consistency.py`)
-- [ ] CI runs drift detection and fails on mismatch
-- [ ] ARCHITECTURE.md references CONTRACT_INVENTORY.md
-- [ ] Cross-reference to SCHEMA_INVENTORY.md (AF-0063) for complementary coverage
+- [x] CONTRACT_INVENTORY.md moved to `docs/dev/additional/CONTRACT_INVENTORY.md`
+- [x] All Protocols in `interfaces.py` documented with signature + purpose
+- [x] Discrepancies noted: (a) implemented but undocumented, or (b) documented but not implemented
+- [x] Drift detection test added (`tests/test_documentation_drift.py`)
+- [x] CI runs drift detection and fails on mismatch
+- [x] ARCHITECTURE.md references CONTRACT_INVENTORY.md
+- [x] Cross-reference to SCHEMA_INVENTORY.md (AF-0063) for complementary coverage
 
 ---
 
@@ -133,5 +133,32 @@ def test_all_protocols_documented():
 
 # Completion section (fill when done)
 
-Pending completion.
+## 1) Metadata
+- **Backlog item (primary):** AF0013
+- **PR:** (commit on sprint06/skill-foundation branch)
+- **Author:** Kai
+- **Date:** 2026-03-06
+- **Branch:** sprint06/skill-foundation
+- **Risk level:** Low (documentation only)
+- **Runtime mode used for verification:** N/A
+
+## 2) Acceptance criteria verification
+- [x] CONTRACT_INVENTORY.md created in `docs/dev/additional/`
+- [x] All 9 Protocols documented (core: 6, storage: 2, provider: 1)
+- [x] Implementation status tracked for each protocol
+- [x] Drift detection tests added (`tests/test_documentation_drift.py`)
+- [x] ARCHITECTURE.md updated with Section 3.4.1 Contract Reference
+- [x] Cross-reference to SCHEMA_INVENTORY.md added
+
+## 3) What changed (file-level)
+| File | Change |
+|------|--------|
+| `docs/dev/additional/CONTRACT_INVENTORY.md` | NEW: Contract inventory document |
+| `ARCHITECTURE.md` | UPDATED: Section 3.4.1 added |
+| `tests/test_documentation_drift.py` | NEW: Combined drift tests for both AFs |
+
+## 4) Architecture alignment
+- **Location:** Separate file in `docs/dev/additional/`
+- **Complementary:** Works with SCHEMA_INVENTORY.md (contracts vs schemas)
+- **Drift detection:** CI tests verify protocols stay documented
 
