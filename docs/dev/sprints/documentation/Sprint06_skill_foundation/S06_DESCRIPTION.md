@@ -28,7 +28,7 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Ready
+- **State:** In Progress
 
 ---
 
@@ -61,12 +61,12 @@ GitHub clean with branching and PRs
 - [x] Define sprint ID + sprint name
 
 ### Jacob
-- [ ] Read sprint description
-- [ ] Check AFs in `/docs/dev/backlog/items/`
-- [ ] Ask clarifying questions in chat (no writing required)
-- [ ] Create branch
-- [ ] Create sprint folder
-- [ ] Update INDEX files (ritual at sprint start):  
+- [x] Read sprint description
+- [x] Check AFs in `/docs/dev/backlog/items/`
+- [x] Ask clarifying questions in chat (no writing required)
+- [x] Create branch
+- [x] Create sprint folder
+- [x] Update INDEX files (ritual at sprint start):  
   - `/docs/dev/backlog/INDEX_BACKLOG.md`  
   - `/docs/dev/bugs/INDEX_BUGS.md`  
   - `/docs/dev/decisions/INDEX_DECISIONS.md`  

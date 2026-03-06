@@ -34,7 +34,7 @@ Each sprint folder:
 | Sprint 03 | Closed | (legacy `/docs/old_dev`) |
 | Sprint 04 | Closed | [Sprint04_process_hardening](documentation/Sprint04_process_hardening/) |
 | Sprint 05 | Closed | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
-| Sprint 06 | Ready | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
+| Sprint 06 | In Progress | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
 
 ---
 
