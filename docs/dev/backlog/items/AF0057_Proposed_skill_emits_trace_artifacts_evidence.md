@@ -24,7 +24,7 @@
 -   **Priority:** P0
 -   **Area:** Core Runtime / Recorder / Skills
 -   **Owner:** Jacob
--   **Target sprint:** Sprint06 --- TBD
+-   **Target sprint:** TBD (needs discussion)
 
 ------------------------------------------------------------------------
 

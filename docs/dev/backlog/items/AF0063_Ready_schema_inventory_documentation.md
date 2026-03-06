@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0063
 - **Type:** Docs
-- **Status:** Proposed
-- **Priority:** P2
+- **Status:** Ready
+- **Priority:** P1
 - **Area:** Docs / Core
 - **Owner:** Kai
-- **Target sprint:** TBD
+- **Target sprint:** Sprint06
 
 ---
 
@@ -61,7 +61,8 @@ Create and maintain a schema inventory that:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] `ARCHITECTURE.md` updated with schema inventory section
+- [ ] `docs/dev/additional/SCHEMA_INVENTORY.md` created (separate document)
+- [ ] `ARCHITECTURE.md` updated with reference to schema inventory
 - [ ] Each schema has: name, module path, purpose (1 line), version info
 - [ ] Dependency graph documented (which models contain/reference others)
 - [ ] Schema evolution guidelines added (additive-only for 0.x, versioning strategy)
@@ -72,7 +73,13 @@ Create and maintain a schema inventory that:
 
 ## Implementation notes
 
-### Proposed structure (in ARCHITECTURE.md or separate SCHEMAS.md)
+### Output location
+
+**File:** `docs/dev/additional/SCHEMA_INVENTORY.md`
+
+Rationale: ARCHITECTURE.md (400+ lines) covers architectural guidance; schema inventory is reference material. The `additional/` folder already holds supplementary design docs (SKILLS_ARCHITECTURE_0.1.md).
+
+### Proposed structure
 
 ```markdown
 ## Schema Inventory
@@ -101,8 +108,8 @@ Create and maintain a schema inventory that:
 ```
 
 ### Design questions
-1. **Location:** Section in ARCHITECTURE.md vs separate SCHEMAS.md?
-2. **Auto-generation:** Should we add a script to extract schema info from code?
+1. ~~**Location:** Section in ARCHITECTURE.md vs separate SCHEMAS.md?~~ → **Decided: separate file**
+2. **Auto-generation:** Should we add a script to extract schema info from code? (future enhancement)
 3. **Versioning:** Per-schema versions or single schema_version for all?
 
 ---
@@ -125,5 +132,7 @@ Create and maintain a schema inventory that:
 ---
 
 ## Documentation impact
-- **ARCHITECTURE.md:** New schema inventory section
+- **ARCHITECTURE.md:** Add reference to SCHEMA_INVENTORY.md (Section 3.2 or new section)
+- **SCHEMA_INVENTORY.md:** New file created
+- **SKILLS_ARCHITECTURE_0.1.md:** Add cross-reference to schema inventory
 - **BACKLOG_ITEM_TEMPLATE:** Consider adding schema-update checklist item

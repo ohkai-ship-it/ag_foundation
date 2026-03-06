@@ -4,12 +4,12 @@
 ## Metadata
 - **ID:** AF-0015
 - **Type:** Quality
-- **Status:** Dropped
+- **Status:** Proposed
 - **Priority:** P2
 - **Area:** Storage
 - **Owner:** Jacob
-- **Target sprint:** Sprint 02
-- **Absorbed by:** AF0058 (Workspace folder restructure)
+- **Target sprint:** TBD
+- **Related:** AF0058 (overlapping scope)
 
 ## Problem
 Contract inventory describes workspace SQLite file as `ag.db`, while other docs/plans reference `db.sqlite`. This may be (a) docs mismatch, or (b) inconsistent naming across code paths.

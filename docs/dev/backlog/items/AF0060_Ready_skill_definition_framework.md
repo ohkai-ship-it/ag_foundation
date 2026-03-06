@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0060
 - **Type:** Architecture
-- **Status:** Proposed
-- **Priority:** P1
+- **Status:** Ready
+- **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai
-- **Target sprint:** Sprint06 or Sprint07
+- **Target sprint:** Sprint06
 
 ---
 
@@ -58,6 +58,15 @@ Define a clear skill framework that answers:
 3. **LLM access** — How skills invoke the model (provider injection? context passing?)
 4. **Evidence model** — How skills produce citations and artifacts
 5. **Composability** — How skills can be used in playbooks and direct execution
+
+### Bounded Autonomy Principle
+
+This framework implements **Phase 1 (Playbook-driven)** of the autonomy spectrum:
+- Humans define WHAT (skills exist, playbook structure, budgets)
+- Agents decide HOW (skill parameters, retry decisions, output content within schema)
+
+Future phases (Guided Agent, Goals Only, Full Agent) will evolve FROM this foundation.
+See: `SKILLS_ARCHITECTURE_0.1.md` Section 2.1 for the full spectrum.
 
 Deliverables:
 - [ ] Skill definition spec (this document, refined)
@@ -222,6 +231,7 @@ Mitigations:
 ---
 
 ## Related
+- **SKILLS_ARCHITECTURE_0.1.md** — Primary design reference for this AF
 - AF0048 (Strategic brief skill) — will be evolved
 - AF0059 (Playbooks list) — related discovery
 - BUG0011 (workspace name leak) — skills need workspace context

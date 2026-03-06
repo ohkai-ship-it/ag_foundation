@@ -24,7 +24,8 @@
 - **Priority:** P2
 - **Area:** Docs/Process
 - **Owner:** Kai
-- **Target sprint:** Sprint06 (or cleanup task)
+- **Target sprint:** TBD
+- **Related:** AF0064 (overlapping scope)
 
 ---
 

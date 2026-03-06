@@ -20,11 +20,11 @@
 
 -   **ID:** AF0056
 -   **Type:** Foundation
--   **Status:** Ready
+-   **Status:** Proposed
 -   **Priority:** P0
 -   **Area:** Core Runtime / Verifier / CLI
 -   **Owner:** Jacob
--   **Target sprint:** Sprint06 --- TBD
+-   **Target sprint:** TBD (needs discussion)
 
 ------------------------------------------------------------------------
 

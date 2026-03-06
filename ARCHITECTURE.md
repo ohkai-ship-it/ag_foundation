@@ -1,5 +1,5 @@
 # ag_foundation — Architecture
-# Version number: v0.1
+# Version number: v0.2
 
 This document defines the **core architecture** for ag_foundation: a modular, inspectable **agent network runtime** that can plan, execute, verify, and record runs.
 
@@ -96,13 +96,24 @@ A registry of skills that declare:
 - required permissions (for future safety gating)
 - test harness expectations
 
-### 3.4 Knowledge & Intelligence (Optional modules)
+For detailed skill architecture, see [SKILLS_ARCHITECTURE_0.1.md](docs/dev/additional/SKILLS_ARCHITECTURE_0.1.md).
+
+### 3.4 Schema Reference
+
+All Pydantic models are documented in [SCHEMA_INVENTORY.md](docs/dev/additional/SCHEMA_INVENTORY.md) (AF-0063).
+
+Key schema groups:
+- **Task/Run:** TaskSpec, RunTrace, Step, Artifact
+- **Skills:** SkillDefinition, SkillContext, SkillResult (AF-0060)
+- **Playbooks:** Playbook, PlaybookStep, InputMapping
+
+### 3.5 Knowledge & Intelligence (Optional modules)
 - **Retriever (RAG option)**: `retrieve(query, ctx) -> EvidenceBundle`
 - **MemoryStore (optional)**: workspace-bounded state, summaries, embeddings
 - **Predictor (MLP option)**: `predict(ctx) -> ranked hints` (routing/tool ranking/classification)
   - must never be required for correctness
 
-### 3.5 Storage Layer
+### 3.6 Storage Layer
 - Workspace state
 - Runs + traces
 - Artifacts registry
@@ -132,6 +143,43 @@ A registry of skills that declare:
 ---
 
 ## 5. Playbooks and reasoning modes
+
+### 5.0 Autonomy Spectrum
+
+The system's autonomy evolves through phases:
+
+```
+RIGID                                                    AUTONOMOUS
+(human decides everything)                    (agent decides everything)
+    │                                                         │
+    ▼                                                         ▼
+┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐
+│ Script │  │Playbook│  │ Guided │  │ Goals  │  │  Full  │
+│        │  │        │  │ Agent  │  │  Only  │  │ Agent  │
+└────────┘  └────────┘  └────────┘  └────────┘  └────────┘
+                 ▲
+                 │
+           CURRENT PHASE
+```
+
+**Current design:** Playbook-driven with bounded agent autonomy.
+
+| Decision | Decided By | Rationale |
+|----------|------------|----------|
+| Which skills exist | Human (compile-time) | Security boundary |
+| Playbook structure | Human (definition-time) | Predictability |
+| Execution order | Playbook (static) | Testability |
+| Skill parameters | Agent (runtime) | Flexibility |
+| Retry decisions | Agent (bounded) | Adaptability |
+| Output content | Agent (schema-bounded) | Creativity within constraints |
+| Resource limits | Human (budget) | Cost control |
+
+**Future phases:**
+- **Guided Agent:** Agent suggests playbook modifications, human approves
+- **Goals Only:** Human provides goal, agent selects/composes playbook
+- **Full Agent:** Agent defines its own skills (requires robust policy engine)
+
+**Core principle:** Humans define WHAT, agents decide HOW.
 
 ### 5.1 Playbook responsibilities
 A playbook defines:

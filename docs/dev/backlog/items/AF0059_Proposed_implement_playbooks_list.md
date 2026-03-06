@@ -20,12 +20,12 @@
 ## Metadata
 - **ID:** AF0059
 - **Type:** Feature
-- **Status:** Dropped
+- **Status:** Proposed
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob
-- **Target sprint:** Sprint06 (tentative)
-- **Absorbed by:** AF0012 (CLI_REFERENCE surface parity)
+- **Target sprint:** TBD
+- **Related:** AF0012 (overlapping scope)
 
 ---
 

@@ -19,21 +19,33 @@ Proposed → Ready → In progress → Done (or Blocked / Dropped)
 ---
 
 ## Active backlog (current)
+
+### Sprint 06 Scope
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0058 | P0 | Ready | Workspace folder restructure (+DB filename) | Storage | Jacob | `AF0058_Ready_workspace_folder_restructure.md` |
+| 2 | AF-0060 | P0 | Ready | Skill definition framework | Skills | Kai | `AF0060_Ready_skill_definition_framework.md` |
+| 3 | AF-0063 | P1 | Ready | Schema inventory documentation | Docs/Core | Kai | `AF0063_Ready_schema_inventory_documentation.md` |
+| 4 | AF-0013 | P1 | Ready | Contract inventory hardening | Contracts | Jacob | `AF0013_Ready_contract_inventory_hardening.md` |
+
+### Sprint 07 Scope (planned)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0065 | P0 | Proposed | First skill set (from scratch) | Skills | Kai | `AF0065_Proposed_first_skill_set.md` |
+| 2 | AF-0066 | P1 | Proposed | E2E integration test | Testing | Kai | `AF0066_Proposed_e2e_integration_test.md` |
+| 3 | AF-0062 | P1 | Proposed | Trace LLM model tracking | Core | Kai | `AF0062_Proposed_trace_llm_model_tracking.md` |
+
+### Backlog (unprioritized)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0056 | P0 | Ready | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_Ready_direct_skill_runs_verifier.md` |
-| AF-0057 | P0 | Ready | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_Ready_skill_emits_trace_artifacts_evidence.md` |
-| AF-0058 | P1 | Ready | Workspace folder restructure | Storage | Jacob | `AF0058_Ready_workspace_folder_restructure.md` |
-| AF-0059 | P2 | Ready | Implement playbooks list | CLI | Jacob | `AF0059_Ready_implement_playbooks_list.md` |
-| AF-0060 | P1 | Proposed | Skill definition framework | Skills | Kai | `AF0060_Proposed_skill_definition_framework.md` |
+| AF-0015 | P2 | Proposed | Resolve storage DB filename mismatch | Storage | Jacob | `AF0015_Proposed_resolve_storage_db.md` |
+| AF-0046 | P1 | Ready | Test isolation framework (+BUG-0007) | Testing | Jacob | `AF0046_Ready_test_isolation_framework.md` |
+| AF-0056 | P0 | Proposed | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_Proposed_direct_skill_runs_verifier.md` |
+| AF-0057 | P0 | Proposed | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_Proposed_skill_emits_trace_artifacts_evidence.md` |
+| AF-0059 | P2 | Proposed | Implement playbooks list | CLI | Jacob | `AF0059_Proposed_implement_playbooks_list.md` |
 | AF-0061 | P2 | Proposed | Status CAPS convention | Docs/Process | Kai | `AF0061_Proposed_status_caps_convention.md` |
-| AF-0062 | P1 | Proposed | Trace LLM model tracking | Core | Kai | `AF0062_Proposed_trace_llm_model_tracking.md` |
-| AF-0063 | P2 | Proposed | Schema inventory documentation | Docs/Core | Kai | `AF0063_Proposed_schema_inventory_documentation.md` |
-| AF-0064 | P1 | Proposed | Sprint PR timing clarification | Process/Docs | Kai | `AF0064_Proposed_sprint_pr_timing_clarification.md` |
-| AF-0046 | P1 | Proposed | Test isolation framework for providers | Testing | Jacob | `AF0046_Proposed_test_isolation_framework.md` |
-| AF-0012 | P2 | Ready | CLI_REFERENCE surface parity v0.1 (partial — if capacity) | CLI | Jacob | `AF0012_Ready_cli_reference_surface.md` |
-| AF-0013 | P1 | Ready | Contract inventory hardening: reconcile docs ↔ implementation | Contracts | Jacob | `AF0013_Ready_contract_inventory_hardening.md` |
-| AF-0015 | P2 | Ready | Resolve storage DB filename mismatch (docs vs code) | Storage | Jacob | `AF0015_Ready_resolve_storage_db.md` |
+| AF-0064 | P1 | Proposed | Process documentation hardening | Process/Docs | Kai | `AF0064_Proposed_process_documentation_hardening.md` |
+| AF-0012 | P2 | Proposed | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | `AF0012_Proposed_cli_reference_surface.md` |
 | AF-0036 | P1 | Proposed | Remove global CLI flags (needs design) | CLI | Jacob | `AF0036_Proposed_remove_global_cli.md` |
 
 ---

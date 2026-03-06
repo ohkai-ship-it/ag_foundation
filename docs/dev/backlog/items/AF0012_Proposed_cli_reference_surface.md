@@ -4,11 +4,11 @@
 ## Metadata
 - **ID:** AF-0012
 - **Type:** Feature
-- **Status:** Ready
+- **Status:** Proposed
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob
-- **Target sprint:** Sprint 02+
+- **Target sprint:** TBD (needs discussion)
 
 ## Problem
 The CLI implements core commands, but several options and subcommands documented in CLI_REFERENCE are missing (BUG-0002 run options, BUG-0003 subcommands). This creates spec drift and blocks API-parity planning. Additionally, config.py has low coverage (~46%); adding CLI surface for config should include config tests.
@@ -27,6 +27,10 @@ Establish CLI surface parity for v0.1 by adding missing `ag run` options and stu
 - [ ] `--task` accepts a TaskSpec JSON file and validates via TaskSpec schema (invalid rejected clearly).
 - [ ] `--confirm` is dev-safe: prompts user before run; in `--json` mode, fail with structured error unless `--no-confirm`.
 - [ ] Add stubs for missing subcommands (minimum): `ag runs tail`, `ag ws config get/set`, `ag artifacts open/export`, `ag skills test/enable/disable`, `ag playbooks validate/set-default`.
+- [ ] **`ag playbooks list` implemented** (from AF0059):
+  - [ ] Lists all available playbooks with metadata
+  - [ ] `--json` flag outputs structured JSON
+  - [ ] Default playbook marked in output
 - [ ] Stub semantics are consistent: non-zero exit code + message `Not implemented in v0`; with `--json`, return structured JSON error.
 - [ ] Tests added/updated (CLI surface)
 - [ ] Config tests added (config.py coverage focus)
@@ -41,6 +45,10 @@ Establish CLI surface parity for v0.1 by adding missing `ag run` options and stu
 
 ## Risks
 Medium: more surface area and precedence confusion. Mitigate with explicit help text and tests for precedence and error cases.
+
+## Related
+- **AF0059 (Dropped)** — Playbooks list (absorbed into this AF)
+- BUG-0002, BUG-0003 — CLI surface gaps
 
 ## PR plan
 1. PR (feat/cli-run-options): Add `--file`, `--task`, `--confirm/--no-confirm` + tests.

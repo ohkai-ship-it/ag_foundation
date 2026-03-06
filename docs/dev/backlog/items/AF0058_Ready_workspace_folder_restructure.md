@@ -21,10 +21,10 @@
 - **ID:** AF0058
 - **Type:** Refactor
 - **Status:** Ready
-- **Priority:** P1
+- **Priority:** P0
 - **Area:** Storage
 - **Owner:** Jacob
-- **Target sprint:** Sprint06 (or later)
+- **Target sprint:** Sprint06
 - **Related ADR(s):** ADR006 (workspace folder structure)
 
 ---
@@ -37,6 +37,7 @@ artifacts and run traces at the workspace root. This causes:
 2. **Cluttered root** - Run artifacts pollute the workspace directory
 3. **Hard to export** - No clean way to package a single run with all its data
 4. **Artifact naming** - Long prefixed filenames to avoid collisions
+5. **DB filename inconsistency** - Docs say `ag.db`, code uses `db.sqlite` (AF0015 absorbed)
 
 **Current structure:**
 ```
@@ -76,6 +77,27 @@ dev01/
 
 ---
 
+## MANDATORY TESTING WORKFLOW
+
+> **THIS MUST WORK FIRST BEFORE ANY OTHER SPRINT WORK**
+
+AF0058 is a foundational change affecting storage, paths, and skill interfaces.
+Strict verification is required before considering it complete:
+
+1. **Run all tests** — `pytest -W error` must pass with 100% of existing tests green
+2. **Stop the sprint** — Pause work and notify Kai for review
+3. **Confirm with Kai** — Human approval required before proceeding
+4. **Human testing** — Manual walkthrough of:
+   - `ag ws create` creates correct folder structure
+   - Files placed in `inputs/` are readable by skills
+   - Run traces appear in `runs/<id>/trace.json`
+   - Artifacts appear in `runs/<id>/artifacts/`
+5. **Results documented** — Record test outcomes in completion section
+
+**No exceptions.** If tests fail or human testing reveals issues, stop and fix before continuing the sprint.
+
+---
+
 ## Non-goals
 - Migration of existing workspaces (manual cleanup acceptable for v0.x)
 - Changing the SQLite schema
@@ -90,6 +112,8 @@ dev01/
 - [ ] `ArtifactStore` saves to `runs/<run_id>/artifacts/<name>`
 - [ ] Artifact filenames no longer include run_id prefix
 - [ ] `strategic_brief` skill reads from `inputs/` folder
+- [ ] **DB filename unified** — single constant `DB_FILENAME` used everywhere (from AF0015)
+- [ ] **Docs updated** — ARCHITECTURE.md, CLI_REFERENCE.md use canonical DB filename
 - [ ] All existing tests pass with updated paths
 - [ ] New tests verify folder structure creation
 - [ ] `ag ws create` creates the new structure
@@ -154,6 +178,7 @@ dev01/
 ## Related
 - BUG0011 (workspace name leak) — workspace context improvements
 - AF0060 (Skill definition framework) — skills need workspace path abstraction
+- **AF0015 (Dropped)** — DB filename consolidation (absorbed into this AF)
 
 ---
 

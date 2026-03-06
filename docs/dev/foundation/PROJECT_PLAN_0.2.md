@@ -1,8 +1,8 @@
 # ag_foundation --- Project Plan
 
-# Version number: v0.3
+# Version number: v0.4
 
-# Updated: 2026-03-04
+# Updated: 2026-03-06
 
 ------------------------------------------------------------------------
 
@@ -13,52 +13,56 @@ execute, verify, and learn from runs.\
 IoT integration, web/app UI, and other sensors/data sources are **later
 integrations**; the foundation must make those easy to attach.
 
-The foundation phase is complete. The next phase prioritizes **impact
-and capability pressure**, not structural hardening.
+The current phase prioritizes **skill architecture hardening**. Skills are
+the core unit of capability — everything else (RAG, API, IoT) depends on
+skills working correctly first.
 
 ------------------------------------------------------------------------
 
-# Current State Summary (after Sprint 04)
+# Current State Summary (after Sprint 05)
 
-The system is now:
+The system has:
 
--   Architecturally modular
--   Trace-contract enforced
--   Workspace-isolated
--   CI disciplined (ruff + pytest -W error + coverage thresholds)
--   Governance consolidated
--   Execution protocol deterministic
+-   ✅ Architecturally modular runtime
+-   ✅ Trace-contract enforced
+-   ✅ Workspace-isolated
+-   ✅ CI disciplined (ruff + pytest -W error + coverage thresholds)
+-   ✅ Governance consolidated
+-   ✅ Deterministic sprint execution model
+-   ⚠️ **Skills are stub-only** — no LLM integration
+-   ⚠️ **Skill contracts undefined** — no input/output schemas
+-   ⚠️ **Workspace structure incomplete** — no `inputs/` folder convention
 
 Canonical governance documents:
 
--   `/docs/dev/foundation/FOUNDATION_OPERATING_MANUAL.md`
--   `/docs/dev/foundation/SPRINT_EXECUTION_PLAYBOOK.md`
+-   `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+-   `/docs/dev/foundation/SPRINT_MANUAL.md`
 
-This marks the end of structural ambiguity.
-
-We are ready to push for functional impact.
+**Key gap:** The skill layer is the weakest part of the architecture.
+Until skills have proper contracts, LLM integration, and evidence capture,
+the system cannot deliver real capability.
 
 ------------------------------------------------------------------------
 
-# Strategic Shift (Post-Sprint 04)
+# Strategic Focus (Post-Sprint 05)
 
 We are transitioning from:
 
-> Architecture hardening
+> Runtime architecture hardening
 
 to:
 
-> Capability expansion under real pressure
+> Skill architecture hardening
 
 Key rule going forward:
 
--   No more "infrastructure for infrastructure's sake"
--   Every sprint must create visible system capability
--   Architecture must be validated by use, not by theory
+-   **Skills first** — everything else depends on working skills
+-   No RAG, API, or IoT until skills are solid
+-   Architecture must be validated by real LLM-calling skills
 
 ------------------------------------------------------------------------
 
-# Phase 0 --- Foundation Build & Hardening (Completed)
+# Phase 0 --- Foundation Build (Completed)
 
 ## Sprint 00 --- Project Bootstrap (Closed)
 
@@ -70,160 +74,256 @@ Key rule going forward:
 
 ## Sprint 04 --- Safety & Process Hardening (Closed)
 
-Exit status of Phase 0: ✔ Modular runtime\
-✔ Delegation\
-✔ Trace contract\
-✔ Truthful CLI\
-✔ CI enforcement\
-✔ Governance consolidation\
-✔ Deterministic sprint execution model
+## Sprint 05 --- High-Pressure Skills (Closed)
 
-Foundation maturity achieved.
-
-------------------------------------------------------------------------
-
-# Phase 1 --- Capability Expansion
-
-Future sprints are now impact-driven.
+Exit status of Phase 0:
+✔ Modular runtime
+✔ Delegation pattern
+✔ Trace contract
+✔ Truthful CLI
+✔ CI enforcement
+✔ Governance consolidation
+✔ Schema verifier with repair loop
+⚠️ Skills remain stubs (no LLM calls)
 
 ------------------------------------------------------------------------
 
-## Sprint 05 --- High-Pressure Skills (Impact Sprint)
+# Phase 1 --- Skill Architecture Hardening
 
-Goal: Force the architecture to prove itself through a real multi-file,
-multi-step scenario.
-
-Proposed target scenario:
-
-> Given a workspace with 20+ markdown files, generate a structured
-> strategic brief with: - evidence citations - structured output
-> (schema-enforced) - artifact export - multi-step delegation - verifier
-> loop - trace-backed justification
-
-Why this matters: - Validates skill contracts - Validates trace depth
-under load - Forces artifact lifecycle discipline - Exposes weaknesses
-in planner/orchestrator - Creates real utility
-
-Exit criteria: - End-to-end scenario reproducible - Structured output
-validated - Evidence traceable - No workspace bleed - No invariant
-violations
+This phase makes skills the foundation for all future capability.
 
 ------------------------------------------------------------------------
 
-## Sprint 06 --- Retrieval Interface Layer (RAG Interface)
+## Sprint 06 --- Skill Foundation (Current)
 
-Goal: Introduce retrieval as a pluggable interface (not necessarily full
-production RAG).
+Goal: Establish the skill architecture that enables real LLM-powered capabilities.
 
-Scope: - Retriever interface definition - Workspace-bound indexing
-model - Evidence bundle capture in trace - Citation linking in trace
-contract - Retrieval fully disable-able for deterministic test mode
+Scope (per INDEX_BACKLOG):
 
-Why earlier than previously planned: Retrieval introduces complexity
-pressure: - Storage strain - Trace expansion - Evidence verification -
-Planner decision branching
+| Order | AF | Title |
+|-------|-----|-------|
+| 1 | AF-0058 | Workspace folder restructure (inputs/, runs/<id>/) |
+| 2 | AF-0060 | Skill definition framework (schemas, protocols) |
+| 3 | AF-0063 | Schema inventory documentation |
+| 4 | AF-0013 | Contract inventory hardening |
 
-Better to surface architectural cracks earlier.
+Why this matters:
+- AF-0058 establishes the workspace interface skills depend on
+- AF-0060 defines how skills declare inputs/outputs and call LLMs
+- AF-0063 documents what schemas exist (prerequisite for contracts)
+- AF-0013 reconciles documentation with implementation
 
-Exit criteria: - Retrieval does not violate layering - Retrieval
-trace-observable - Retrieval isolation enforced
+Exit criteria:
+- Workspace has `inputs/` and `runs/<id>/` structure
+- Skill protocol defined with input/output schemas
+- SkillContext provides LLM access pattern
+- Schema inventory complete
+- No undocumented contract drift
+
+Reference: `/docs/dev/additional/SKILLS_ARCHITECTURE_0.1.md`
 
 ------------------------------------------------------------------------
 
-## Sprint 07 --- Workspace & Artifact Maturity
+## Sprint 07 --- First Real Skills
+
+Goal: Prove the skill framework by implementing real LLM-calling skills.
+
+Scope (per INDEX_BACKLOG):
+
+| Order | AF | Title |
+|-------|-----|-------|
+| 1 | AF-0065 | First skill set (from scratch, not strategic_brief) |
+| 2 | AF-0066 | E2E integration test (skill → verifier → trace → artifact) |
+| 3 | AF-0062 | Trace LLM model tracking |
+
+Why this matters:
+- AF-0065 validates that the framework actually works
+- AF-0066 proves the full pipeline end-to-end
+- AF-0062 ensures LLM usage is observable
+
+Exit criteria:
+- At least 2 working skills that call LLM
+- Skills produce evidence and artifacts
+- E2E test passes in CI (mock provider)
+- E2E test passes manually (real provider)
+- Trace shows model used
+
+------------------------------------------------------------------------
+
+## Sprint 08 --- Skill Ecosystem Expansion
+
+Goal: Build out the skill library and playbook composition.
+
+Scope:
+- Additional skills: code_review, generate_tests, refactor
+- Playbook library with multiple workflows
+- Default playbook selection logic
+
+Exit criteria:
+- 5+ working skills
+- Multiple playbooks demonstrating composition
+- Playbook selection documented
+
+------------------------------------------------------------------------
+
+# Phase 2 --- Capability Expansion (Deferred)
+
+These sprints are deferred until skill architecture is proven.
+
+------------------------------------------------------------------------
+
+## Sprint 09+ --- Retrieval Interface Layer (RAG)
+
+Goal: Introduce retrieval as a pluggable interface.
+
+Scope:
+- Retriever interface definition
+- Workspace-bound indexing model
+- Evidence bundle capture in trace
+- Citation linking in trace contract
+
+Prerequisite: Sprint 07 complete (skills must work first)
+
+------------------------------------------------------------------------
+
+## Sprint 10+ --- Workspace & Artifact Maturity
 
 Goal: Strengthen durable state and artifact lifecycle.
 
-Scope: - Artifact registry formalization - Export/import boundaries -
-Artifact reproducibility guarantees - Workspace migration model - Memory
-boundary enforcement
-
-Exit criteria: - Artifacts reproducible - Cross-workspace bleed
-impossible - Clear artifact lifecycle documentation
-
-------------------------------------------------------------------------
-
-## Sprint 08 --- Internal API Readiness (Deferred Priority)
-
-API is **not** top priority.
-
-However, readiness must be preserved.
-
-Goal: Prepare core runtime for future API exposure without freezing
-immature contracts.
-
-Scope: - Internal adapter interface definition - Mapping CLI semantics →
-internal service layer - Ensure no CLI-only logic leaks into core -
-Define future endpoints (not public-stable): - POST /tasks - GET
-/runs/{id} - GET /runs/{id}/trace - GET /runs/{id}/artifacts
-
-Important constraint: API implementation should follow real capability
-maturity --- not precede it.
-
-Exit criteria: - Core callable via internal interface - No architectural
-refactor required when API implemented later
+Scope:
+- Artifact registry formalization
+- Export/import boundaries
+- Artifact reproducibility guarantees
+- Workspace migration model
 
 ------------------------------------------------------------------------
 
-## Sprint 09 --- Policy & Budget Engine
+## Sprint 11+ --- Internal API Readiness
+
+Goal: Prepare core runtime for API exposure.
+
+Scope:
+- Internal adapter interface definition
+- CLI → service layer mapping
+- Future endpoint definitions
+
+Prerequisite: Skills work, RAG works, then API.
+
+------------------------------------------------------------------------
+
+## Sprint 12+ --- Policy & Budget Engine
 
 Goal: Formalize guardrails and execution governance.
 
-Scope: - Budget enforcement hooks - Retry/backoff formalization -
-Structured reasoning mode policy - Safe-action classification model -
-Verifier escalation strategy
-
-This is expected to be one of the most complex sprints.
-
-Exit criteria: - High-impact steps require explicit policy path - Policy
-behavior testable via unit tests - Trace captures policy decisions
+Scope:
+- Budget enforcement hooks
+- Retry/backoff formalization
+- Safe-action classification
 
 ------------------------------------------------------------------------
 
-## Sprint 10 --- Integration Phase (Later)
+## Sprint 13+ --- Integration Phase (IoT/Web)
 
 Goal: Attach real-world I/O.
 
-Scope: - IoT adapters - Web/app adapters - Deployment model -
-Multi-interface orchestration
+Scope:
+- IoT adapters
+- Web/app adapters
+- Multi-interface orchestration
 
-Exit criteria: - Sensor event → plan → action (with safety gates) - UI
-can inspect traces
+Prerequisite: Everything above works first.
+
+------------------------------------------------------------------------
+
+# Phase 3 --- Autonomy Evolution (Future)
+
+The system's autonomy level will evolve over time.
+
+## Autonomy Spectrum
+
+```
+RIGID                                                    AUTONOMOUS
+(human decides everything)                    (agent decides everything)
+    │                                                         │
+    ▼                                                         ▼
+┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐
+│ Script │  │Playbook│  │ Guided │  │ Goals  │  │  Full  │
+│        │  │        │  │ Agent  │  │  Only  │  │ Agent  │
+└────────┘  └────────┘  └────────┘  └────────┘  └────────┘
+     │           │           │           │           │
+     │      PHASE 1     PHASE 3     PHASE 4     PHASE 5
+     │      (now)       (future)    (future)    (future)
+```
+
+### Phase 1: Playbook-Driven (Current Focus)
+
+- Humans define playbooks (skill sequence, data mapping)
+- Agents have autonomy WITHIN skill execution
+- Predictable, testable, debuggable
+
+### Phase 3: Guided Agent (Future)
+
+- Agent can suggest playbook modifications
+- Human approves before execution
+- Semi-autonomous planning
+
+### Phase 4: Goals Only (Future)
+
+- Human provides goal, agent selects playbook
+- Agent composes skills dynamically
+- Monitoring and guardrails required
+
+### Phase 5: Full Agent (Long-term)
+
+- Agent defines its own skills
+- Minimal human oversight
+- Requires robust safety/policy engine
+
+**Key principle:** Humans define WHAT, agents decide HOW.
 
 ------------------------------------------------------------------------
 
 # Architectural Trajectory Summary
 
-We have completed structural maturity.
+We have NOT completed structural maturity.
 
-We now optimize for:
+The skill layer is the critical gap. Until skills:
+- Have defined input/output schemas
+- Can call LLMs via provider injection
+- Produce evidence and artifacts
+- Are testable in isolation
 
-1.  Real capability pressure
-2.  Trace depth validation
-3.  Skill ecosystem usefulness
-4.  Retrieval & evidence rigor
-5.  Guardrail formalization
+...the system cannot deliver real capability.
 
-API remains strategically important --- but must follow maturity, not
-drive it.
+Current optimization targets:
+
+1.  **Skill architecture** — most urgent
+2.  **Schema discipline** — enables verification
+3.  **Evidence model** — enables trust
+4.  **Workspace structure** — enables skill I/O
+
+Deferred until skills work:
+
+1.  RAG/Retrieval
+2.  Internal API
+3.  Policy engine
+4.  IoT/Web integration
 
 ------------------------------------------------------------------------
 
 # Current Strategic Position
 
-The foundation is stable.
+The runtime is stable but the skill layer is immature.
 
-The next failure mode is not structural.
+The next failure mode is:
 
-It is:
+> Building features (RAG, API, IoT) on top of broken skill foundations.
 
-> Building too much architecture without forcing it through real use.
+The focus from Sprint 06 onward must be:
 
-The focus from Sprint 05 onward must be:
+-   Skill contracts first
+-   Real LLM integration
+-   Evidence and artifact discipline
+-   Verifiable, testable skills
 
--   High-signal capability
--   Realistic workloads
--   Architectural stress testing
--   Invariant preservation under load
-
-That is the path to impact.
+That is the path to capability.
