@@ -7,6 +7,8 @@ AF0060: Added support for new Skill protocol alongside legacy callables.
 The registry supports both:
 - Legacy: SkillFn = Callable[[dict], tuple[bool, str, dict]]
 - New: Skill protocol with typed input/output schemas
+
+AF0065: Added summarize_v0 skills (load_documents, summarize_docs, emit_result).
 """
 
 from __future__ import annotations
@@ -15,7 +17,10 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
+from ag.skills.emit_result import EmitResultSkill
+from ag.skills.load_documents import LoadDocumentsSkill
 from ag.skills.strategic_brief import StrategicBriefSkillV2, strategic_brief_skill
+from ag.skills.summarize_docs import SummarizeDocsSkill
 
 # Skill function signature: (params: dict) -> tuple[bool, str, dict]
 # Returns: (success, output_summary, result_data)
@@ -409,6 +414,11 @@ def create_default_registry() -> SkillRegistry:
 
     # AF-0060: Strategic brief v2 skill (with LLM support)
     registry.register_v2(StrategicBriefSkillV2())
+
+    # AF-0065: Summarize playbook skills (REAL - do actual work)
+    registry.register_v2(LoadDocumentsSkill())
+    registry.register_v2(SummarizeDocsSkill())
+    registry.register_v2(EmitResultSkill())
 
     return registry
 

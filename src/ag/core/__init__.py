@@ -17,7 +17,7 @@ from .playbook import (
     PlaybookStepType,
     ReasoningMode,
 )
-from .playbooks import DEFAULT_V0, get_playbook, list_playbooks
+from .playbooks import DEFAULT_V0, SUMMARIZE_V0, get_playbook, list_playbooks
 from .run_trace import (
     Artifact,
     ArtifactCategory,
@@ -90,6 +90,7 @@ __all__ = [
     "ReasoningMode",
     # playbooks
     "DEFAULT_V0",
+    "SUMMARIZE_V0",
     "get_playbook",
     "list_playbooks",
     # interfaces
