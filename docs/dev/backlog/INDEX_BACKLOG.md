@@ -45,6 +45,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | AF-0057 | P0 | PROPOSED | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_PROPOSED_skill_emits_trace_artifacts_evidence.md` |
 | AF-0059 | P2 | PROPOSED | Implement playbooks list | CLI | Jacob | `AF0059_PROPOSED_implement_playbooks_list.md` |
 | AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | `AF0064_PROPOSED_process_documentation_hardening.md` |
+| AF-0067 | P2 | PROPOSED | Skill code documentation | Skills/Docs | Kai | `AF0067_PROPOSED_skill_code_documentation.md` |
 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | `AF0012_PROPOSED_cli_reference_surface.md` |
 | AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | `AF0036_PROPOSED_remove_global_cli.md` |
 

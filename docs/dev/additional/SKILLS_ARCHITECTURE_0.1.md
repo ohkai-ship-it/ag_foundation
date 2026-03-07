@@ -550,9 +550,11 @@ This architecture is successful if:
 ## 10. References
 
 - [ARCHITECTURE.md](../../../ARCHITECTURE.md) — System overview
+- [ARCHITECTURE.md Section 3.4.2](../../../ARCHITECTURE.md#342-concept-relationships) — Concept relationship matrix (schemas ↔ contracts ↔ skills ↔ playbooks)
 - [SCHEMA_INVENTORY.md](SCHEMA_INVENTORY.md) — Complete Pydantic model inventory (AF-0063)
-- [AF-0060](../backlog/items/AF0060_Ready_skill_definition_framework.md) — Skill framework AF
-- [AF-0065](../backlog/items/AF0065_Proposed_first_skill_set.md) — First skills AF
+- [CONTRACT_INVENTORY.md](CONTRACT_INVENTORY.md) — Protocol interface inventory (AF-0013)
+- [AF-0060](../backlog/items/AF0060_DONE_skill_definition_framework.md) — Skill framework AF
+- [AF-0065](../backlog/items/AF0065_PROPOSED_first_skill_set.md) — First skills AF
 - [interfaces.py](../../../src/ag/core/interfaces.py) — Current protocols
 - [playbook.py](../../../src/ag/core/playbook.py) — Current playbook schema
 

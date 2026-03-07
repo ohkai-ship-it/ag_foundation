@@ -263,6 +263,7 @@ This inventory is validated by `tests/test_contracts.py` which:
 - [SCHEMA_INVENTORY.md](SCHEMA_INVENTORY.md) — Pydantic schemas
 - [SKILLS_ARCHITECTURE_0.1.md](SKILLS_ARCHITECTURE_0.1.md) — Skill/playbook design
 - [ARCHITECTURE.md](../../ARCHITECTURE.md) — System architecture
+- [ARCHITECTURE.md Section 3.4.2](../../ARCHITECTURE.md#342-concept-relationships) — How contracts relate to schemas, skills, and playbooks
 
 ## Related AFs
 - **AF0013:** This document

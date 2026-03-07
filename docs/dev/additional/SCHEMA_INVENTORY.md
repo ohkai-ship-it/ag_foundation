@@ -158,6 +158,7 @@ When modifying schemas:
 - [CONTRACT_INVENTORY.md](CONTRACT_INVENTORY.md) — Protocol interfaces
 - [SKILLS_ARCHITECTURE_0.1.md](SKILLS_ARCHITECTURE_0.1.md) — Skill/playbook design
 - [ARCHITECTURE.md](../../ARCHITECTURE.md) — System architecture
+- [ARCHITECTURE.md Section 3.4.2](../../ARCHITECTURE.md#342-concept-relationships) — How schemas relate to contracts, skills, and playbooks
 
 ## Related AFs
 - **AF0060:** Skill definition framework (added skill schemas)

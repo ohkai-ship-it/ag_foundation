@@ -117,6 +117,70 @@ Key protocol groups:
 - **Providers:** LLMProvider
 - **Skills:** Skill (v2 ABC)
 
+### 3.4.2 Concept Relationships
+
+The four core concepts (Schemas, Contracts, Skills, Playbooks) relate as follows:
+
+| Concept | Definition | Layer |
+|---------|------------|-------|
+| **Schema** | Data shape (Pydantic model) | Data |
+| **Contract** | Behavioral promise (Protocol interface) | Interface |
+| **Skill** | Atomic LLM-powered capability | Capability |
+| **Playbook** | Workflow composing skills | Orchestration |
+
+**Relationship Matrix:**
+
+```
+                    SCHEMAS                          CONTRACTS
+                    (data shapes)                    (behavioral promises)
+                         │                                  │
+    ┌────────────────────┼──────────────────────────────────┼────────────────────┐
+    │                    │                                  │                    │
+    │  ┌─────────────────▼─────────────────┐   ┌───────────▼───────────────┐    │
+    │  │ SkillInput, SkillOutput           │   │ Skill ABC (execute)       │    │
+SKILLS │ StrategicBriefInput/Output        │◄──│ SkillContext injection    │    │
+    │  │ StrategicBrief, Citation, etc.    │   │ Executor calls skills     │    │
+    │  └───────────────────────────────────┘   └───────────────────────────┘    │
+    │                                                                            │
+    │  ┌───────────────────────────────────┐   ┌───────────────────────────┐    │
+    │  │ Playbook, PlaybookStep            │   │ Planner (selects)         │    │
+PLAYBOOKS TaskSpec (input)                 │◄──│ Orchestrator (executes)   │    │
+    │  │ RunTrace (output)                 │   │ Verifier (validates)      │    │
+    │  └───────────────────────────────────┘   └───────────────────────────┘    │
+    │                                                                            │
+    └────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Relationships:**
+
+| From | To | Relationship |
+|------|-----|--------------|
+| Skill | Schema | Consumes input schemas, produces output schemas |
+| Skill | Contract | Implements `Skill` ABC, invoked by `Executor` contract |
+| Playbook | Schema | Defined by `Playbook` schema, produces `RunTrace` |
+| Playbook | Contract | Selected by `Planner`, executed by `Orchestrator` |
+| Contract | Schema | Methods take/return schema instances |
+
+**Execution Flow:**
+
+```
+TaskSpec (schema)
+     │
+     ▼
+Planner (contract) ──► selects ──► Playbook (schema)
+     │
+     ▼
+Orchestrator (contract) ──► executes steps ──► calls Executor (contract)
+     │                                              │
+     │                                              ▼
+     │                                         Skill (contract)
+     │                                              │
+     │                                         SkillInput/Output (schemas)
+     │
+     ▼
+RunTrace (schema) ──► persisted by ──► Recorder (contract)
+```
+
 ### 3.5 Knowledge & Intelligence (Optional modules)
 - **Retriever (RAG option)**: `retrieve(query, ctx) -> EvidenceBundle`
 - **MemoryStore (optional)**: workspace-bounded state, summaries, embeddings
