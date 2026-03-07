@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0065
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai

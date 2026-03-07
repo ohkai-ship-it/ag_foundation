@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0062
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Core
 - **Owner:** Kai
-- **Target sprint:** Sprint06
+- **Target sprint:** Sprint07 (after AF0065)
 
 ---
 
@@ -115,6 +115,10 @@ class Step(BaseModel):
 
 ### Recommendation
 **Option B** — nested `LLMExecution` model with run-level summary, plus **Option C** per-step tracking for detail.
+
+> **CONFIRMED:** This design choice was reviewed and approved. Implement both:
+> - Run-level `llm: LLMExecution` for summary stats
+> - Per-step `model_used: str | None` for step-level detail
 
 ---
 

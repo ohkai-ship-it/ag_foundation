@@ -32,9 +32,11 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 07 Scope (planned)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0065 | P0 | PROPOSED | First skill set (from scratch) | Skills | Kai | `AF0065_PROPOSED_first_skill_set.md` |
-| 2 | AF-0066 | P1 | PROPOSED | E2E integration test | Testing | Kai | `AF0066_PROPOSED_e2e_integration_test.md` |
-| 3 | AF-0062 | P1 | PROPOSED | Trace LLM model tracking | Core | Kai | `AF0062_PROPOSED_trace_llm_model_tracking.md` |
+| 1 | AF-0065 | P0 | READY | First skill set (summarize_v0) | Skills | Kai | `AF0065_READY_first_skill_set.md` |
+| 2 | AF-0068 | P1 | READY | Skills/playbooks folder restructure | Skills/Playbooks | Kai | `AF0068_READY_skills_playbooks_folder_restructure.md` |
+| 3 | AF-0066 | P1 | READY | E2E integration test | Testing | Kai | `AF0066_READY_e2e_integration_test.md` |
+| 4 | AF-0062 | P1 | READY | Trace LLM model tracking | Core | Kai | `AF0062_READY_trace_llm_model_tracking.md` |
+| 5 | AF-0067 | P2 | READY | Skill code documentation | Skills/Docs | Kai | `AF0067_READY_skill_code_documentation.md` |
 
 ### Backlog (unprioritized)
 | ID | Priority | Status | Title | Area | Owner | Filename |
@@ -45,7 +47,6 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | AF-0057 | P0 | PROPOSED | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_PROPOSED_skill_emits_trace_artifacts_evidence.md` |
 | AF-0059 | P2 | PROPOSED | Implement playbooks list | CLI | Jacob | `AF0059_PROPOSED_implement_playbooks_list.md` |
 | AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | `AF0064_PROPOSED_process_documentation_hardening.md` |
-| AF-0067 | P2 | PROPOSED | Skill code documentation | Skills/Docs | Kai | `AF0067_PROPOSED_skill_code_documentation.md` |
 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | `AF0012_PROPOSED_cli_reference_surface.md` |
 | AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | `AF0036_PROPOSED_remove_global_cli.md` |
 

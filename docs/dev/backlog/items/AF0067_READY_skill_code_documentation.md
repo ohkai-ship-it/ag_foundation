@@ -12,7 +12,7 @@
 > - 1 PR = 1 primary AF
 > - INDEX update rule (status ↔ filename integrity)
 
-> **File naming (required):** `AF0067_PROPOSED_skill_code_documentation.md`
+> **File naming (required):** `AF0067_READY_skill_code_documentation.md`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0067
 - **Type:** Docs
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Skills / Docs
 - **Owner:** Kai

@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0066
 - **Type:** Testing
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Testing/Integration
 - **Owner:** Kai
@@ -51,6 +51,11 @@ Create an E2E integration test that exercises the complete pipeline:
 2. **Verifier → Trace** — Verified run creates proper RunTrace
 3. **Trace → Artifact** — Artifacts are stored in `runs/<id>/artifacts/`
 4. **Full round-trip** — `ag run` → `ag runs show` → `ag artifacts list`
+
+**Test design: Generic and configurable**
+- Tests should be parametrizable for any skill/playbook combination
+- Not hardcoded to `summarize_v0` — can validate any registered skill
+- Fixture-based: `@pytest.fixture` provides workspace, skill name, expected outputs
 
 Two test modes:
 - **CI mode:** Mock provider (deterministic, fast, runs in GitHub Actions)
