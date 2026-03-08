@@ -32,8 +32,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 07 Scope (planned)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0065 | P0 | READY | First skill set (summarize_v0) | Skills | Kai | `AF0065_READY_first_skill_set.md` |
-| 2 | AF-0068 | P1 | READY | Skills/playbooks folder restructure | Skills/Playbooks | Kai | `AF0068_READY_skills_playbooks_folder_restructure.md` |
+| 1 | AF-0065 | P0 | DONE | First skill set (summarize_v0) | Skills | Kai | `AF0065_DONE_first_skill_set.md` |
+| 2 | AF-0068 | P1 | DONE | Skills/playbooks folder restructure | Skills/Playbooks | Kai | `AF0068_DONE_skills_playbooks_folder_restructure.md` |
 | 3 | AF-0066 | P1 | DONE | E2E integration test | Testing | Kai | `AF0066_DONE_e2e_integration_test.md` |
 | 4 | AF-0062 | P1 | DONE | Trace LLM model tracking | Core | Kai | `AF0062_DONE_trace_llm_model_tracking.md` |
 | 5 | AF-0067 | P2 | DONE | Skill code documentation | Skills/Docs | Kai | `AF0067_DONE_skill_code_documentation.md` |
