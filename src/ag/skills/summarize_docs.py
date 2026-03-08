@@ -51,15 +51,18 @@ class SummarizeDocsOutput(SkillOutput):
     """Output schema for summarize_docs skill.
 
     Attributes:
-        summary: The generated summary text
+        document_summary: The generated summary text (content)
         key_points: List of extracted key points
         source_count: Number of source documents used
         sources: List of source file paths
+    
+    Note: Inherits `summary` from SkillOutput for status message.
+    Use `document_summary` for the actual LLM-generated content.
     """
 
-    summary: str = Field(
+    document_summary: str = Field(
         default="",
-        description="Generated summary text",
+        description="Generated summary text (LLM output)",
     )
     key_points: list[str] = Field(
         default_factory=list,
@@ -216,43 +219,52 @@ Be factual and cite document names when making specific claims."""
         sources: list[str],
     ) -> SummarizeDocsOutput:
         """Parse LLM response into structured output."""
-        summary = ""
-        key_points: list[str] = []
+        import sys
 
         # Split response into sections
         lines = response.split("\n")
         current_section = ""
-        current_content: list[str] = []
+        summary_lines: list[str] = []
+        key_points_lines: list[str] = []
+        pre_section_lines: list[str] = []  # Content before any section header
 
         for line in lines:
             lower_line = line.lower().strip()
 
+            # Detect section headers
             if "## summary" in lower_line or lower_line == "summary":
-                if current_section == "key_points" and current_content:
-                    key_points = self._extract_bullet_points(current_content)
                 current_section = "summary"
-                current_content = []
+                continue
             elif "## key points" in lower_line or lower_line == "key points":
-                if current_section == "summary" and current_content:
-                    summary = "\n".join(current_content).strip()
                 current_section = "key_points"
-                current_content = []
+                continue
+
+            # Collect content into appropriate section
+            if current_section == "summary":
+                summary_lines.append(line)
+            elif current_section == "key_points":
+                key_points_lines.append(line)
             else:
-                current_content.append(line)
+                # Content before any section header
+                pre_section_lines.append(line)
 
-        # Handle final section
-        if current_section == "summary" and current_content:
-            summary = "\n".join(current_content).strip()
-        elif current_section == "key_points" and current_content:
-            key_points = self._extract_bullet_points(current_content)
+        # Extract summary - try section content, then pre-section, then fallback
+        summary = "\n".join(summary_lines).strip()
+        if not summary:
+            # Use pre-section content as summary (common LLM output pattern)
+            summary = "\n".join(pre_section_lines).strip()
 
-        # Fallback: if no structured sections, use whole response as summary
+        # Extract key points
+        key_points = self._extract_bullet_points(key_points_lines)
+
+        # Fallback: if no structured output, use whole response
         if not summary and not key_points:
             summary = response.strip()
 
         return SummarizeDocsOutput(
             success=True,
-            summary=summary or "Summary generated",
+            summary=f"Summarized {len(sources)} document(s)",
+            document_summary=summary or "Summary generated",
             key_points=key_points,
             source_count=len(sources),
             sources=sources,
@@ -298,7 +310,8 @@ Be factual and cite document names when making specific claims."""
 
         return SummarizeDocsOutput(
             success=True,
-            summary=f"[Fallback mode - no LLM]\n\n{summary}",
+            summary=f"[Fallback mode] Extracted from {len(sources)} document(s)",
+            document_summary=summary,
             key_points=key_points,
             source_count=len(sources),
             sources=sources,

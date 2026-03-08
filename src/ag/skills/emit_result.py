@@ -32,7 +32,7 @@ class EmitResultInput(SkillInput):
     Receives results from previous pipeline step (e.g., summarize_docs output).
 
     Attributes:
-        summary: Summary text from previous step
+        document_summary: Summary text from previous step
         key_points: Key points extracted
         sources: Source file paths
         artifact_name: Name for the artifact file
@@ -40,7 +40,7 @@ class EmitResultInput(SkillInput):
     """
 
     # Pipeline results from previous step
-    summary: str = Field(
+    document_summary: str = Field(
         default="",
         description="Summary text from previous step",
     )
@@ -176,7 +176,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
                 "run_id": ctx.run_id,
                 "step_number": ctx.step_number,
                 # Actual content from pipeline
-                "summary": input.summary,
+                "summary": input.document_summary,
                 "key_points": input.key_points,
                 "sources": input.sources,
                 "source_count": input.source_count,
