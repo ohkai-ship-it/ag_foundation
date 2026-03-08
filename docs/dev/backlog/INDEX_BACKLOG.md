@@ -41,6 +41,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
+| AF-0069 | P1 | PROPOSED | Skills registry deep dive | Skills/Architecture | Kai | `AF0069_PROPOSED_skills_registry_deep_dive.md` |
 | AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch | Storage | Jacob | `AF0015_PROPOSED_resolve_storage_db.md` |
 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | `AF0046_READY_test_isolation_framework.md` |
 | AF-0056 | P0 | PROPOSED | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_PROPOSED_direct_skill_runs_verifier.md` |
