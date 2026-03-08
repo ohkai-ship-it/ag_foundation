@@ -35,7 +35,7 @@ Each sprint folder:
 | Sprint 04 | Closed | [Sprint04_process_hardening](documentation/Sprint04_process_hardening/) |
 | Sprint 05 | Closed | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
 | Sprint 06 | Closed | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
-| Sprint 07 | In Progress | [Sprint07_summarize_playbook](documentation/Sprint07_summarize_playbook/) |
+| Sprint 07 | Closed | [Sprint07_summarize_playbook](documentation/Sprint07_summarize_playbook/) |
 
 ---
 

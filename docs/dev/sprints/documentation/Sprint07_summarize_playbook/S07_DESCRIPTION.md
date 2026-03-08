@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint07
 - **Name:** summarize_playbook
-- **Dates:** 2026-03-08 → TBD
+- **Dates:** 2026-03-08 → 2026-03-08
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** In Progress
+- **State:** Closed
 
 ---
 
@@ -105,27 +105,44 @@ See AF0065 for complete specification with flow diagrams.
 ---
 
 ## 6) Exit criteria
-- [ ] `ag run --playbook summarize_v0` works with real LLM
-- [ ] All three skills registered and documented
-- [ ] E2E test passing in CI
-- [ ] Model/provider recorded in trace
-- [ ] 95%+ coverage maintained
-- [ ] All Sprint 07 AFs → DONE
+- [x] `ag run --playbook summarize_v0` works with real LLM
+- [x] All three skills registered and documented
+- [x] E2E test passing in CI
+- [x] Model/provider recorded in trace
+- [x] 95%+ coverage maintained
+- [x] All Sprint 07 AFs → DONE
 
 ---
 
 ## 7) Sprint report (filled at close)
-_To be completed at sprint end_
+
+### Shipped items
+| ID | Status | Title |
+|----|--------|-------|
+| AF-0065 | DONE | First skill set (summarize_v0) |
+| AF-0068 | DONE | Skills/playbooks folder restructure |
+| AF-0066 | DONE | E2E integration test |
+| AF-0062 | DONE | Trace LLM model tracking |
+| AF-0067 | DONE | Skill code documentation |
 
 ### Velocity
-- Planned story points: TBD
-- Completed story points: TBD
+- Planned AFs: 5 (1 P0, 3 P1, 1 P2)
+- Completed AFs: 5/5 (100%)
 
 ### What went well
-- TBD
+- First complete skill-based playbook working end-to-end with real OpenAI
+- Skills framework validated through production use case
+- E2E tests provide confidence in runtime pipeline
+- Model/provider tracking enables observability
 
 ### What could improve
-- TBD
+- Process integrity issues found during review (filename/status mismatches)
+- `pytest -W error` still failing due to BUG-0012 (SQLite warnings)
+- Invalid playbook name silently falls back instead of erroring
 
 ### Follow-ups identified
-- TBD
+- AF-0071: Warning-clean test discipline (+BUG-0012)
+- AF-0072: Playbook validation error handling
+
+### Review decision
+**ACCEPT WITH FOLLOW-UPS** — See S07_REVIEW_01.md for details

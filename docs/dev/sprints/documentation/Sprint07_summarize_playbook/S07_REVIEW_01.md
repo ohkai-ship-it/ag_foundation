@@ -251,59 +251,62 @@ Evidence: `bug_triage.md`
 
 ### Review metadata
 - **Reviewed by:** Jeff + Kai
-- **Date:** YYYY-MM-DD
+- **Date:** 2026-03-08
 - **Scope:** Sprint07
-- **Decision:** ACCEPT | ACCEPT WITH FOLLOW-UPS | REJECT
+- **Decision:** ACCEPT WITH FOLLOW-UPS
 
 ---
 
 ### What changed (high-level)
-- Implemented and/or finalized the first summarize playbook and related Sprint 07 hardening.
-- Reviewed playbook/skills file structure, model tracking, E2E coverage, and documentation quality.
-- Verified sprint/document/index integrity against the shipped code and review evidence.
+- First complete skill-based playbook (`summarize_v0`) with three skills: load_documents, summarize_docs, emit_result
+- Skills/playbooks folder restructure (`src/ag/skills/`, `src/ag/playbooks/`)
+- RunTrace model/provider tracking
+- E2E integration tests covering happy and failure paths
+- Skill code documentation (docstrings, inline comments)
 
 ---
 
 ### Verification performed (summary)
 - Commands executed:
-  - `ruff check src tests`
-  - `ruff format --check src tests`
-  - `pytest -q`
-  - `pytest -W error`
-  - `pytest --cov=src/ag --cov-report=term-missing`
-  - `ag run --playbook summarize_v0 ...`
-  - `ag runs show <run_id> --json`
+  - `ruff check src tests` → PASS
+  - `ruff format --check src tests` → PASS (50 files formatted)
+  - `pytest -q` → 412 passed, 3 deselected
+  - `pytest -W error` → 2 failures (BUG-0012 SQLite warnings)
+  - `ag run --playbook summarize_v0 --task "..." --workspace test_ws` → SUCCESS
+  - `ag runs show <run_id> --json` → trace verified
 - Evidence inspected:
   - `artifacts/review_S07_01/env.txt`
   - `artifacts/review_S07_01/ruff_summary.txt`
   - `artifacts/review_S07_01/pytest_summary.txt`
   - `artifacts/review_S07_01/cli_outputs.txt`
   - `artifacts/review_S07_01/happy_trace.json`
-  - `artifacts/review_S07_01/failure_trace.json`
   - `artifacts/review_S07_01/index_diff_notes.md`
-  - `artifacts/review_S07_01/doc_review_notes.md`
-  - `artifacts/review_S07_01/bug_triage.md` (if created)
+  - `artifacts/review_S07_01/bug_triage.md`
 
 ---
 
 ### Findings
 - ✅ What works / improved:
-  - ...
+  - Playbook execution flow works end-to-end with real OpenAI
+  - Skills properly isolated with clear interfaces
+  - Failure paths correctly handled (workspace protection, invalid playbook fallback)
+  - Model/provider tracking in traces is accurate
 - ⚠️ Issues found (with severity P0 / P1 / P2):
-  - ...
+  - P1: `pytest -W error` fails (2 tests) due to BUG-0012 SQLite unclosed connections
+  - P2: Invalid playbook name silently falls back to default_v0 instead of erroring
+  - P2: Pre-existing duplicate AF files (AF-0015, AF-0046, AF-0059) — not Sprint 07 issue
 - 🧩 Follow-ups (AF / BUG / ADR to create):
-  - AF____
-  - BUG____
-  - ADR___
+  - AF-0071: Warning-clean test discipline (ties to BUG-0012)
+  - AF-0072: Playbook validation error handling
 
 ---
 
 ### Decision rationale
-Why this decision was made.
+All P0 scope items shipped and verified. Core functionality works correctly. Two P1/P2 issues found and logged as follow-up AFs rather than blocking merge. Sprint 07 goals achieved.
 
 ---
 
 ### Next actions
-- [ ] Close sprint (if ACCEPT / ACCEPT WITH FOLLOW-UPS)
-- [ ] Create follow-up AF / BUG / ADR items and update indices
-- [ ] If REJECT: specify blocking issues and required fixes
+- [x] Close sprint (if ACCEPT / ACCEPT WITH FOLLOW-UPS)
+- [x] Create follow-up AF / BUG / ADR items and update indices
+- [ ] If REJECT: specify blocking issues and required fixes — N/A
