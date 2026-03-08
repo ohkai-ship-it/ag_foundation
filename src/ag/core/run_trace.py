@@ -239,6 +239,10 @@ class Step(BaseModel):
     evidence_refs: list[EvidenceRef] | None = Field(
         default=None, description="Evidence sources referenced by this step"
     )
+    # AF-0062: Model used for this step (additive field)
+    model_used: str | None = Field(
+        default=None, description="LLM model used for this step (AF-0062)"
+    )
 
     model_config = {"extra": "forbid"}
 
@@ -259,6 +263,26 @@ class Verifier(BaseModel):
     checked_at: datetime | None = Field(default=None, description="Verification timestamp")
     message: str | None = Field(default=None, description="Verifier message")
     evidence: dict[str, Any] = Field(default_factory=dict, description="Verification evidence")
+
+    model_config = {"extra": "forbid"}
+
+
+# AF-0062: LLM execution details
+class LLMExecution(BaseModel):
+    """LLM execution details for a run (AF-0062).
+
+    Captures which provider and model were used for the run,
+    enabling truthful UX and model comparison.
+    """
+
+    provider: str = Field(
+        ..., min_length=1, description="Provider name (openai, anthropic, manual)"
+    )
+    model: str | None = Field(default=None, description="Model identifier")
+    call_count: int = Field(default=0, ge=0, description="Number of LLM calls made")
+    total_tokens: int | None = Field(default=None, ge=0, description="Total tokens used")
+    input_tokens: int | None = Field(default=None, ge=0, description="Input/prompt tokens")
+    output_tokens: int | None = Field(default=None, ge=0, description="Output/completion tokens")
 
     model_config = {"extra": "forbid"}
 
@@ -285,6 +309,10 @@ class RunTrace(BaseModel):
         default=None, description="How workspace was resolved (AF-0030)"
     )
     mode: ExecutionMode = Field(..., description="Execution mode used")
+    # AF-0062: LLM execution details (additive field)
+    llm: LLMExecution | None = Field(
+        default=None, description="LLM execution details (null for manual mode)"
+    )
     playbook: PlaybookMetadata = Field(..., description="Playbook used for this run")
     started_at: datetime = Field(..., description="Run start timestamp")
     ended_at: datetime | None = Field(default=None, description="Run end timestamp")

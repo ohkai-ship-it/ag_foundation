@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0062
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Core
 - **Owner:** Kai
@@ -123,14 +123,14 @@ class Step(BaseModel):
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] RunTrace includes `llm` field with provider/model
-- [ ] `ag runs show --json` displays LLM info
-- [ ] `ag runs list` shows model column (optional)
-- [ ] Manual mode runs show "manual" or null for model
-- [ ] Existing traces without LLM field still load (backward compatible)
-- [ ] Tests cover new schema fields
-- [ ] `pytest -W error` passes
-- [ ] `ruff check src tests` passes
+- [x] RunTrace includes `llm` field with provider/model
+- [x] `ag runs show --json` displays LLM info
+- [x] `ag runs list` shows model column (optional)
+- [x] Manual mode runs show "manual" or null for model
+- [x] Existing traces without LLM field still load (backward compatible)
+- [x] Tests cover new schema fields
+- [x] `pytest -W error` passes
+- [x] `ruff check src tests` passes
 
 ---
 

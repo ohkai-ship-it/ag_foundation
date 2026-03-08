@@ -11,11 +11,10 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Protocol, get_type_hints
+from typing import Protocol
 
 import pytest
 from pydantic import BaseModel
-
 
 # ---------------------------------------------------------------------------
 # Contract Drift Detection (AF0013)

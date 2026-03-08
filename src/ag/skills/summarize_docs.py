@@ -55,7 +55,7 @@ class SummarizeDocsOutput(SkillOutput):
         key_points: List of extracted key points
         source_count: Number of source documents used
         sources: List of source file paths
-    
+
     Note: Inherits `summary` from SkillOutput for status message.
     Use `document_summary` for the actual LLM-generated content.
     """
@@ -219,8 +219,6 @@ Be factual and cite document names when making specific claims."""
         sources: list[str],
     ) -> SummarizeDocsOutput:
         """Parse LLM response into structured output."""
-        import sys
-
         # Split response into sections
         lines = response.split("\n")
         current_section = ""

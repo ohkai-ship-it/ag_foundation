@@ -14,6 +14,7 @@ from ag.core.playbook import Playbook
 from ag.core.run_trace import (
     Artifact,
     FinalStatus,
+    LLMExecution,
     PlaybookMetadata,
     RunTrace,
     Step,
@@ -262,7 +263,9 @@ class V0Orchestrator:
         previous_result: dict[str, Any] = {}
 
         # AF-0065: Create LLM provider for non-manual modes
+        # AF-0062: Track provider configuration for LLMExecution in trace
         llm_provider: LLMProvider | None = None
+        provider_config: ProviderConfig | None = None
         if task.mode != ExecutionMode.MANUAL:
             try:
                 # Create OpenAI provider (default for v0)
@@ -271,7 +274,7 @@ class V0Orchestrator:
                     model="gpt-4o-mini",  # Default model
                 )
                 llm_provider = get_provider(provider_config)
-            except Exception as e:
+            except Exception:
                 # Provider creation failed - will use fallback mode in skills
                 pass  # Skills handle missing provider gracefully
 
@@ -388,6 +391,18 @@ class V0Orchestrator:
         # Convert workspace_source string to enum if provided (AF-0030)
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
 
+        # AF-0062: Build LLMExecution for trace (None for manual mode)
+        llm_execution: LLMExecution | None = None
+        if provider_config is not None:
+            llm_execution = LLMExecution(
+                provider=provider_config.provider,
+                model=provider_config.model,
+                call_count=0,  # v0: Not tracking individual calls yet
+                total_tokens=None,  # v0: Token tracking not implemented
+                input_tokens=None,
+                output_tokens=None,
+            )
+
         # Build trace with verification result included
         trace = RunTrace(
             run_id=run_id,
@@ -407,6 +422,7 @@ class V0Orchestrator:
             ),
             final=final_status,
             error=error_message,
+            llm=llm_execution,  # AF-0062: Include LLM provider info
         )
 
         # Persist the trace

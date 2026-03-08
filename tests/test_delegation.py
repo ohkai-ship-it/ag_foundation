@@ -17,9 +17,9 @@ import pytest
 from typer.testing import CliRunner
 
 from ag.cli.main import app
-from ag.playbooks import get_playbook, list_playbooks
 from ag.core.run_trace import StepType, Subtask
 from ag.core.runtime import Runtime
+from ag.playbooks import get_playbook, list_playbooks
 from ag.skills import get_default_registry
 from ag.storage import Workspace
 
