@@ -89,7 +89,7 @@ class TestWorkspace:
         assert ws.exists()
         assert ws.path.exists()
         assert ws.inputs_path.exists()  # AF0058: inputs/ folder for user content
-        assert ws.runs_path.exists()    # AF0058: runs/ folder for run outputs
+        assert ws.runs_path.exists()  # AF0058: runs/ folder for run outputs
 
     def test_path_safety_rejects_traversal(self, temp_root: Path) -> None:
         """Path components with traversal are rejected."""

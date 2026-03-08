@@ -12,7 +12,7 @@
 > - 1 PR = 1 primary AF
 > - INDEX update rule (status ↔ filename integrity)
 
-> **File naming (required):** `AF0068_READY_skills_playbooks_folder_restructure.md`
+> **File naming (required):** `AF0068_DONE_skills_playbooks_folder_restructure.md`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0068
 - **Type:** Refactor / Docs
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Skills / Playbooks / Structure
 - **Owner:** Kai

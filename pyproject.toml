@@ -54,9 +54,10 @@ packages = ["src/ag"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-v -m 'not integration'"
+addopts = "-v -m 'not integration and not manual'"
 markers = [
     "integration: marks tests that require external services (deselect with '-m \"not integration\"')",
+    "manual: marks tests that require real API keys/network and should be run manually",
 ]
 
 [tool.ruff]

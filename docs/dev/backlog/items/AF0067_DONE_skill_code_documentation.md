@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0067
 - **Type:** Docs
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Skills / Docs
 - **Owner:** Kai
@@ -59,19 +59,19 @@ Update skill code with comprehensive inline documentation:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] `src/ag/skills/base.py` has module docstring with:
-  - [ ] Link to SCHEMA_INVENTORY.md for SkillInput/SkillOutput/SkillContext
-  - [ ] Link to CONTRACT_INVENTORY.md for Skill ABC
-  - [ ] "How to create a new skill" section with step-by-step guide
-- [ ] `src/ag/skills/registry.py` has module docstring with:
-  - [ ] Schema references (SkillV2Info)
-  - [ ] Contract references (explains v1 vs v2 distinction)
-  - [ ] How to register skills
-- [ ] `src/ag/skills/strategic_brief.py` has:
-  - [ ] Module docstring listing all schemas it defines/uses
-  - [ ] Example of a complete v2 skill implementation
-- [ ] All docstrings follow Google style (existing convention)
-- [ ] CI passes (ruff check, pytest)
+- [x] `src/ag/skills/base.py` has module docstring with:
+  - [x] Link to SCHEMA_INVENTORY.md for SkillInput/SkillOutput/SkillContext
+  - [x] Link to CONTRACT_INVENTORY.md for Skill ABC
+  - [x] "How to create a new skill" section with step-by-step guide
+- [x] `src/ag/skills/registry.py` has module docstring with:
+  - [x] Schema references (SkillV2Info)
+  - [x] Contract references (explains v1 vs v2 distinction)
+  - [x] How to register skills
+- [x] `src/ag/skills/strategic_brief.py` has:
+  - [x] Module docstring listing all schemas it defines/uses
+  - [x] Example of a complete v2 skill implementation
+- [x] All docstrings follow Google style (existing convention)
+- [x] CI passes (ruff check, pytest)
 
 ---
 

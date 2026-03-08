@@ -11,11 +11,10 @@ from __future__ import annotations
 
 import inspect
 from pathlib import Path
-from typing import Protocol, get_type_hints
+from typing import Protocol
 
 import pytest
 from pydantic import BaseModel
-
 
 # ---------------------------------------------------------------------------
 # Contract Drift Detection (AF0013)
@@ -42,17 +41,11 @@ class TestContractInventoryDrift:
                 continue
             if hasattr(obj, "_is_protocol") and obj._is_protocol:
                 protocols.append(name)
-            elif (
-                hasattr(obj, "__mro__")
-                and Protocol in obj.__mro__
-                and obj is not Protocol
-            ):
+            elif hasattr(obj, "__mro__") and Protocol in obj.__mro__ and obj is not Protocol:
                 protocols.append(name)
         return protocols
 
-    def test_core_interfaces_documented(
-        self, contract_inventory_content: str
-    ) -> None:
+    def test_core_interfaces_documented(self, contract_inventory_content: str) -> None:
         """All Protocols in core/interfaces.py should be documented."""
         from ag.core import interfaces
 
@@ -62,9 +55,7 @@ class TestContractInventoryDrift:
         missing = [p for p in protocols if p not in contract_inventory_content]
         assert not missing, f"Undocumented protocols in core/interfaces.py: {missing}"
 
-    def test_storage_interfaces_documented(
-        self, contract_inventory_content: str
-    ) -> None:
+    def test_storage_interfaces_documented(self, contract_inventory_content: str) -> None:
         """All Protocols in storage/interfaces.py should be documented."""
         from ag.storage import interfaces
 
@@ -74,9 +65,7 @@ class TestContractInventoryDrift:
         missing = [p for p in protocols if p not in contract_inventory_content]
         assert not missing, f"Undocumented protocols in storage/interfaces.py: {missing}"
 
-    def test_provider_protocols_documented(
-        self, contract_inventory_content: str
-    ) -> None:
+    def test_provider_protocols_documented(self, contract_inventory_content: str) -> None:
         """LLMProvider Protocol should be documented."""
         from ag.providers import base
 
@@ -121,9 +110,7 @@ class TestSchemaInventoryDrift:
                 models.append(name)
         return models
 
-    def test_task_spec_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_task_spec_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in task_spec.py should be documented."""
         from ag.core import task_spec
 
@@ -133,9 +120,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in task_spec.py: {missing}"
 
-    def test_run_trace_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_run_trace_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in run_trace.py should be documented."""
         from ag.core import run_trace
 
@@ -145,9 +130,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in run_trace.py: {missing}"
 
-    def test_playbook_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_playbook_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in playbook.py should be documented."""
         from ag.core import playbook
 
@@ -157,9 +140,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in playbook.py: {missing}"
 
-    def test_schema_verifier_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_schema_verifier_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in schema_verifier.py should be documented."""
         from ag.core import schema_verifier
 
@@ -169,9 +150,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in schema_verifier.py: {missing}"
 
-    def test_skill_base_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_skill_base_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in skills/base.py should be documented."""
         from ag.skills import base
 
@@ -181,9 +160,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in skills/base.py: {missing}"
 
-    def test_strategic_brief_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_strategic_brief_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic models in strategic_brief.py should be documented."""
         from ag.skills import strategic_brief
 

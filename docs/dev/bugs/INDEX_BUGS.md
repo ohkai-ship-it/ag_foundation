@@ -18,6 +18,7 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0012 | P2 | OPEN | Test workspace cleanup pollution | Testing/Storage | `BUG0012_OPEN_test_workspace_cleanup.md` |
 | BUG-0007 | P1 | OPEN | OpenAI provider test isolation failure | Testing | `BUG0007_OPEN_openai_test_isolation.md` |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | `BUG0002_OPEN_missing_ag_run.md` |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | `BUG0003_OPEN_missing_cli_subcommands.md` |

@@ -1,12 +1,49 @@
-"""Skill registry for v0 runtime.
+"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067).
 
-Skills are simple callables that take parameters and return results.
-v0 includes stub implementations for testing.
+This module provides the SkillRegistry class that manages both legacy (v1) and
+typed (v2) skills. The registry is the central coordination point for skill
+discovery, registration, and execution.
 
-AF0060: Added support for new Skill protocol alongside legacy callables.
-The registry supports both:
-- Legacy: SkillFn = Callable[[dict], tuple[bool, str, dict]]
-- New: Skill protocol with typed input/output schemas
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SkillInfo   — Metadata for legacy v1 skills (name, description, fn)
+    SkillV2Info — Metadata for typed v2 skills (name, description, skill, schemas)
+
+V1 vs V2 Skills:
+    V1 (Legacy):
+        - Simple callable: (params: dict) -> tuple[bool, str, dict]
+        - No type safety, runtime validation only
+        - Used by: stub skills, quick prototypes
+
+    V2 (Typed, recommended):
+        - Subclass of Skill[InputT, OutputT] ABC
+        - Pydantic schemas for input/output validation
+        - Type hints, IDE support, better error messages
+        - Used by: strategic_brief, load_documents, summarize_docs, emit_result
+
+How to Register Skills:
+    # V2 skill (recommended)
+    registry.register_v2(MySkill())
+
+    # V1 skill (legacy)
+    registry.register("my_skill", my_skill_fn, "Does something")
+
+How to Execute Skills:
+    # Using registry.execute (handles both v1/v2)
+    success, summary, data = registry.execute("my_skill", params, context)
+
+    # V2 skill direct execution
+    skill_info = registry.get_v2("my_skill")
+    output = skill_info.skill.execute(input_obj, context)
+
+Built-in Skills:
+    - strategic_brief: Generates strategic briefs from markdown files
+    - load_documents: Loads documents from workspace inputs folder
+    - summarize_docs: LLM-powered document summarization
+    - emit_result: Emits final results to run trace
+
+See Also:
+    - base.py: Skill ABC and schema definitions
+    - strategic_brief.py: Full v2 skill example
 """
 
 from __future__ import annotations
@@ -15,7 +52,10 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
+from ag.skills.emit_result import EmitResultSkill
+from ag.skills.load_documents import LoadDocumentsSkill
 from ag.skills.strategic_brief import StrategicBriefSkillV2, strategic_brief_skill
+from ag.skills.summarize_docs import SummarizeDocsSkill
 
 # Skill function signature: (params: dict) -> tuple[bool, str, dict]
 # Returns: (success, output_summary, result_data)
@@ -76,9 +116,7 @@ class SkillRegistry:
             fn: Skill function
             is_stub: Whether this is a stub skill (default True for legacy)
         """
-        self._skills[name] = SkillInfo(
-            name=name, description=description, fn=fn, is_stub=is_stub
-        )
+        self._skills[name] = SkillInfo(name=name, description=description, fn=fn, is_stub=is_stub)
 
     def register_v2(self, skill: Skill[Any, Any]) -> None:
         """Register a v2 skill (AF0060).
@@ -160,8 +198,11 @@ class SkillRegistry:
             return False, str(e), {"error": "context_validation_failed"}
 
         # Parse input from parameters
+        # Filter to only include fields defined in the schema (ignore extras like 'step')
         try:
-            input_data = skill_info.input_schema.model_validate(parameters)
+            schema_fields = set(skill_info.input_schema.model_fields.keys())
+            filtered_params = {k: v for k, v in parameters.items() if k in schema_fields}
+            input_data = skill_info.input_schema.model_validate(filtered_params)
         except Exception as e:
             return False, f"Invalid input: {e}", {"error": "input_validation_failed"}
 
@@ -383,9 +424,7 @@ def create_default_registry() -> SkillRegistry:
     registry.register(
         "plan_subtasks", "Generate subtasks from prompt", _plan_subtasks, is_stub=True
     )
-    registry.register(
-        "execute_subtask", "Execute a single subtask", _execute_subtask, is_stub=True
-    )
+    registry.register("execute_subtask", "Execute a single subtask", _execute_subtask, is_stub=True)
     registry.register(
         "verify_delegation", "Verify delegation results", _verify_delegation, is_stub=True
     )
@@ -409,6 +448,11 @@ def create_default_registry() -> SkillRegistry:
 
     # AF-0060: Strategic brief v2 skill (with LLM support)
     registry.register_v2(StrategicBriefSkillV2())
+
+    # AF-0065: Summarize playbook skills (REAL - do actual work)
+    registry.register_v2(LoadDocumentsSkill())
+    registry.register_v2(SummarizeDocsSkill())
+    registry.register_v2(EmitResultSkill())
 
     return registry
 

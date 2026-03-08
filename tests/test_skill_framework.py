@@ -6,7 +6,7 @@ Tests the base skill classes, context, and registry v2 functionality.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import ClassVar
 
 import pytest
 from pydantic import Field
@@ -17,10 +17,8 @@ from ag.skills.base import (
     SkillInput,
     SkillOutput,
     StubSkill,
-    StubSkillOutput,
 )
 from ag.skills.registry import SkillRegistry, SkillV2Info
-
 
 # ---------------------------------------------------------------------------
 # Test Fixtures - Custom Skill Implementations

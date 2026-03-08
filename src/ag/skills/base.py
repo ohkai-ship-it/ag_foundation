@@ -1,19 +1,93 @@
-"""Skill framework base classes and protocols (AF0060).
+"""Skill framework base classes and protocols (AF0060, AF0067).
 
 This module defines the core skill contract for AG Foundation:
 - SkillInput/SkillOutput: Pydantic base models for typed I/O
 - SkillContext: Runtime context injected into skills (provider, workspace, config)
-- Skill: Protocol defining what a skill must implement
+- Skill: ABC defining what a skill must implement
+
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SkillInput      — Base input schema (prompt field)
+    SkillOutput     — Base output schema (success, summary, error fields)
+    StubSkillOutput — Extension for stub responses (stub=True, stub_data)
+    SkillContext    — Runtime context (dataclass, not Pydantic)
+
+Contracts Implemented (see docs/dev/additional/CONTRACT_INVENTORY.md):
+    Skill[InputT, OutputT] — ABC for typed skills with execute() method
 
 Design Decisions:
-- Skills are stateless callables with typed schemas
-- Context injection provides LLM access without global state
-- Pydantic enforces input/output validation
-- Both legacy (dict->tuple) and new (Skill protocol) signatures supported
+    - Skills are stateless callables with typed schemas
+    - Context injection provides LLM access without global state
+    - Pydantic enforces input/output validation
+    - Both legacy (dict->tuple) and new (Skill protocol) signatures supported
 
 Bounded Autonomy (Phase 1 - Playbook-driven):
-- Humans define WHAT (skills exist, playbook structure, budgets)
-- Agents decide HOW (skill parameters, output content within schema)
+    - Humans define WHAT (skills exist, playbook structure, budgets)
+    - Agents decide HOW (skill parameters, output content within schema)
+
+
+How to Create a New Skill
+=========================
+
+Step 1: Define Input Schema
+---------------------------
+Subclass SkillInput with your skill's parameters:
+
+    class MyInput(SkillInput):
+        topic: str = Field(default="general", description="Topic to process")
+        max_items: int = Field(default=10, ge=1, description="Max items to return")
+
+Step 2: Define Output Schema
+----------------------------
+Subclass SkillOutput with your skill's results:
+
+    class MyOutput(SkillOutput):
+        items: list[str] = Field(default_factory=list, description="Processed items")
+        count: int = Field(default=0, description="Number of items found")
+
+Step 3: Create Skill Class
+--------------------------
+Subclass Skill with your input/output types:
+
+    class MySkill(Skill[MyInput, MyOutput]):
+        name = "my_skill"
+        description = "Processes topics and returns items"
+        input_schema = MyInput
+        output_schema = MyOutput
+        requires_llm = True  # Set to True if skill needs LLM
+
+        def execute(self, input: MyInput, ctx: SkillContext) -> MyOutput:
+            # Validate context if needed
+            self.validate_context(ctx)
+
+            # Use ctx.provider for LLM calls
+            if ctx.provider:
+                response = ctx.provider.chat([...])
+
+            # Use ctx.workspace_path for file access
+            if ctx.workspace_path:
+                files = list(ctx.workspace_path.glob("*.md"))
+
+            return MyOutput(
+                success=True,
+                summary=f"Found {len(items)} items",
+                items=items,
+                count=len(items),
+            )
+
+Step 4: Register the Skill
+--------------------------
+In registry.py or your module's __init__.py:
+
+    from ag.skills import get_default_registry
+    registry = get_default_registry()
+    registry.register_v2(MySkill())
+
+The skill is now available via `ag run --skill my_skill "prompt"`.
+
+See Also:
+    - strategic_brief.py: Full v2 skill implementation example
+    - load_documents.py, summarize_docs.py: Simpler v2 examples
+    - registry.py: Skill registration mechanics
 """
 
 from __future__ import annotations

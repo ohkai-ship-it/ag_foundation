@@ -33,6 +33,7 @@
 | `EvidenceRef` | run_trace.py | Reference to evidence supporting a step | 0.1 |
 | `PlaybookMetadata` | run_trace.py | Playbook info captured in trace (name, version) | 0.1 |
 | `Verifier` | run_trace.py | Verification result stored in trace (status, message) | 0.1 |
+| `LLMExecution` | run_trace.py | LLM provider/model info for the run (AF-0062) | 0.1 |
 
 #### Playbook
 
@@ -98,7 +99,8 @@ RunTrace
 │   └── EvidenceRef[]
 ├── Artifact[]
 ├── PlaybookMetadata
-└── Verifier
+├── Verifier
+└── LLMExecution
 
 Playbook
 ├── Budgets

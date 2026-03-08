@@ -32,15 +32,19 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 07 Scope (planned)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0065 | P0 | READY | First skill set (summarize_v0) | Skills | Kai | `AF0065_READY_first_skill_set.md` |
-| 2 | AF-0068 | P1 | READY | Skills/playbooks folder restructure | Skills/Playbooks | Kai | `AF0068_READY_skills_playbooks_folder_restructure.md` |
-| 3 | AF-0066 | P1 | READY | E2E integration test | Testing | Kai | `AF0066_READY_e2e_integration_test.md` |
-| 4 | AF-0062 | P1 | READY | Trace LLM model tracking | Core | Kai | `AF0062_READY_trace_llm_model_tracking.md` |
-| 5 | AF-0067 | P2 | READY | Skill code documentation | Skills/Docs | Kai | `AF0067_READY_skill_code_documentation.md` |
+| 1 | AF-0065 | P0 | DONE | First skill set (summarize_v0) | Skills | Kai | `AF0065_DONE_first_skill_set.md` |
+| 2 | AF-0068 | P1 | DONE | Skills/playbooks folder restructure | Skills/Playbooks | Kai | `AF0068_DONE_skills_playbooks_folder_restructure.md` |
+| 3 | AF-0066 | P1 | DONE | E2E integration test | Testing | Kai | `AF0066_DONE_e2e_integration_test.md` |
+| 4 | AF-0062 | P1 | DONE | Trace LLM model tracking | Core | Kai | `AF0062_DONE_trace_llm_model_tracking.md` |
+| 5 | AF-0067 | P2 | DONE | Skill code documentation | Skills/Docs | Kai | `AF0067_DONE_skill_code_documentation.md` |
 
 ### Backlog (unprioritized)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
+| AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | `AF0071_PROPOSED_warning_clean_test_discipline.md` |
+| AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | `AF0072_PROPOSED_playbook_validation_error.md` |
+| AF-0069 | P1 | PROPOSED | Skills registry deep dive | Skills/Architecture | Kai | `AF0069_PROPOSED_skills_registry_deep_dive.md` |
+| AF-0070 | P1 | PROPOSED | Playbooks registry deep dive | Playbooks/Architecture | Kai | `AF0070_PROPOSED_playbooks_registry_deep_dive.md` |
 | AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch | Storage | Jacob | `AF0015_PROPOSED_resolve_storage_db.md` |
 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | `AF0046_READY_test_isolation_framework.md` |
 | AF-0056 | P0 | PROPOSED | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_PROPOSED_direct_skill_runs_verifier.md` |

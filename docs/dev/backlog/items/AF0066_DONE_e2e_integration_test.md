@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0066
 - **Type:** Testing
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Testing/Integration
 - **Owner:** Kai
@@ -72,17 +72,17 @@ Two test modes:
 ---
 
 ## Acceptance criteria (Definition of Done)
-- [ ] E2E test file: `tests/test_e2e_integration.py`
-- [ ] Test covers: skill → verifier → trace → artifact flow
-- [ ] CI mode: Uses mock provider, runs in pytest
-- [ ] Dev mode: Uses real provider, skipped by default (`@pytest.mark.manual`)
-- [ ] Validates workspace structure per AF0058 (`inputs/`, `runs/<id>/`)
-- [ ] Validates artifact storage in `runs/<id>/artifacts/`
-- [ ] Validates RunTrace contains expected evidence
-- [ ] Test is deterministic (no flaky failures)
-- [ ] `ruff check src tests` passes
-- [ ] `pytest -W error` passes (excluding manual tests)
-- [ ] Coverage threshold maintained
+- [x] E2E test file: `tests/test_e2e_integration.py`
+- [x] Test covers: skill → verifier → trace → artifact flow
+- [x] CI mode: Uses mock provider, runs in pytest
+- [x] Dev mode: Uses real provider, skipped by default (`@pytest.mark.manual`)
+- [x] Validates workspace structure per AF0058 (`inputs/`, `runs/<id>/`)
+- [x] Validates artifact storage in `runs/<id>/artifacts/`
+- [x] Validates RunTrace contains expected evidence
+- [x] Test is deterministic (no flaky failures)
+- [x] `ruff check src tests` passes
+- [x] `pytest -W error` passes (excluding manual tests)
+- [x] Coverage threshold maintained
 
 ---
 

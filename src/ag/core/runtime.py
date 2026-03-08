@@ -6,14 +6,15 @@ Implements the core runtime loop: Normalizer -> Planner -> Orchestrator -> Recor
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from ag.core.playbook import Playbook
-from ag.core.playbooks import DEFAULT_V0, get_playbook
 from ag.core.run_trace import (
     Artifact,
     FinalStatus,
+    LLMExecution,
     PlaybookMetadata,
     RunTrace,
     Step,
@@ -26,8 +27,11 @@ from ag.core.run_trace import (
     Verifier as VerifierModel,
 )
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
-from ag.skills import SkillRegistry, get_default_registry
-from ag.storage import SQLiteArtifactStore, SQLiteRunStore
+from ag.playbooks import DEFAULT_V0, get_playbook
+from ag.providers.base import LLMProvider, ProviderConfig
+from ag.providers.registry import get_provider
+from ag.skills import SkillContext, SkillRegistry, get_default_registry
+from ag.storage import SQLiteArtifactStore, SQLiteRunStore, Workspace
 
 
 class RuntimeError(Exception):
@@ -105,13 +109,25 @@ class V0Executor:
         self._registry = registry or get_default_registry()
 
     def execute(
-        self, skill_name: str, parameters: dict[str, Any]
+        self,
+        skill_name: str,
+        parameters: dict[str, Any],
+        context: SkillContext | None = None,
     ) -> tuple[bool, str, dict[str, Any]]:
-        """Execute a skill."""
+        """Execute a skill.
+
+        Args:
+            skill_name: Name of the skill to execute
+            parameters: Skill parameters
+            context: Optional SkillContext with workspace, provider, etc.
+
+        Returns:
+            Tuple of (success, output_summary, result_data)
+        """
         if not self._registry.has(skill_name):
             raise KeyError(f"Skill not found: {skill_name}")
 
-        return self._registry.execute(skill_name, parameters)
+        return self._registry.execute(skill_name, parameters, context)
 
 
 # ---------------------------------------------------------------------------
@@ -228,8 +244,39 @@ class V0Orchestrator:
         final_status = FinalStatus.SUCCESS
         error_message: str | None = None
 
+        # AF-0065: Resolve workspace path for skill context
+        # Use task.workspace_id (the actual workspace ID) to get path
+        workspace_path: Path | None = None
+        if task.workspace_id:
+            try:
+                ws = Workspace(task.workspace_id)
+                if ws.exists():
+                    workspace_path = ws.path
+            except Exception:
+                pass  # Workspace resolution failed, skills will handle missing path
+
         # AF-0019: Track subtasks from planning step for delegation
         planned_subtasks: list[dict[str, Any]] = []
+
+        # AF-0065: Track step results for pipeline chaining
+        step_results: list[dict[str, Any]] = []
+        previous_result: dict[str, Any] = {}
+
+        # AF-0065: Create LLM provider for non-manual modes
+        # AF-0062: Track provider configuration for LLMExecution in trace
+        llm_provider: LLMProvider | None = None
+        provider_config: ProviderConfig | None = None
+        if task.mode != ExecutionMode.MANUAL:
+            try:
+                # Create OpenAI provider (default for v0)
+                provider_config = ProviderConfig(
+                    provider="openai",
+                    model="gpt-4o-mini",  # Default model
+                )
+                llm_provider = get_provider(provider_config)
+            except Exception:
+                # Provider creation failed - will use fallback mode in skills
+                pass  # Skills handle missing provider gracefully
 
         # Execute each step in sequence
         for i, playbook_step in enumerate(playbook.steps):
@@ -243,21 +290,35 @@ class V0Orchestrator:
             try:
                 if skill_name:
                     # Build skill parameters: merge step params with task context
+                    # AF-0065: Include previous step result for pipeline chaining
                     skill_params = {
                         "prompt": task.prompt,
                         "step": i,
                         **playbook_step.parameters,
+                        **previous_result,  # Chain previous step output
                     }
                     # AF-0019: Pass subtasks context to execute_subtask skills
                     if skill_name == "execute_subtask" and planned_subtasks:
                         skill_params["subtasks"] = planned_subtasks
 
-                    # Execute the skill
+                    # AF-0065: Build SkillContext with workspace, provider, and run info
+                    skill_context = SkillContext(
+                        provider=llm_provider,
+                        workspace_path=workspace_path,
+                        step_number=i,
+                        run_id=run_id,
+                    )
+
+                    # Execute the skill with context
                     success, output_summary, result = self._executor.execute(
-                        skill_name, skill_params
+                        skill_name, skill_params, skill_context
                     )
                     if not success:
                         step_error = output_summary
+                    else:
+                        # AF-0065: Store result for next step
+                        previous_result = result
+                        step_results.append(result)
 
                     # AF-0019: Capture subtasks from plan_subtasks skill
                     if skill_name == "plan_subtasks" and success:
@@ -330,6 +391,18 @@ class V0Orchestrator:
         # Convert workspace_source string to enum if provided (AF-0030)
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
 
+        # AF-0062: Build LLMExecution for trace (None for manual mode)
+        llm_execution: LLMExecution | None = None
+        if provider_config is not None:
+            llm_execution = LLMExecution(
+                provider=provider_config.provider,
+                model=provider_config.model,
+                call_count=0,  # v0: Not tracking individual calls yet
+                total_tokens=None,  # v0: Token tracking not implemented
+                input_tokens=None,
+                output_tokens=None,
+            )
+
         # Build trace with verification result included
         trace = RunTrace(
             run_id=run_id,
@@ -349,6 +422,7 @@ class V0Orchestrator:
             ),
             final=final_status,
             error=error_message,
+            llm=llm_execution,  # AF-0062: Include LLM provider info
         )
 
         # Persist the trace

@@ -1,17 +1,39 @@
-"""Strategic Brief Skill (AF0048).
+"""Strategic Brief Skill — Example V2 Skill Implementation (AF0048, AF0067).
 
-Reads markdown files from a workspace directory and produces a structured
-strategic brief with evidence citations.
+This skill reads markdown files from a workspace directory and produces a
+structured strategic brief with evidence citations. It demonstrates a complete
+v2 skill implementation with multiple Pydantic schemas.
 
-Output:
-- brief.json: Structured JSON with sections and citations
-- brief.md: Human-readable markdown summary
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SourceExcerpt         — Text excerpt from source file with line numbers
+    SourceFile            — Input file metadata (path, title, excerpts)
+    Citation              — Citation reference linking to source excerpt
+    BriefSection          — Single section in the strategic brief
+    StrategicBrief        — Complete brief document with sections and citations
+    StrategicBriefInput   — V2 skill input schema
+    StrategicBriefV2Output — V2 skill output schema with LLM synthesis
+
+Output Artifacts:
+    - brief.json: Structured JSON with sections and citations
+    - brief.md: Human-readable markdown summary
+
+This Skill as Implementation Example:
+    This module demonstrates the recommended pattern for v2 skills:
+    1. Define domain schemas (SourceFile, Citation, BriefSection, etc.)
+    2. Define input schema extending SkillInput (StrategicBriefInput)
+    3. Define output schema extending SkillOutput (StrategicBriefV2Output)
+    4. Implement Skill class with execute() method
+    5. Optionally provide legacy wrapper function
 
 Citation Model Note (AF0054):
     This module defines Citation for skill output artifacts. Citation is
     lightweight and skill-specific. For trace-level evidence tracking,
     use EvidenceRef from ag.core.run_trace. Citation.to_evidence_ref()
     provides conversion between the two models.
+
+See Also:
+    - base.py: Skill ABC and base schema definitions
+    - load_documents.py, summarize_docs.py: Simpler v2 skill examples
 """
 
 from __future__ import annotations
@@ -425,9 +447,7 @@ class StrategicBriefInput(BaseModel):
 
     prompt: str = Field(default="", description="User prompt or focus guidance")
     title: str = Field(default="Strategic Brief", description="Title for the brief")
-    max_files: int = Field(
-        default=50, ge=1, le=200, description="Maximum files to process"
-    )
+    max_files: int = Field(default=50, ge=1, le=200, description="Maximum files to process")
     focus_areas: list[str] = Field(
         default_factory=list, description="Optional focus areas to emphasize"
     )
@@ -653,16 +673,12 @@ class StrategicBriefSkillV2:
 
             if use_llm and ctx.provider is not None:
                 # LLM-powered synthesis
-                prompt = _build_llm_synthesis_prompt(
-                    sources, input.focus_areas, input.prompt
-                )
+                prompt = _build_llm_synthesis_prompt(sources, input.focus_areas, input.prompt)
                 messages = [ChatMessage(role=MessageRole.USER, content=prompt)]
 
                 try:
                     response = ctx.provider.chat(messages)
-                    sections, summary = _parse_llm_response_to_sections(
-                        response.content, sources
-                    )
+                    sections, summary = _parse_llm_response_to_sections(response.content, sources)
                     llm_used = True
                 except Exception as e:
                     # Fall back to non-LLM on error
@@ -706,8 +722,7 @@ class StrategicBriefSkillV2:
                 success=True,
                 summary=(
                     f"Generated strategic brief from {len(sources)} sources "
-                    f"({len(sections)} sections)"
-                    + (" with LLM synthesis" if llm_used else "")
+                    f"({len(sections)} sections)" + (" with LLM synthesis" if llm_used else "")
                 ),
                 brief_md=brief_md,
                 brief_json=brief_json,

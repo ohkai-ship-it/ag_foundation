@@ -1,5 +1,13 @@
 """Core runtime modules and interfaces."""
 
+from ag.playbooks import (
+    DEFAULT_V0,
+    DELEGATE_V0,
+    SUMMARIZE_V0,
+    get_playbook,
+    list_playbooks,
+)
+
 from .interfaces import (
     Executor,
     Normalizer,
@@ -17,12 +25,12 @@ from .playbook import (
     PlaybookStepType,
     ReasoningMode,
 )
-from .playbooks import DEFAULT_V0, get_playbook, list_playbooks
 from .run_trace import (
     Artifact,
     ArtifactCategory,
     EvidenceRef,
     FinalStatus,
+    LLMExecution,
     PlaybookMetadata,
     RunTrace,
     RunTraceBuilder,
@@ -74,6 +82,7 @@ __all__ = [
     "Artifact",
     "ArtifactCategory",
     "EvidenceRef",
+    "LLMExecution",
     "Step",
     "StepType",
     "PlaybookMetadata",
@@ -90,6 +99,8 @@ __all__ = [
     "ReasoningMode",
     # playbooks
     "DEFAULT_V0",
+    "DELEGATE_V0",
+    "SUMMARIZE_V0",
     "get_playbook",
     "list_playbooks",
     # interfaces

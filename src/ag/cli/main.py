@@ -693,16 +693,20 @@ def runs_list(
             table.add_column("Status")
             table.add_column("Verifier")
             table.add_column("Mode")
+            table.add_column("Model")  # AF-0062: Add model column
             table.add_column("Duration")
             table.add_column("Started")
 
             for run in runs:
                 labels = extract_labels(run)
+                # AF-0062: Show model or "manual" for manual runs
+                model = run.llm.model if run.llm else "manual"
                 table.add_row(
                     run.run_id,
                     format_status(run.final),
                     format_verifier(run.verifier.status),
                     labels["mode"],
+                    model,
                     labels["duration"],
                     run.started_at.strftime("%Y-%m-%d %H:%M"),
                 )
@@ -761,6 +765,11 @@ def runs_show(
                 console.print(f"    Message: {trace.verifier.message}")
             console.print(f"  Duration: {labels['duration']}")
             console.print(f"  Playbook: {labels['playbook']}")
+            # AF-0062: Show LLM provider info
+            if trace.llm:
+                console.print(f"  LLM: {trace.llm.provider}/{trace.llm.model}")
+            else:
+                console.print("  LLM: manual (no LLM)")
             console.print(f"  Started: {trace.started_at.isoformat()}")
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()

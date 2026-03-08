@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0065
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P0
 - **Area:** Skills
 - **Owner:** Kai
