@@ -180,7 +180,8 @@ class TestSummarizeDocsSkill:
         """Skill has correct metadata."""
         skill = SummarizeDocsSkill()
         assert skill.name == "summarize_docs"
-        assert skill.requires_llm is True
+        # AF-0065: requires_llm=False enables fallback mode for manual testing
+        assert skill.requires_llm is False
         assert skill.input_schema == SummarizeDocsInput
         assert skill.output_schema == SummarizeDocsOutput
 

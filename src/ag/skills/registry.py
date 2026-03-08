@@ -165,8 +165,11 @@ class SkillRegistry:
             return False, str(e), {"error": "context_validation_failed"}
 
         # Parse input from parameters
+        # Filter to only include fields defined in the schema (ignore extras like 'step')
         try:
-            input_data = skill_info.input_schema.model_validate(parameters)
+            schema_fields = set(skill_info.input_schema.model_fields.keys())
+            filtered_params = {k: v for k, v in parameters.items() if k in schema_fields}
+            input_data = skill_info.input_schema.model_validate(filtered_params)
         except Exception as e:
             return False, f"Invalid input: {e}", {"error": "input_validation_failed"}
 

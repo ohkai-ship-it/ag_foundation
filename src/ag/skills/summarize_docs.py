@@ -106,7 +106,8 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
     description: ClassVar[str] = "Summarize documents using LLM"
     input_schema: ClassVar[type[SkillInput]] = SummarizeDocsInput
     output_schema: ClassVar[type[SkillOutput]] = SummarizeDocsOutput
-    requires_llm: ClassVar[bool] = True
+    # LLM is optional - skill falls back to simple extraction without it
+    requires_llm: ClassVar[bool] = False
 
     def execute(
         self,
