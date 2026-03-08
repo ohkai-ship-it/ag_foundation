@@ -20,15 +20,34 @@
 
 -   **ID:** AF0056
 -   **Type:** Foundation
--   **Status:** Proposed
+-   **Status:** DROPPED
 -   **Priority:** P0
 -   **Area:** Core Runtime / Verifier / CLI
 -   **Owner:** Jacob
--   **Target sprint:** TBD (needs discussion)
+-   **Target sprint:** N/A (dropped)
+
+---
+
+## Drop rationale
+
+**Dropped 2026-03-08** — This AF was already fixed via BUG-0009.
+
+The direct skill execution path (`ag run --skill`) now runs the verifier 
+by default. See `src/ag/cli/main.py` lines 468-475:
+
+```python
+# BUG0009: Run verifier on step (not skipped)
+from ag.core.runtime import V0Verifier
+verifier = V0Verifier()
+final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
+verify_status, verify_message = verifier.verify_components([step], final_status)
+```
+
+No further work needed.
 
 ------------------------------------------------------------------------
 
-## Problem
+## Problem (original)
 
 Direct skill execution via CLI (e.g.,
 `ag run --skill strategic_brief ...`) currently skips verifier

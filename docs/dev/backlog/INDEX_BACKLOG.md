@@ -47,8 +47,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | AF-0070 | P1 | PROPOSED | Playbooks registry deep dive | Playbooks/Architecture | Kai | `AF0070_PROPOSED_playbooks_registry_deep_dive.md` |
 | AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch | Storage | Jacob | `AF0015_PROPOSED_resolve_storage_db.md` |
 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | `AF0046_READY_test_isolation_framework.md` |
-| AF-0056 | P0 | PROPOSED | Direct skill runs through verifier | CLI/Core/Verifier | Jacob | `AF0056_PROPOSED_direct_skill_runs_verifier.md` |
-| AF-0057 | P0 | PROPOSED | Skill emits trace artifacts evidence | Core/Recorder/Skills | Jacob | `AF0057_PROPOSED_skill_emits_trace_artifacts_evidence.md` |
+| AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | `AF0057_PROPOSED_playbook_artifacts_in_trace.md` |
 | AF-0059 | P2 | PROPOSED | Implement playbooks list | CLI | Jacob | `AF0059_PROPOSED_implement_playbooks_list.md` |
 | AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | `AF0064_PROPOSED_process_documentation_hardening.md` |
 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | `AF0012_PROPOSED_cli_reference_surface.md` |
@@ -148,6 +147,13 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | AF-0001 | P0 | DONE | Kick-off: establish new docs/dev foundation | Docs/Process | Kai/Jeff | `AF0001_DONE_kick_off_establish.md` |
 | AF-0002 | P0 | DONE | New cornerstone docs (IoT-in-space vision) | Docs/Architecture | Jeff | `AF0002_DONE_new_cornerstone_docs.md` |
 | AF-0003 | P0 | DONE | Core runtime skeleton (request + event driven) — docs only | Architecture/Kernel | Jeff/Jacob | `AF0003_DONE_core_runtime_skeleton.md` |
+
+---
+
+## Dropped items
+| ID | Status | Title | Reason | Filename |
+|---:|:--|---|---|---|
+| AF-0056 | DROPPED | Direct skill runs through verifier | Already fixed via BUG-0009 | `AF0056_DROPPED_direct_skill_runs_verifier.md` |
 
 ---
 
