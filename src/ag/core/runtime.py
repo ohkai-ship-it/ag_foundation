@@ -27,6 +27,8 @@ from ag.core.run_trace import (
 )
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.playbooks import DEFAULT_V0, get_playbook
+from ag.providers.base import LLMProvider, ProviderConfig
+from ag.providers.registry import get_provider
 from ag.skills import SkillContext, SkillRegistry, get_default_registry
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore, Workspace
 
@@ -259,6 +261,20 @@ class V0Orchestrator:
         step_results: list[dict[str, Any]] = []
         previous_result: dict[str, Any] = {}
 
+        # AF-0065: Create LLM provider for non-manual modes
+        llm_provider: LLMProvider | None = None
+        if task.mode != ExecutionMode.MANUAL:
+            try:
+                # Create OpenAI provider (default for v0)
+                provider_config = ProviderConfig(
+                    provider="openai",
+                    model="gpt-4o-mini",  # Default model
+                )
+                llm_provider = get_provider(provider_config)
+            except Exception as e:
+                # Provider creation failed - will use fallback mode in skills
+                pass  # Skills handle missing provider gracefully
+
         # Execute each step in sequence
         for i, playbook_step in enumerate(playbook.steps):
             step_started = datetime.now(UTC)
@@ -282,8 +298,9 @@ class V0Orchestrator:
                     if skill_name == "execute_subtask" and planned_subtasks:
                         skill_params["subtasks"] = planned_subtasks
 
-                    # AF-0065: Build SkillContext with workspace and run info
+                    # AF-0065: Build SkillContext with workspace, provider, and run info
                     skill_context = SkillContext(
+                        provider=llm_provider,
                         workspace_path=workspace_path,
                         step_number=i,
                         run_id=run_id,

@@ -106,8 +106,8 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
     description: ClassVar[str] = "Summarize documents using LLM"
     input_schema: ClassVar[type[SkillInput]] = SummarizeDocsInput
     output_schema: ClassVar[type[SkillOutput]] = SummarizeDocsOutput
-    # LLM is optional - skill falls back to simple extraction without it
-    requires_llm: ClassVar[bool] = False
+    # LLM is preferred but skill falls back to simple extraction without it
+    requires_llm: ClassVar[bool] = True
 
     def execute(
         self,
@@ -151,7 +151,7 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
                 ChatMessage(role=MessageRole.USER, content=user_prompt),
             ]
 
-            response = ctx.provider.complete(
+            response = ctx.provider.chat(
                 messages=messages,
                 max_tokens=input.max_tokens,
             )

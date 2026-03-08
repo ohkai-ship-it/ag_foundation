@@ -180,8 +180,8 @@ class TestSummarizeDocsSkill:
         """Skill has correct metadata."""
         skill = SummarizeDocsSkill()
         assert skill.name == "summarize_docs"
-        # AF-0065: requires_llm=False enables fallback mode for manual testing
-        assert skill.requires_llm is False
+        # AF-0065: requires_llm=True, but skill has fallback mode
+        assert skill.requires_llm is True
         assert skill.input_schema == SummarizeDocsInput
         assert skill.output_schema == SummarizeDocsOutput
 
@@ -252,7 +252,7 @@ This is a test summary of the documents.
 - Point 2
 - Point 3
 """
-        mock_provider.complete.return_value = mock_response
+        mock_provider.chat.return_value = mock_response
 
         skill = SummarizeDocsSkill()
         ctx = SkillContext(provider=mock_provider)
@@ -272,7 +272,7 @@ This is a test summary of the documents.
         ]
 
         mock_provider = MagicMock()
-        mock_provider.complete.side_effect = RuntimeError("LLM API error")
+        mock_provider.chat.side_effect = RuntimeError("LLM API error")
 
         skill = SummarizeDocsSkill()
         ctx = SkillContext(provider=mock_provider)
