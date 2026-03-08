@@ -1,0 +1,51 @@
+{
+  "trace_version": "0.1",
+  "run_id": "a767c87f-7fbf-4222-abca-a35fbfdbd57b",
+  "workspace_id": "s07-failure-test",
+  "workspace_source": "cli",
+  "mode": "supervised",
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "call_count": 0,
+    "total_tokens": null,
+    "input_tokens": null,
+    "output_tokens": null
+  },
+  "playbook": {
+    "name": "summarize_v0",
+    "version": "1.0.0"
+  },
+  "started_at": "2026-03-08T11:20:55.840751Z",
+  "ended_at": "2026-03-08T11:20:55.841857Z",
+  "duration_ms": 1,
+  "steps": [
+    {
+      "step_id": "a767c87f-7fbf-4222-abca-a35fbfdbd57b-step-0",
+      "step_number": 0,
+      "step_type": "skill_call",
+      "skill_name": "load_documents",
+      "input_summary": "prompt=Test with no inputs...",
+      "output_summary": "No files found matching patterns: ['**/*.md']",
+      "started_at": "2026-03-08T11:20:55.840917Z",
+      "ended_at": "2026-03-08T11:20:55.841806Z",
+      "duration_ms": 0,
+      "tokens_used": null,
+      "error": "No files found matching patterns: ['**/*.md']",
+      "artifacts": [],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null
+    }
+  ],
+  "artifacts": [],
+  "verifier": {
+    "status": "failed",
+    "checked_at": "2026-03-08T11:20:55.841899Z",
+    "message": "Step 0 failed: No files found matching patterns: ['**/*.md']",
+    "evidence": {}
+  },
+  "final": "failure",
+  "error": "Required step 'load_docs' failed: No files found matching patterns: ['**/*.md']",
+  "metadata": {}
+}

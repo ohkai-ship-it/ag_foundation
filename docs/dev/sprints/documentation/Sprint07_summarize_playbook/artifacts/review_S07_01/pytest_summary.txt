@@ -1,0 +1,61 @@
+# Pass 2 — Pytest Summary
+# Sprint 07 Review S07_REVIEW_01
+# Date: 2026-03-08
+# Executor: Jacob
+
+## pytest -q
+```
+412 passed, 3 deselected in 18.72s
+```
+**Result:** ✅ PASS (all tests pass)
+
+## pytest -W error
+```
+2 failed, 410 passed, 3 deselected in 24.71s
+```
+**Result:** ⚠️ 2 FAILURES (warnings treated as errors)
+
+### Failures:
+1. tests/test_cli.py::TestRunWithSkillFlag::test_run_skill_json_output
+   - Cause: ResourceWarning - unclosed SQLite connection
+   
+2. tests/test_cli_global_options.py::TestHelpGlobalOptions::test_main_help_shows_global_options
+   - Cause: ResourceWarning - unclosed SQLite connection
+
+**Root Cause:** SQLite connections not being properly closed after CLI tests.
+**Related Bug:** BUG-0012 (test workspace cleanup pollution)
+**Severity:** P1 (CI discipline requires -W error to pass)
+
+## pytest --cov=src/ag --cov-report=term-missing
+```
+412 passed, 3 deselected, 4 warnings in 20.51s
+TOTAL coverage: 86%
+```
+**Result:** ✅ PASS (coverage threshold met)
+
+### Coverage by module:
+| Module | Coverage |
+|--------|----------|
+| ag/__init__.py | 100% |
+| ag/cli/main.py | 74% |
+| ag/config.py | 93% |
+| ag/core/* | 94-100% |
+| ag/playbooks/* | 100% |
+| ag/providers/* | 91-100% |
+| ag/skills/* | 64-100% |
+| ag/storage/* | 96-100% |
+| **TOTAL** | **86%** |
+
+### Lowest coverage modules:
+- src/ag/skills/strategic_brief.py: 64% (legacy code)
+- src/ag/cli/main.py: 74% (many error paths untested)
+
+## Summary
+| Check | Result | Notes |
+|-------|--------|-------|
+| pytest -q | ✅ PASS | 412 tests pass |
+| pytest -W error | ⚠️ FAIL | 2 failures due to unclosed SQLite |
+| pytest --cov | ✅ PASS | 86% coverage |
+
+**Overall Assessment:** Tests pass but `-W error` fails due to resource warnings.
+This is a known issue (BUG-0012) and should be addressed as a follow-up.
