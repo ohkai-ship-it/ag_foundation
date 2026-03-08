@@ -1,10 +1,29 @@
-"""Load Documents Skill (AF0065).
+"""Load Documents Skill — V2 File Loading (AF0065, AF0067).
 
 Reads files from workspace matching glob patterns and returns structured
-document objects for downstream processing.
+document objects for downstream processing. This is a simple v2 skill
+that demonstrates file I/O without LLM interaction.
 
-This is the first skill in the summarize_v0 playbook pipeline:
-load_documents → summarize_docs → emit_result
+Pipeline Position:
+    This is step 1 of the summarize_v0 playbook:
+    load_documents → summarize_docs → emit_result
+
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    Document           — Single loaded document (path, content, size_bytes)
+    LoadDocumentsInput — Skill input (patterns, max_files, max_size_kb)
+    LoadDocumentsOutput — Skill output (documents list, total_size)
+
+Usage:
+    skill = LoadDocumentsSkill()
+    output = skill.execute(
+        LoadDocumentsInput(patterns=["*.md"], max_files=10),
+        SkillContext(workspace_path=Path("/my/workspace"))
+    )
+    # output.documents contains list of Document objects
+
+See Also:
+    - base.py: Skill ABC and base schema definitions
+    - summarize_docs.py: Next skill in pipeline (consumes documents)
 """
 
 from __future__ import annotations

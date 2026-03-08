@@ -1,9 +1,36 @@
-"""Summarize Documents Skill (AF0065).
+"""Summarize Documents Skill — V2 LLM-Powered Summarization (AF0065, AF0067).
 
 Calls LLM to summarize document contents and extract key points.
+This skill demonstrates LLM integration via the SkillContext provider.
 
-This is the second skill in the summarize_v0 playbook pipeline:
-load_documents → summarize_docs → emit_result
+Pipeline Position:
+    This is step 2 of the summarize_v0 playbook:
+    load_documents → summarize_docs → emit_result
+
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SummarizeDocsInput  — Skill input (documents, prompt, max_tokens)
+    SummarizeDocsOutput — Skill output (document_summary, key_points, sources)
+
+LLM Integration:
+    This skill requires ctx.provider to be set. It:
+    1. Builds a prompt from input documents
+    2. Calls provider.chat() for summarization
+    3. Parses response into structured output
+
+    In manual mode (no provider), returns a stub output.
+
+Usage:
+    skill = SummarizeDocsSkill()
+    output = skill.execute(
+        SummarizeDocsInput(documents=docs, prompt="Summarize key findings"),
+        SkillContext(provider=llm_provider)
+    )
+    # output.document_summary contains the LLM-generated summary
+
+See Also:
+    - base.py: Skill ABC and base schema definitions
+    - load_documents.py: Previous skill in pipeline (produces documents)
+    - emit_result.py: Next skill in pipeline (emits final output)
 """
 
 from __future__ import annotations

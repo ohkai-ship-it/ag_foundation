@@ -1,9 +1,36 @@
-"""Emit Result Skill (AF0065).
+"""Emit Result Skill — V2 Artifact Output (AF0065, AF0067).
 
-Stores structured output as a workspace artifact.
+Stores structured output as a workspace artifact. This skill demonstrates
+file output and artifact registration without LLM interaction.
 
-This is the third skill in the summarize_v0 playbook pipeline:
-load_documents → summarize_docs → emit_result
+Pipeline Position:
+    This is step 3 (final) of the summarize_v0 playbook:
+    load_documents → summarize_docs → emit_result
+
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    EmitResultInput  — Skill input (document_summary, key_points, sources, etc.)
+    EmitResultOutput — Skill output (artifact_path, artifact_id)
+
+Artifact Output:
+    This skill writes the result to workspace/outputs/:
+    - JSON file with structured summary data
+    - Returns artifact_path and artifact_id for trace recording
+
+Usage:
+    skill = EmitResultSkill()
+    output = skill.execute(
+        EmitResultInput(
+            document_summary="...",
+            key_points=["point1", "point2"],
+            artifact_name="summary"
+        ),
+        SkillContext(workspace_path=Path("/my/workspace"))
+    )
+    # output.artifact_path contains path to written file
+
+See Also:
+    - base.py: Skill ABC and base schema definitions
+    - summarize_docs.py: Previous skill in pipeline (produces summary)
 """
 
 from __future__ import annotations

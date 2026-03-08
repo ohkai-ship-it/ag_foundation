@@ -1,14 +1,49 @@
-"""Skill registry for v0 runtime.
+"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067).
 
-Skills are simple callables that take parameters and return results.
-v0 includes stub implementations for testing.
+This module provides the SkillRegistry class that manages both legacy (v1) and
+typed (v2) skills. The registry is the central coordination point for skill
+discovery, registration, and execution.
 
-AF0060: Added support for new Skill protocol alongside legacy callables.
-The registry supports both:
-- Legacy: SkillFn = Callable[[dict], tuple[bool, str, dict]]
-- New: Skill protocol with typed input/output schemas
+Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SkillInfo   — Metadata for legacy v1 skills (name, description, fn)
+    SkillV2Info — Metadata for typed v2 skills (name, description, skill, schemas)
 
-AF0065: Added summarize_v0 skills (load_documents, summarize_docs, emit_result).
+V1 vs V2 Skills:
+    V1 (Legacy):
+        - Simple callable: (params: dict) -> tuple[bool, str, dict]
+        - No type safety, runtime validation only
+        - Used by: stub skills, quick prototypes
+
+    V2 (Typed, recommended):
+        - Subclass of Skill[InputT, OutputT] ABC
+        - Pydantic schemas for input/output validation
+        - Type hints, IDE support, better error messages
+        - Used by: strategic_brief, load_documents, summarize_docs, emit_result
+
+How to Register Skills:
+    # V2 skill (recommended)
+    registry.register_v2(MySkill())
+
+    # V1 skill (legacy)
+    registry.register("my_skill", my_skill_fn, "Does something")
+
+How to Execute Skills:
+    # Using registry.execute (handles both v1/v2)
+    success, summary, data = registry.execute("my_skill", params, context)
+
+    # V2 skill direct execution
+    skill_info = registry.get_v2("my_skill")
+    output = skill_info.skill.execute(input_obj, context)
+
+Built-in Skills:
+    - strategic_brief: Generates strategic briefs from markdown files
+    - load_documents: Loads documents from workspace inputs folder
+    - summarize_docs: LLM-powered document summarization
+    - emit_result: Emits final results to run trace
+
+See Also:
+    - base.py: Skill ABC and schema definitions
+    - strategic_brief.py: Full v2 skill example
 """
 
 from __future__ import annotations
