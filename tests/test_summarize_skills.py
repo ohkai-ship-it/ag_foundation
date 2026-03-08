@@ -320,7 +320,8 @@ class TestEmitResultSkill:
         skill = EmitResultSkill()
         ctx = SkillContext(workspace_path=tmp_path, run_id="test-run-123")
         input_data = EmitResultInput(
-            data={"summary": "Test summary", "key_points": ["point 1"]},
+            summary="Test summary",
+            key_points=["point 1"],
             artifact_name="result.json",
         )
 
@@ -337,14 +338,14 @@ class TestEmitResultSkill:
 
         # Verify content
         content = json.loads(artifact_path.read_text())
-        assert content["data"]["summary"] == "Test summary"
+        assert content["summary"] == "Test summary"
         assert content["run_id"] == "test-run-123"
 
     def test_creates_run_directory(self, tmp_path: Path) -> None:
         """Creates run directory if it doesn't exist."""
         skill = EmitResultSkill()
         ctx = SkillContext(workspace_path=tmp_path, run_id="new-run-456")
-        input_data = EmitResultInput(data={"test": "data"})
+        input_data = EmitResultInput(summary="test")
 
         result = skill.execute(input_data, ctx)
 
@@ -355,7 +356,7 @@ class TestEmitResultSkill:
         """Uses artifacts dir when no run_id provided."""
         skill = EmitResultSkill()
         ctx = SkillContext(workspace_path=tmp_path, run_id=None)
-        input_data = EmitResultInput(data={"test": "data"})
+        input_data = EmitResultInput(summary="test")
 
         result = skill.execute(input_data, ctx)
 
@@ -367,7 +368,7 @@ class TestEmitResultSkill:
         """Fails gracefully when no workspace provided."""
         skill = EmitResultSkill()
         ctx = SkillContext(workspace_path=None)
-        input_data = EmitResultInput(data={"test": "data"})
+        input_data = EmitResultInput(summary="test")
 
         result = skill.execute(input_data, ctx)
 
@@ -379,7 +380,7 @@ class TestEmitResultSkill:
         skill = EmitResultSkill()
         ctx = SkillContext(workspace_path=tmp_path, run_id="run-1")
         input_data = EmitResultInput(
-            data={"key": "value"},
+            summary="value",
             artifact_name="custom-output.json",
         )
 
@@ -397,8 +398,9 @@ class TestEmitResultSkill:
             step_number=2,
         )
         input_data = EmitResultInput(
-            data={"result": "test"},
-            artifact_type="application/json",
+            summary="test result",
+            key_points=["point 1", "point 2"],
+            sources=["file1.md"],
         )
 
         result = skill.execute(input_data, ctx)
@@ -409,7 +411,8 @@ class TestEmitResultSkill:
         assert content["artifact_id"] == result.artifact_id
         assert content["run_id"] == "meta-run"
         assert content["step_number"] == 2
-        assert content["artifact_type"] == "application/json"
+        assert content["summary"] == "test result"
+        assert content["key_points"] == ["point 1", "point 2"]
         assert "created_at" in content
 
 
@@ -452,11 +455,9 @@ class TestSummarizeV0Pipeline:
         emit_skill = EmitResultSkill()
         emit_ctx = SkillContext(workspace_path=tmp_path, run_id="pipeline-test")
         emit_input = EmitResultInput(
-            data={
-                "summary": summarize_result.summary,
-                "key_points": summarize_result.key_points,
-                "sources": summarize_result.sources,
-            },
+            summary=summarize_result.summary,
+            key_points=summarize_result.key_points,
+            sources=summarize_result.sources,
             artifact_name="summary.json",
         )
         emit_result = emit_skill.execute(emit_input, emit_ctx)
@@ -468,8 +469,8 @@ class TestSummarizeV0Pipeline:
         artifact_path = tmp_path / emit_result.artifact_path
         assert artifact_path.exists()
         content = json.loads(artifact_path.read_text())
-        assert "summary" in content["data"]
-        assert len(content["data"]["sources"]) == 2
+        assert "summary" in content
+        assert len(content["sources"]) == 2
 
 
 # ---------------------------------------------------------------------------
@@ -502,6 +503,8 @@ class TestSchemaValidation:
     def test_emit_result_input_defaults(self) -> None:
         """EmitResultInput has sensible defaults."""
         input_data = EmitResultInput()
+        assert input_data.summary == ""
+        assert input_data.key_points == []
         assert input_data.artifact_name == "summary.json"
         assert input_data.artifact_type == "application/json"
 

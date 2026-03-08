@@ -29,16 +29,35 @@ if TYPE_CHECKING:
 class EmitResultInput(SkillInput):
     """Input schema for emit_result skill.
 
+    Receives results from previous pipeline step (e.g., summarize_docs output).
+
     Attributes:
-        data: The result data to store (will be JSON-serialized)
+        summary: Summary text from previous step
+        key_points: Key points extracted
+        sources: Source file paths
         artifact_name: Name for the artifact file
         artifact_type: MIME type of the artifact
     """
 
-    data: dict[str, Any] = Field(
-        default_factory=dict,
-        description="The result data to store",
+    # Pipeline results from previous step
+    summary: str = Field(
+        default="",
+        description="Summary text from previous step",
     )
+    key_points: list[str] = Field(
+        default_factory=list,
+        description="Key points extracted",
+    )
+    sources: list[str] = Field(
+        default_factory=list,
+        description="Source file paths",
+    )
+    source_count: int = Field(
+        default=0,
+        description="Number of source files",
+    )
+
+    # Artifact configuration
     artifact_name: str = Field(
         default="summary.json",
         description="Name for the artifact file",
@@ -48,7 +67,7 @@ class EmitResultInput(SkillInput):
         description="MIME type of the artifact",
     )
 
-    model_config = {"extra": "forbid"}
+    model_config = {"extra": "ignore"}  # Allow extra fields from pipeline
 
 
 class EmitResultOutput(SkillOutput):
@@ -150,15 +169,17 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             runs_dir.mkdir(parents=True, exist_ok=True)
             artifact_path = runs_dir / input.artifact_name
 
-            # Serialize data with metadata
+            # Build output data from pipeline results
             output_data = {
                 "artifact_id": artifact_id,
                 "created_at": datetime.now(UTC).isoformat(),
-                "artifact_name": input.artifact_name,
-                "artifact_type": input.artifact_type,
                 "run_id": ctx.run_id,
                 "step_number": ctx.step_number,
-                "data": input.data,
+                # Actual content from pipeline
+                "summary": input.summary,
+                "key_points": input.key_points,
+                "sources": input.sources,
+                "source_count": input.source_count,
             }
 
             # Write to file
