@@ -116,9 +116,7 @@ class SkillRegistry:
             fn: Skill function
             is_stub: Whether this is a stub skill (default True for legacy)
         """
-        self._skills[name] = SkillInfo(
-            name=name, description=description, fn=fn, is_stub=is_stub
-        )
+        self._skills[name] = SkillInfo(name=name, description=description, fn=fn, is_stub=is_stub)
 
     def register_v2(self, skill: Skill[Any, Any]) -> None:
         """Register a v2 skill (AF0060).
@@ -426,9 +424,7 @@ def create_default_registry() -> SkillRegistry:
     registry.register(
         "plan_subtasks", "Generate subtasks from prompt", _plan_subtasks, is_stub=True
     )
-    registry.register(
-        "execute_subtask", "Execute a single subtask", _execute_subtask, is_stub=True
-    )
+    registry.register("execute_subtask", "Execute a single subtask", _execute_subtask, is_stub=True)
     registry.register(
         "verify_delegation", "Verify delegation results", _verify_delegation, is_stub=True
     )

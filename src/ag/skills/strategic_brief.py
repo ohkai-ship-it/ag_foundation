@@ -447,9 +447,7 @@ class StrategicBriefInput(BaseModel):
 
     prompt: str = Field(default="", description="User prompt or focus guidance")
     title: str = Field(default="Strategic Brief", description="Title for the brief")
-    max_files: int = Field(
-        default=50, ge=1, le=200, description="Maximum files to process"
-    )
+    max_files: int = Field(default=50, ge=1, le=200, description="Maximum files to process")
     focus_areas: list[str] = Field(
         default_factory=list, description="Optional focus areas to emphasize"
     )
@@ -675,16 +673,12 @@ class StrategicBriefSkillV2:
 
             if use_llm and ctx.provider is not None:
                 # LLM-powered synthesis
-                prompt = _build_llm_synthesis_prompt(
-                    sources, input.focus_areas, input.prompt
-                )
+                prompt = _build_llm_synthesis_prompt(sources, input.focus_areas, input.prompt)
                 messages = [ChatMessage(role=MessageRole.USER, content=prompt)]
 
                 try:
                     response = ctx.provider.chat(messages)
-                    sections, summary = _parse_llm_response_to_sections(
-                        response.content, sources
-                    )
+                    sections, summary = _parse_llm_response_to_sections(response.content, sources)
                     llm_used = True
                 except Exception as e:
                     # Fall back to non-LLM on error
@@ -728,8 +722,7 @@ class StrategicBriefSkillV2:
                 success=True,
                 summary=(
                     f"Generated strategic brief from {len(sources)} sources "
-                    f"({len(sections)} sections)"
-                    + (" with LLM synthesis" if llm_used else "")
+                    f"({len(sections)} sections)" + (" with LLM synthesis" if llm_used else "")
                 ),
                 brief_md=brief_md,
                 brief_json=brief_json,
