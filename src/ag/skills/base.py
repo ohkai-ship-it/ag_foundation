@@ -85,8 +85,7 @@ In registry.py or your module's __init__.py:
 The skill is now available via `ag run --skill my_skill "prompt"`.
 
 See Also:
-    - strategic_brief.py: Full v2 skill implementation example
-    - load_documents.py, summarize_docs.py: Simpler v2 examples
+    - load_documents.py, summarize_docs.py, emit_result.py: v2 skill examples
     - registry.py: Skill registration mechanics
 """
 

@@ -246,7 +246,7 @@ class Skill(ABC, Generic[InputT, OutputT]):
 | RunStore | `sqlite_store.py` | ✅ Implemented |
 | ArtifactStore | `sqlite_store.py` | ✅ Implemented |
 | LLMProvider | `openai.py`, `stubs.py` | ✅ Implemented |
-| Skill | `strategic_brief.py` (V2) | ✅ Implemented |
+| Skill | `load_documents.py`, `summarize_docs.py`, `emit_result.py` | ✅ Implemented |
 
 ---
 

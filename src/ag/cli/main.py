@@ -1249,8 +1249,8 @@ def skills_list() -> None:
     table.add_column("Description")
 
     for name in skills:
-        info = registry.get(name)
-        desc = info.description if info else ""
+        info = registry.get_info(name)
+        desc = info["description"] if info else ""
         table.add_row(name, desc)
 
     console.print(table)
@@ -1260,7 +1260,7 @@ def skills_list() -> None:
 def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> None:
     """Show skill details."""
     registry = get_default_registry()
-    info = registry.get(skill_name)
+    info = registry.get_info(skill_name)
 
     if not info:
         err_console.print(f"[bold red]Error:[/bold red] Skill not found: {skill_name}")
@@ -1269,8 +1269,8 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
             err_console.print(f"  - {name}")
         raise typer.Exit(code=1)
 
-    console.print(f"[bold]Skill:[/bold] {info.name}")
-    console.print(f"[bold]Description:[/bold] {info.description}")
+    console.print(f"[bold]Skill:[/bold] {info['name']}")
+    console.print(f"[bold]Description:[/bold] {info['description']}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

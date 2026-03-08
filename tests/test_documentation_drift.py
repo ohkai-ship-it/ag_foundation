@@ -159,13 +159,3 @@ class TestSchemaInventoryDrift:
 
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in skills/base.py: {missing}"
-
-    def test_strategic_brief_schemas_documented(self, schema_inventory_content: str) -> None:
-        """All Pydantic models in strategic_brief.py should be documented."""
-        from ag.skills import strategic_brief
-
-        models = self._get_pydantic_models_from_module(strategic_brief)
-        assert models, "No Pydantic models found in strategic_brief.py"
-
-        missing = [m for m in models if m not in schema_inventory_content]
-        assert not missing, f"Undocumented schemas in strategic_brief.py: {missing}"

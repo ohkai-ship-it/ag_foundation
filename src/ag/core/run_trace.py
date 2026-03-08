@@ -182,9 +182,9 @@ class EvidenceRef(BaseModel):
 
     Ownership (AF0054):
         This is the canonical Core-layer evidence model for trace metadata.
-        Skills may define lightweight citation models (e.g., Citation in
-        strategic_brief) for their output artifacts, but should convert
-        to EvidenceRef when recording to the trace via to_evidence_ref().
+        Skills may define lightweight citation models for their output
+        artifacts, but should convert to EvidenceRef when recording to
+        the trace via to_evidence_ref().
 
     Source types:
         - file: Local file path

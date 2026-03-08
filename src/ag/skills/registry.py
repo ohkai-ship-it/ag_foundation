@@ -18,7 +18,7 @@ V1 vs V2 Skills:
         - Subclass of Skill[InputT, OutputT] ABC
         - Pydantic schemas for input/output validation
         - Type hints, IDE support, better error messages
-        - Used by: strategic_brief, load_documents, summarize_docs, emit_result
+        - Used by: load_documents, summarize_docs, emit_result
 
 How to Register Skills:
     # V2 skill (recommended)
@@ -36,14 +36,12 @@ How to Execute Skills:
     output = skill_info.skill.execute(input_obj, context)
 
 Built-in Skills:
-    - strategic_brief: Generates strategic briefs from markdown files
     - load_documents: Loads documents from workspace inputs folder
     - summarize_docs: LLM-powered document summarization
     - emit_result: Emits final results to run trace
 
 See Also:
     - base.py: Skill ABC and schema definitions
-    - strategic_brief.py: Full v2 skill example
 """
 
 from __future__ import annotations
@@ -54,7 +52,6 @@ from typing import Any, Callable
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 from ag.skills.emit_result import EmitResultSkill
 from ag.skills.load_documents import LoadDocumentsSkill
-from ag.skills.strategic_brief import StrategicBriefSkillV2, strategic_brief_skill
 from ag.skills.summarize_docs import SummarizeDocsSkill
 
 # Skill function signature: (params: dict) -> tuple[bool, str, dict]
@@ -403,7 +400,7 @@ def create_default_registry() -> SkillRegistry:
     """Create a registry with default skills.
 
     Skills are categorized as:
-    - Real skills: Do actual work (strategic_brief)
+    - Real skills: Do actual work (load_documents, summarize_docs, emit_result)
     - Stub skills: Placeholder implementations for testing
 
     Returns:
@@ -437,17 +434,6 @@ def create_default_registry() -> SkillRegistry:
     registry.register(
         "error_skill", "Always raises exception (for testing)", _error_skill, is_stub=True
     )
-
-    # AF-0048: Strategic brief skill (REAL - does actual file reading)
-    registry.register(
-        "strategic_brief",
-        "Generate strategic brief from workspace markdown files",
-        strategic_brief_skill,
-        is_stub=False,
-    )
-
-    # AF-0060: Strategic brief v2 skill (with LLM support)
-    registry.register_v2(StrategicBriefSkillV2())
 
     # AF-0065: Summarize playbook skills (REAL - do actual work)
     registry.register_v2(LoadDocumentsSkill())

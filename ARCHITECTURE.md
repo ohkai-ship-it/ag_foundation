@@ -138,8 +138,8 @@ The four core concepts (Schemas, Contracts, Skills, Playbooks) relate as follows
     │                    │                                  │                    │
     │  ┌─────────────────▼─────────────────┐   ┌───────────▼───────────────┐    │
     │  │ SkillInput, SkillOutput           │   │ Skill ABC (execute)       │    │
-SKILLS │ StrategicBriefInput/Output        │◄──│ SkillContext injection    │    │
-    │  │ StrategicBrief, Citation, etc.    │   │ Executor calls skills     │    │
+SKILLS │ LoadDocumentsInput/Output         │◄──│ SkillContext injection    │    │
+    │  │ SummarizeDocsInput/Output         │   │ Executor calls skills     │    │
     │  └───────────────────────────────────┘   └───────────────────────────┘    │
     │                                                                            │
     │  ┌───────────────────────────────────┐   ┌───────────────────────────┐    │
@@ -314,7 +314,7 @@ Two citation layers exist:
 | Model | Layer | Location | Purpose |
 |-------|-------|----------|---------|
 | `EvidenceRef` | Core | `run_trace.py` | Trace-level evidence tracking for steps |
-| `Citation` | Skill | e.g., `strategic_brief.py` | Skill output artifact schema |
+| Skill citations | Skill | skill output schemas | Skill output artifact schemas |
 
 **Ownership rule**: Skills define lightweight citation models for their output artifacts.
 When recording to the trace, convert to `EvidenceRef` using `to_evidence_ref()`.

@@ -50,8 +50,6 @@ The skills registry (`src/ag/skills/registry.py`) has grown organically and need
 | `load_documents` | V2 | Production | ✅ Real | Loads files from workspace |
 | `summarize_docs` | V2 | Production | ✅ Real | LLM-powered summarization |
 | `emit_result` | V2 | Production | ✅ Real | Emits artifacts to workspace |
-| `strategic_brief` | V1 | Production | ✅ Real | Non-LLM brief generation |
-| `strategic_brief_v2` | V2 | Production | ✅ Real | LLM brief generation |
 | `echo_tool` | V1 | Test | ⚠️ Stub | Test fixture |
 | `analyze_task` | V1 | Playbook | ⚠️ Stub | default_v0 playbook |
 | `execute_task` | V1 | Playbook | ⚠️ Stub | default_v0 playbook |
@@ -79,7 +77,6 @@ The skills registry (`src/ag/skills/registry.py`) has grown organically and need
    ```python
    from ag.skills.emit_result import EmitResultSkill
    from ag.skills.load_documents import LoadDocumentsSkill
-   from ag.skills.strategic_brief import StrategicBriefSkillV2, strategic_brief_skill
    from ag.skills.summarize_docs import SummarizeDocsSkill
    ```
 

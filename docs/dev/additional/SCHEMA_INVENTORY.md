@@ -61,18 +61,6 @@
 | `SkillOutput` | base.py | Base output schema for v2 skills (success, summary, error) | 0.1 |
 | `StubSkillOutput` | base.py | Extension of SkillOutput for stub responses (stub=True, stub_data) | 0.1 |
 
-#### Strategic Brief Skill
-
-| Model | Module | Purpose | Version |
-|-------|--------|---------|---------|
-| `StrategicBrief` | strategic_brief.py | Generated brief document with sections | 0.1 |
-| `BriefSection` | strategic_brief.py | Single section in a strategic brief | 0.1 |
-| `SourceFile` | strategic_brief.py | Input file metadata (path, description, hash) | 0.1 |
-| `SourceExcerpt` | strategic_brief.py | Text excerpt from source file with line numbers | 0.1 |
-| `Citation` | strategic_brief.py | Citation reference linking to source excerpt | 0.1 |
-| `StrategicBriefInput` | strategic_brief.py | V2 skill input schema | 0.1 |
-| `StrategicBriefV2Output` | strategic_brief.py | V2 skill output schema with LLM synthesis | 0.1 |
-
 ---
 
 ### 3. Provider Schemas (`src/ag/providers/`)
@@ -106,14 +94,7 @@ Playbook
 ├── Budgets
 └── PlaybookStep[]
 
-StrategicBrief
-├── BriefSection[]
-├── SourceFile[]
-└── Citation[]
-    └── SourceExcerpt
-
 SkillOutput ← StubSkillOutput (inheritance)
-SkillOutput ← StrategicBriefV2Output (inheritance)
 ```
 
 ---

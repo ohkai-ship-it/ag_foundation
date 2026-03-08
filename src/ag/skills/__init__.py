@@ -11,7 +11,6 @@ Documentation References:
 Package Structure:
     base.py         — Core classes: Skill ABC, SkillInput, SkillOutput, SkillContext
     registry.py     — SkillRegistry for v1 (legacy) and v2 (typed) skill management
-    strategic_brief.py — Example v2 skill: generates strategic briefs from markdown
     load_documents.py  — V2 skill: loads and validates documents from workspace
     summarize_docs.py  — V2 skill: LLM-powered document summarization
     emit_result.py     — V2 skill: emits final results to trace

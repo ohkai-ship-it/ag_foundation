@@ -582,17 +582,17 @@ class TestSkillsCommands:
         """ag skills list should show all registered skills."""
         result = runner.invoke(app, ["skills", "list"])
         assert result.exit_code == 0
-        # Should show strategic_brief (AF-0048)
-        assert "strategic_brief" in result.output
+        # Should show production skills (AF-0065)
+        assert "load_documents" in result.output
         # Should show some standard skills
         assert "echo" in result.output
         assert "Registered Skills" in result.output
 
     def test_skills_info_shows_skill_details(self):
         """ag skills info <name> should show skill description."""
-        result = runner.invoke(app, ["skills", "info", "strategic_brief"])
+        result = runner.invoke(app, ["skills", "info", "load_documents"])
         assert result.exit_code == 0
-        assert "strategic_brief" in result.output
+        assert "load_documents" in result.output
         assert "Description" in result.output
 
     def test_skills_info_unknown_skill_fails(self):
