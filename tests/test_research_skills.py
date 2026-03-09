@@ -2,7 +2,7 @@
 
 Tests:
 - fetch_web_content skill functionality
-- synthesize_research skill functionality  
+- synthesize_research skill functionality
 - research_v0 playbook integration
 - Registry registration
 """
@@ -10,8 +10,6 @@ Tests:
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from ag.core.playbook import Playbook
 from ag.playbooks.registry import get_playbook, list_playbooks
@@ -29,7 +27,6 @@ from ag.skills.synthesize_research import (
     SynthesizeResearchOutput,
     SynthesizeResearchSkill,
 )
-
 
 # ---------------------------------------------------------------------------
 # fetch_web_content tests
@@ -173,9 +170,7 @@ class TestFetchWebContentSkill:
             provider=None,
         )
 
-        inp = FetchWebContentInput(
-            urls=["https://example1.com", "https://example2.com"]
-        )
+        inp = FetchWebContentInput(urls=["https://example1.com", "https://example2.com"])
         output = skill.execute(inp, ctx)
 
         assert output.success is True  # At least one succeeded

@@ -397,7 +397,8 @@ class TestRuntimeFailurePath:
             )
 
             assert trace.final == FinalStatus.FAILURE
-            assert "error" in trace.steps[0].error.lower() or "intentional" in trace.steps[0].error.lower()
+            error_msg = trace.steps[0].error.lower()
+            assert "error" in error_msg or "intentional" in error_msg
         finally:
             # Clean up
             del _REGISTRY["error_test"]

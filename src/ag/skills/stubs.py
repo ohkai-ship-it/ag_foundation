@@ -15,7 +15,6 @@ from pydantic import Field
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 
-
 # ---------------------------------------------------------------------------
 # Echo Skill (for testing)
 # ---------------------------------------------------------------------------

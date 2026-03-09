@@ -80,7 +80,9 @@ def get_playbook_info(name: str) -> dict[str, str | None] | None:
         "name": playbook.name,
         "version": playbook.version,
         "description": playbook.description or "",
-        "stability": playbook.metadata.get("stability", "unknown") if playbook.metadata else "unknown",
+        "stability": (
+            playbook.metadata.get("stability", "unknown") if playbook.metadata else "unknown"
+        ),
     }
 
 

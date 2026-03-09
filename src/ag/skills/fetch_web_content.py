@@ -21,7 +21,7 @@ Design Decisions:
 from __future__ import annotations
 
 import re
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from pydantic import BaseModel, Field
 
@@ -96,9 +96,7 @@ class FetchWebContentOutput(SkillOutput):
     documents: list[FetchedDocument] = Field(
         default_factory=list, description="Successfully fetched documents"
     )
-    failed_urls: list[str] = Field(
-        default_factory=list, description="URLs that failed to fetch"
-    )
+    failed_urls: list[str] = Field(default_factory=list, description="URLs that failed to fetch")
     total_fetched: int = Field(default=0, description="Number of successfully fetched URLs")
     total_failed: int = Field(default=0, description="Number of failed URLs")
 
@@ -381,9 +379,7 @@ class FetchWebContentSkill(Skill[FetchWebContentInput, FetchWebContentOutput]):
     output_schema: ClassVar[type[FetchWebContentOutput]] = FetchWebContentOutput
     requires_llm: ClassVar[bool] = False
 
-    def execute(
-        self, input: FetchWebContentInput, ctx: SkillContext
-    ) -> FetchWebContentOutput:
+    def execute(self, input: FetchWebContentInput, ctx: SkillContext) -> FetchWebContentOutput:
         """Fetch content from the provided URLs.
 
         If no URLs are provided directly, attempts to load them from

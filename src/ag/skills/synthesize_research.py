@@ -29,12 +29,11 @@ LLM Integration:
 from __future__ import annotations
 
 import re
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from pydantic import BaseModel, Field, model_validator
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
-
 
 # ---------------------------------------------------------------------------
 # Schemas
@@ -132,9 +131,7 @@ class SynthesizeResearchInput(SkillInput):
         le=16000,
         description="Maximum tokens for LLM response",
     )
-    include_citations: bool = Field(
-        default=True, description="Include source citations in output"
-    )
+    include_citations: bool = Field(default=True, description="Include source citations in output")
 
     # Allow extra fields from pipeline chaining (e.g., failed_urls, total_fetched)
     model_config = {"extra": "ignore"}
@@ -144,9 +141,7 @@ class SynthesizeResearchInput(SkillInput):
     def convert_documents(cls, data: dict) -> dict:
         """Convert incoming documents to SourceDocument format."""
         if "documents" in data and data["documents"]:
-            data["documents"] = [
-                _convert_to_source_document(doc) for doc in data["documents"]
-            ]
+            data["documents"] = [_convert_to_source_document(doc) for doc in data["documents"]]
         return data
 
 
@@ -200,9 +195,7 @@ def _build_synthesis_prompt(
             f"Type: {doc.source_type}\n"
             f"Content:\n{doc.content[:10000]}..."  # Truncate very long docs
             if len(doc.content) > 10000
-            else f"{source_label} {source_info}\n"
-            f"Type: {doc.source_type}\n"
-            f"Content:\n{doc.content}"
+            else f"{source_label} {source_info}\nType: {doc.source_type}\nContent:\n{doc.content}"
         )
 
     documents_text = "\n\n---\n\n".join(doc_sections)
@@ -314,9 +307,7 @@ def _fallback_synthesis(
     Returns:
         Tuple of (report, key_findings)
     """
-    source_list = "\n".join(
-        f"- {doc.title or doc.source} ({doc.source_type})" for doc in documents
-    )
+    source_list = "\n".join(f"- {doc.title or doc.source} ({doc.source_type})" for doc in documents)
 
     report = f"""# Research Synthesis (Stub)
 

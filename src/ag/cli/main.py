@@ -1280,9 +1280,7 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
 
 @playbooks_app.command("list")
 def playbooks_list(
-    json_output: bool = typer.Option(
-        False, "--json", help="Output as JSON."
-    ),
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
 ) -> None:
     """List available playbooks."""
     from ag.playbooks.registry import list_playbooks_detailed
