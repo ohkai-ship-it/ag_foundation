@@ -90,11 +90,39 @@ The kernel of execution, implemented as replaceable modules:
 - produces artifact index for CLI/API/UI retrieval
 
 ### 3.3 Skills & Tooling Layer (Plugins)
+
+**Core principle: Skills are CAPABILITIES, Playbooks are PROCEDURES.**
+
+| Concept | Role | Example |
+|---------|------|--------|
+| **Skill** | Atomic capability — does ONE thing | `load_documents` (file I/O), `summarize_docs` (LLM call) |
+| **Playbook** | Orchestration — sequences capabilities | `summarize_v0` chains load → summarize → emit |
+
 A registry of skills that declare:
-- input/output schemas
+- input/output schemas (Pydantic models)
 - tool dependencies
 - required permissions (for future safety gating)
 - test harness expectations
+
+#### Current Skill Inventory (Sprint08)
+
+| Skill | Type | Capability | Used By |
+|-------|------|------------|--------|
+| `load_documents` | File I/O | Read documents from workspace | summarize_v0 |
+| `summarize_docs` | LLM | Generate summary from documents | summarize_v0 |
+| `fetch_web_content` | HTTP | Fetch and extract text from URLs | research_v0 |
+| `synthesize_research` | LLM | Synthesize research report | research_v0 |
+| `fail_skill` | Test | Always fails (testing) | tests |
+| `error_skill` | Test | Always raises exception (testing) | tests |
+
+#### How to Add a Skill
+
+1. Create skill file: `src/ag/skills/{name}.py`
+2. Define input/output schemas (Pydantic `BaseModel`)
+3. Implement skill class extending `Skill` ABC
+4. Implement `execute(ctx, input) -> SkillResult`
+5. Register in `registry.py` → `create_default_registry()`
+6. Add tests in `tests/test_skill_framework.py`
 
 For detailed skill architecture, see [SKILLS_ARCHITECTURE_0.1.md](docs/dev/additional/SKILLS_ARCHITECTURE_0.1.md).
 
@@ -292,6 +320,28 @@ Example modes:
 - **Deep**
 - **Structured** (schema + validators)
 - **Safe-action** (extra confirmations/policy checks)
+
+### 5.3 Current Playbook Inventory (Sprint08)
+
+| Name | Stability | Skills Used | Purpose |
+|------|-----------|-------------|---------|
+| `summarize_v0` | experimental | load_documents, summarize_docs | Summarize documents from workspace |
+| `research_v0` | experimental | fetch_web_content, synthesize_research | Research pipeline: fetch URLs, synthesize report |
+| `default_v0` | test | (echo-style) | Testing playbook execution |
+| `delegate_v0` | test | (echo-style) | Testing multi-step delegation |
+
+#### How to Add a Playbook
+
+1. Create playbook file: `src/ag/playbooks/{name}_v0.py`
+2. Define `Playbook` instance with steps, budgets, metadata
+3. Reference registered skills by name in `PlaybookStep.skill_name`
+4. Register in `registry.py` → `_REGISTRY` dict
+5. Add alias if desired (e.g., `"research": RESEARCH_V0`)
+6. Add tests for playbook execution
+
+**CLI commands:**
+- `ag playbooks list` — Show available playbooks
+- `ag run --playbook <name>` — Execute a playbook
 
 ---
 

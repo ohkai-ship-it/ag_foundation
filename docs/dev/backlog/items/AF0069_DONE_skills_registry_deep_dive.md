@@ -1,5 +1,5 @@
 # BACKLOG ITEM — AF0069 — skills_registry_deep_dive
-# Version number: v0.1
+# Version number: v0.2
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -12,7 +12,7 @@
 > - 1 PR = 1 primary AF
 > - INDEX update rule (status ↔ filename integrity)
 
-> **File naming (required):** `AF0069_PROPOSED_skills_registry_deep_dive.md`
+> **File naming (required):** `AF0069_DONE_skills_registry_deep_dive.md`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
@@ -20,11 +20,12 @@
 ## Metadata
 - **ID:** AF0069
 - **Type:** Documentation
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Skills / Architecture
 - **Owner:** Kai
 - **Target sprint:** Sprint08
+- **Completed:** Sprint08
 
 ---
 
@@ -65,41 +66,57 @@ The current stub skills violate this principle. They are **process-oriented** ("
 
 ## Current State Analysis
 
-### Skill Inventory (as of Sprint07)
+### Skill Inventory (as of Sprint08)
 
-| Skill | Version | Status | Capability | Used By |
-|-------|---------|--------|------------|--------|
-| `load_documents` | V2 | ✅ Real | File I/O: read from workspace | summarize_v0 |
-| `summarize_docs` | V2 | ✅ Real | LLM: generate summary | summarize_v0 |
-| `emit_result` | V2 | ✅ Real | File I/O: write to workspace | summarize_v0 |
-| `echo_tool` | V1 | ⚠️ Stub | Test fixture | tests |
-| `analyze_task` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
-| `execute_task` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
-| `verify_result` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
-| `normalize_input` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
-| `plan_subtasks` | V1 | ⚠️ Stub | ❌ Orchestration (not a skill) | delegate_v0 |
-| `execute_subtask` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
-| `verify_delegation` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
-| `finalize_result` | V1 | ⚠️ Stub | ❌ Duplicate of emit_result? | delegate_v0 |
-| `fail_skill` | V1 | ⚠️ Stub | Test fixture | tests |
-| `error_skill` | V1 | ⚠️ Stub | Test fixture | tests |
+> **UPDATE (Sprint08):** V1 framework removed (AF-0079). All process-oriented stubs removed.
+> Only capability-oriented V2 skills remain.
+
+| Skill | Status | Capability | Used By |
+|-------|--------|------------|--------|
+| `load_documents` | ✅ Real | File I/O: read from workspace | summarize_v0 |
+| `summarize_docs` | ✅ Real | LLM: generate summary | summarize_v0 |
+| `fetch_web_content` | ✅ Real | HTTP: fetch and extract text from URLs | research_v0 |
+| `synthesize_research` | ✅ Real | LLM: synthesize research report | research_v0 |
+| `fail_skill` | 🧪 Test | Always fails (testing) | tests |
+| `error_skill` | 🧪 Test | Always raises exception (testing) | tests |
+
+### Removed Skills (AF-0079)
+
+| Skill | Reason for Removal |
+|-------|-------------------|
+| `emit_result` | Redundant — skills can write output directly |
+| `echo_tool` | V1 stub — replaced by V2 test skills |
+| `analyze_task` | Process-oriented, not a capability |
+| `execute_task` | Process-oriented, not a capability |
+| `verify_result` | Process-oriented, not a capability |
+| `normalize_input` | Process-oriented, not a capability |
+| `plan_subtasks` | Orchestration (runtime job, not skill) |
+| `execute_subtask` | Process-oriented, not a capability |
+| `verify_delegation` | Process-oriented, not a capability |
+| `finalize_result` | Redundant with emit_result |
 
 ### Hardcoded Elements
 
-1. **Skill registration** (lines 400-460):
+1. **Skill registration** (`create_default_registry()`):
    ```python
    def create_default_registry() -> SkillRegistry:
        registry = SkillRegistry()
-       registry.register("echo_tool", ...)
-       registry.register("analyze_task", ...)
-       # ... 15+ hardcoded registrations
+       registry.register("load_documents", LoadDocumentsSkill())
+       registry.register("summarize_docs", SummarizeDocsSkill())
+       registry.register("fetch_web_content", FetchWebContentSkill())
+       registry.register("synthesize_research", SynthesizeResearchSkill())
+       registry.register("fail_skill", FailSkill())
+       registry.register("error_skill", ErrorSkill())
+       return registry
    ```
 
-2. **Skill imports** (lines 52-55):
+2. **Skill imports** — all V2 Pydantic-based skills:
    ```python
-   from ag.skills.emit_result import EmitResultSkill
    from ag.skills.load_documents import LoadDocumentsSkill
    from ag.skills.summarize_docs import SummarizeDocsSkill
+   from ag.skills.fetch_web_content import FetchWebContentSkill
+   from ag.skills.synthesize_research import SynthesizeResearchSkill
+   from ag.skills.stubs import FailSkill, ErrorSkill
    ```
 
 3. **Singleton pattern** (lines 467-473):
@@ -109,13 +126,12 @@ The current stub skills violate this principle. They are **process-oriented** ("
        # Lazy singleton — no way to reset or customize
    ```
 
-### CLI Integration Issues
+### CLI Integration
 
-`ag skills list` in `main.py`:
-- Shows all skills (no filtering)
-- V2 skills have empty descriptions (bug)
-- No indication of stub vs production
-- No indication of LLM requirement
+`ag skills list` (as of Sprint08):
+- ✅ Shows all registered skills with descriptions
+- ✅ V2 skills show proper descriptions from `describe()` method
+- ⚠️ No indication of LLM requirement (future enhancement)
 
 ---
 
@@ -133,21 +149,24 @@ Produce a skills strategy document and implementation plan addressing:
 
 ## Deliverables
 
-- [ ] Document architectural principle (Skills = Capabilities)
-- [ ] Update ARCHITECTURE.md with skills section
-- [ ] Create "How to add skills" guide
-- [ ] Document skill inventory with status
-- [ ] Document versioning convention (no `_v0` suffix for skills)
+- [x] Document architectural principle (Skills = Capabilities) — ARCHITECTURE.md §3.3
+- [x] Update ARCHITECTURE.md with skills section — ARCHITECTURE.md §3.3
+- [x] Create "How to add skills" guide — ARCHITECTURE.md §3.3
+- [x] Document skill inventory with status — ARCHITECTURE.md §3.3 + this AF
+- [x] Document versioning convention — Skills use bare names (no `_v0` suffix)
+
+**Note:** The architectural principle "Skills = Capabilities" drove AF-0079 (V1 removal).
+All process-oriented stubs were removed; only capability-oriented skills remain.
 
 ---
 
 ## Related Implementation AFs
 
-| AF | Title | Scope |
-|----|-------|-------|
-| AF-0079 | Skills framework V1 removal | Remove V1 framework, stubs, simplify registry |
-| AF-0077 | Skills plugin architecture | Entry points, external registration (v1+) |
-| AF-0074 | research_v0 playbook | New capability-oriented skills |
+| AF | Title | Scope | Status |
+|----|-------|-------|--------|
+| AF-0079 | Skills framework V1 removal | Remove V1 framework, stubs, simplify registry | ✅ DONE |
+| AF-0077 | Skills plugin architecture | Entry points, external registration (v1+) | PROPOSED |
+| AF-0074 | research_v0 playbook | New capability-oriented skills | ✅ DONE |
 
 ---
 

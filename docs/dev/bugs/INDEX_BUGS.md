@@ -19,6 +19,7 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0013 | P1 | OPEN | research_v0 playbook pipeline broken | Playbooks/Runtime | [](reports/BUG0013_OPEN_research_v0_pipeline_broken.md) |
 | BUG-0012 | P2 | OPEN | Test workspace cleanup pollution | Testing/Storage | [](reports/BUG0012_OPEN_test_workspace_cleanup.md) |
 | BUG-0007 | P1 | OPEN | OpenAI provider test isolation failure | Testing | [](reports/BUG0007_OPEN_openai_test_isolation.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [](reports/BUG0002_OPEN_missing_ag_run.md) |

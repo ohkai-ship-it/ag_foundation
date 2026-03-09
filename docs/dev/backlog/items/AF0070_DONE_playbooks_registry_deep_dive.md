@@ -1,11 +1,11 @@
 # BACKLOG ITEM — AF0070 — playbooks_architecture_documentation
-# Version number: v0.1
+# Version number: v0.2
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
 > `/docs/dev/foundation/FOUNDATION_MANUAL.md`
 
-> **File naming (required):** `AF0070_<Status>_playbooks_registry_deep_dive.md`
+> **File naming (required):** `AF0070_DONE_playbooks_registry_deep_dive.md`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 
 ---
@@ -13,11 +13,12 @@
 ## Metadata
 - **ID:** AF0070
 - **Type:** Documentation
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Playbooks/Architecture
 - **Owner:** Kai
 - **Target sprint:** Sprint08
+- **Completed:** Sprint08
 
 ---
 
@@ -51,13 +52,17 @@ Deep dive analysis of the playbooks registry to understand architecture, documen
 
 ## Current State Analysis
 
-### Playbook Inventory
+### Playbook Inventory (as of Sprint08)
 
-| Name | File | Skills Used | Status | Problem |
-|------|------|-------------|--------|---------|
-| summarize_v0 | `summarize_v0.py` | load_documents, summarize_docs, emit_result | ✅ PRODUCTION | None — correct design |
-| default_v0 | `default_v0.py` | analyze_task, execute_task, verify_result | ❌ STUB-DEPENDENT | Skills are process-oriented, not capabilities |
-| delegate_v0 | `delegate_v0.py` | normalize_input, plan_subtasks, execute_subtask, verify_delegation, finalize_result | ❌ STUB-DEPENDENT | Skills are process-oriented, not capabilities |
+> **UPDATE (Sprint08):** V1 stubs removed. default_v0 and delegate_v0 now use echo-style test skills.
+> research_v0 added as second production playbook.
+
+| Name | Stability | Skills Used | Status |
+|------|-----------|-------------|--------|
+| summarize_v0 | experimental | load_documents, summarize_docs | ✅ PRODUCTION |
+| research_v0 | experimental | fetch_web_content, synthesize_research | ✅ PRODUCTION (⚠️ BUG-0013) |
+| default_v0 | test | (echo-style testing) | 🧪 TEST ONLY |
+| delegate_v0 | test | (echo-style testing) | 🧪 TEST ONLY |
 
 ### Architecture Comparison: Playbooks vs Skills
 
@@ -91,28 +96,33 @@ Defined in `ag.core.playbook.ReasoningMode`:
 
 ## Hardcoded Elements
 
-### File: `registry.py`
+### File: `registry.py` (as of Sprint08 / AF-0076)
 
 ```python
-# Lines 13-15: Imports
+# Imports — each playbook imported
 from ag.playbooks.default_v0 import DEFAULT_V0
 from ag.playbooks.delegate_v0 import DELEGATE_V0
 from ag.playbooks.summarize_v0 import SUMMARIZE_V0
+from ag.playbooks.research_v0 import RESEARCH_V0
 
-# Lines 21-31: Registry dict
+# Registry dict with aliases
 _REGISTRY: dict[str, "Playbook"] = {
     "default_v0": DEFAULT_V0,
-    "default": DEFAULT_V0,  # Alias
+    "default": DEFAULT_V0,
     "delegate_v0": DELEGATE_V0,
-    "delegate": DELEGATE_V0,  # Alias
+    "delegate": DELEGATE_V0,
     "summarize_v0": SUMMARIZE_V0,
-    "summarize": SUMMARIZE_V0,  # Alias
+    "summarize": SUMMARIZE_V0,
+    "research_v0": RESEARCH_V0,
+    "research": RESEARCH_V0,
 }
 
-# Lines 47-53: list_playbooks return value
+# list_playbooks() now auto-derives from _REGISTRY
 def list_playbooks() -> list[str]:
-    return ["default_v0", "delegate_v0", "summarize_v0"]
+    return [name for name in _REGISTRY if not _is_alias(name)]
 ```
+
+**CLI command:** `ag playbooks list` shows Rich table with Name, Version, Stability, Description.
 
 ### File: `__init__.py`
 
@@ -177,22 +187,25 @@ __all__ = [
 
 ## Deliverables
 
-- [ ] Document architectural principle (Playbooks = Procedures)
-- [ ] Update ARCHITECTURE.md with playbooks section
-- [ ] Complete "How to add playbooks" guide (above)
-- [ ] Document playbook inventory with status
-- [ ] Document versioning convention (`_v0` suffix for playbooks, not skills)
-- [ ] Clarify ReasoningMode usage in runtime
+- [x] Document architectural principle (Playbooks = Procedures) — this AF + ARCHITECTURE.md §3.3
+- [x] Update ARCHITECTURE.md with playbooks section — ARCHITECTURE.md §5.3
+- [x] Complete "How to add playbooks" guide — this AF + ARCHITECTURE.md §5.3
+- [x] Document playbook inventory with status — this AF + ARCHITECTURE.md
+- [x] Document versioning convention — Playbooks use `_v0` suffix, skills don't
+- [ ] Clarify ReasoningMode usage in runtime — Deferred to future AF
+
+**Note:** ReasoningMode investigation deferred. Current implementation uses
+ReasoningMode as metadata only — runtime doesn't change behavior based on it.
 
 ---
 
 ## Related Implementation AFs
 
-| AF | Title | Scope |
-|----|-------|-------|
-| AF-0076 | Playbooks registry cleanup | Auto-generate list_playbooks(), add stability markers |
-| AF-0078 | Playbooks plugin architecture | YAML loading, entry points (v1+) |
-| AF-0074 | research_v0 playbook | First new capability-oriented playbook |
+| AF | Title | Scope | Status |
+|----|-------|-------|--------|
+| AF-0076 | Playbooks registry cleanup | Auto-generate list_playbooks(), add stability markers | ✅ DONE |
+| AF-0078 | Playbooks plugin architecture | YAML loading, entry points (v1+) | PROPOSED |
+| AF-0074 | research_v0 playbook | First new capability-oriented playbook | ✅ DONE |
 
 ---
 

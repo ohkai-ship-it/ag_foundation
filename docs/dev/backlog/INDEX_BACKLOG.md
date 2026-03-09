@@ -47,9 +47,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 3 | AF-0074 | P1 | DONE | research_v0 playbook | Playbooks/Skills | Kai | [🔗](items/AF0074_DONE_research_v0_playbook.md) |
 | 4 | AF-0059 | P2 | DONE | Implement playbooks list | CLI | Jacob | [🔗](items/AF0059_DONE_implement_playbooks_list.md) |
 | 5 | AF-0076 | P2 | DONE | Playbooks registry cleanup | Playbooks/Registry | TBD | [🔗](items/AF0076_DONE_playbooks_registry_cleanup.md) |
-| — | — | — | **CHECKPOINT** | Review scope of AF-0069/AF-0070 | — | — | — |
-| 6 | AF-0069 | P1 | PROPOSED | Skills architecture documentation | Skills/Architecture | Kai | [🔗](items/AF0069_PROPOSED_skills_registry_deep_dive.md) |
-| 7 | AF-0070 | P1 | PROPOSED | Playbooks architecture documentation | Playbooks/Architecture | Kai | [🔗](items/AF0070_PROPOSED_playbooks_registry_deep_dive.md) |
+| 6 | AF-0069 | P1 | DONE | Skills architecture documentation | Skills/Architecture | Kai | [🔗](items/AF0069_DONE_skills_registry_deep_dive.md) |
+| 7 | AF-0070 | P1 | DONE | Playbooks architecture documentation | Playbooks/Architecture | Kai | [🔗](items/AF0070_DONE_playbooks_registry_deep_dive.md) |
 
 
 ### Sprint 07 Scope (completed)
