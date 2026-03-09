@@ -1,6 +1,7 @@
 """Playbook registry — centralized playbook access.
 
 AF-0068: Playbooks folder restructure.
+AF-0074: Added research_v0 playbook.
 Provides get_playbook() and list_playbooks() functions.
 """
 
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
 
 from ag.playbooks.default_v0 import DEFAULT_V0
 from ag.playbooks.delegate_v0 import DELEGATE_V0
+from ag.playbooks.research_v0 import RESEARCH_V0
 from ag.playbooks.summarize_v0 import SUMMARIZE_V0
 
 # ---------------------------------------------------------------------------
@@ -26,6 +28,9 @@ _REGISTRY: dict[str, "Playbook"] = {
     # Delegation playbook
     "delegate_v0": DELEGATE_V0,
     "delegate": DELEGATE_V0,  # Alias
+    # Research playbook (AF-0074)
+    "research_v0": RESEARCH_V0,
+    "research": RESEARCH_V0,  # Alias
     # Summarization playbook
     "summarize_v0": SUMMARIZE_V0,
     "summarize": SUMMARIZE_V0,  # Alias
@@ -50,4 +55,4 @@ def list_playbooks() -> list[str]:
     Returns:
         List of canonical playbook names
     """
-    return ["default_v0", "delegate_v0", "summarize_v0"]
+    return ["default_v0", "delegate_v0", "research_v0", "summarize_v0"]

@@ -1,4 +1,4 @@
-"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067, AF0079).
+"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067, AF0074, AF0079).
 
 This module provides the SkillRegistry class that manages typed skills.
 The registry is the central coordination point for skill discovery,
@@ -11,7 +11,7 @@ Skills use the Pydantic-based Skill[InputT, OutputT] ABC pattern:
     - Subclass of Skill ABC with typed input/output schemas
     - Pydantic schemas for input/output validation
     - Type hints, IDE support, better error messages
-    - Used by: load_documents, summarize_docs, emit_result
+    - Used by: load_documents, summarize_docs, emit_result, fetch_web_content, etc.
 
 How to Register Skills:
     registry.register(MySkill())
@@ -28,6 +28,8 @@ Built-in Skills:
     - load_documents: Loads documents from workspace inputs folder
     - summarize_docs: LLM-powered document summarization
     - emit_result: Emits final results to run trace
+    - fetch_web_content: Fetches content from URLs (AF0074)
+    - synthesize_research: LLM-powered research synthesis (AF0074)
 
 See Also:
     - base.py: Skill ABC and schema definitions
@@ -40,9 +42,11 @@ from typing import Any
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 from ag.skills.emit_result import EmitResultSkill
+from ag.skills.fetch_web_content import FetchWebContentSkill
 from ag.skills.load_documents import LoadDocumentsSkill
 from ag.skills.stubs import EchoSkill, ErrorSkill, FailSkill
 from ag.skills.summarize_docs import SummarizeDocsSkill
+from ag.skills.synthesize_research import SynthesizeResearchSkill
 
 
 @dataclass
@@ -207,8 +211,9 @@ def create_default_registry() -> SkillRegistry:
     """Create a registry with default production skills.
 
     Skills registered:
-    - Production: load_documents, summarize_docs, emit_result
-    - Test stubs: echo_tool, fail_skill
+    - Production: load_documents, summarize_docs, emit_result,
+                  fetch_web_content, synthesize_research (AF-0074)
+    - Test stubs: echo_tool, fail_skill, error_skill
 
     Returns:
         SkillRegistry with production skills registered
@@ -219,6 +224,10 @@ def create_default_registry() -> SkillRegistry:
     registry.register(LoadDocumentsSkill())
     registry.register(SummarizeDocsSkill())
     registry.register(EmitResultSkill())
+
+    # Production skills (AF-0074: research playbook)
+    registry.register(FetchWebContentSkill())
+    registry.register(SynthesizeResearchSkill())
 
     # Test stub skills (AF-0079: V2 stubs for testing)
     registry.register(EchoSkill())
