@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ID:** AF0069
-- **Type:** Analysis / Engineering
+- **Type:** Documentation
 - **Status:** PROPOSED
 - **Priority:** P1
 - **Area:** Skills / Architecture
@@ -30,14 +30,36 @@
 
 ## Problem
 
-The skills registry (`src/ag/skills/registry.py`) has grown organically and needs a strategic review:
+The skills registry (`src/ag/skills/registry.py`) needs documentation after the V1 framework removal (AF-0079):
 
-1. **Unclear skill inventory**: Mix of production skills, test stubs, and legacy wrappers
+1. **Document final architecture**: Single skill pattern (Pydantic schemas + ABC)
 2. **Hardcoded registration**: All skills registered in `create_default_registry()` — no plugin system
-3. **Missing descriptions**: V2 skills show empty descriptions in `ag skills list`
-4. **Stub skills exposure**: Test stubs visible to users alongside production skills
-5. **No skill categories**: Can't filter by "production", "test", "LLM-required", etc.
-6. **Implementation gaps**: Many stubs need real implementations for production use
+3. **No plugin system yet**: Future AF-0077 for external skill registration
+4. **Testing strategy**: How to test skills without polluting user environment
+
+---
+
+## Key Architectural Insight
+
+**Skills are CAPABILITIES, Playbooks are PROCEDURES.**
+
+| Concept | Role | Example |
+|---------|------|---------|
+| **Skill** | Atomic capability — does ONE thing | `load_documents` (file I/O), `summarize_docs` (LLM call) |
+| **Playbook** | Orchestration — sequences capabilities | `summarize_v0` chains load → summarize → emit |
+
+The current stub skills violate this principle. They are **process-oriented** ("analyze", "execute", "verify") rather than **capability-oriented**. This makes them impossible to implement meaningfully.
+
+### Design Smell: Process-Oriented Stubs
+
+| Stub Skill | Problem | Should Be |
+|------------|---------|----------|
+| `analyze_task` | What does "analyze" mean? | A playbook, or concrete skills like `extract_entities`, `classify_intent` |
+| `execute_task` | Execute what, how? | A playbook, or concrete skills like `call_api`, `transform_data` |
+| `verify_result` | Verify against what? | A playbook, or concrete skills like `validate_schema`, `check_citations` |
+| `plan_subtasks` | Planning is orchestration | A playbook responsibility, not a skill |
+
+**Recommendation:** Stub skills should be replaced with capability-oriented skills or removed. Playbooks should handle orchestration.
 
 ---
 
@@ -45,22 +67,22 @@ The skills registry (`src/ag/skills/registry.py`) has grown organically and need
 
 ### Skill Inventory (as of Sprint07)
 
-| Skill | Version | Type | Status | Notes |
-|-------|---------|------|--------|-------|
-| `load_documents` | V2 | Production | ✅ Real | Loads files from workspace |
-| `summarize_docs` | V2 | Production | ✅ Real | LLM-powered summarization |
-| `emit_result` | V2 | Production | ✅ Real | Emits artifacts to workspace |
-| `echo_tool` | V1 | Test | ⚠️ Stub | Test fixture |
-| `analyze_task` | V1 | Playbook | ⚠️ Stub | default_v0 playbook |
-| `execute_task` | V1 | Playbook | ⚠️ Stub | default_v0 playbook |
-| `verify_result` | V1 | Playbook | ⚠️ Stub | default_v0 playbook |
-| `normalize_input` | V1 | Delegation | ⚠️ Stub | agent_network playbook |
-| `plan_subtasks` | V1 | Delegation | ⚠️ Stub | agent_network playbook |
-| `execute_subtask` | V1 | Delegation | ⚠️ Stub | agent_network playbook |
-| `verify_delegation` | V1 | Delegation | ⚠️ Stub | agent_network playbook |
-| `finalize_result` | V1 | Delegation | ⚠️ Stub | agent_network playbook |
-| `fail_skill` | V1 | Test | ⚠️ Stub | Test fixture |
-| `error_skill` | V1 | Test | ⚠️ Stub | Test fixture |
+| Skill | Version | Status | Capability | Used By |
+|-------|---------|--------|------------|--------|
+| `load_documents` | V2 | ✅ Real | File I/O: read from workspace | summarize_v0 |
+| `summarize_docs` | V2 | ✅ Real | LLM: generate summary | summarize_v0 |
+| `emit_result` | V2 | ✅ Real | File I/O: write to workspace | summarize_v0 |
+| `echo_tool` | V1 | ⚠️ Stub | Test fixture | tests |
+| `analyze_task` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
+| `execute_task` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
+| `verify_result` | V1 | ⚠️ Stub | ❌ Process-oriented | default_v0 |
+| `normalize_input` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
+| `plan_subtasks` | V1 | ⚠️ Stub | ❌ Orchestration (not a skill) | delegate_v0 |
+| `execute_subtask` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
+| `verify_delegation` | V1 | ⚠️ Stub | ❌ Process-oriented | delegate_v0 |
+| `finalize_result` | V1 | ⚠️ Stub | ❌ Duplicate of emit_result? | delegate_v0 |
+| `fail_skill` | V1 | ⚠️ Stub | Test fixture | tests |
+| `error_skill` | V1 | ⚠️ Stub | Test fixture | tests |
 
 ### Hardcoded Elements
 
@@ -111,44 +133,38 @@ Produce a skills strategy document and implementation plan addressing:
 
 ## Deliverables
 
-### Phase 1: Analysis (this AF)
-- [ ] Complete skill inventory with implementation status
-- [ ] Document hardcoded vs configurable elements
-- [ ] Identify bugs in current implementation
-- [ ] Propose architecture improvements
-- [ ] Create implementation roadmap
+- [ ] Document architectural principle (Skills = Capabilities)
+- [ ] Update ARCHITECTURE.md with skills section
+- [ ] Create "How to add skills" guide
+- [ ] Document skill inventory with status
+- [ ] Document versioning convention (no `_v0` suffix for skills)
 
-### Phase 2: Quick Fixes (follow-up AF)
-- [ ] Fix V2 skill empty descriptions in CLI
-- [ ] Add `--production` / `--all` flag to `ag skills list`
-- [ ] Add skill category to registry (production/test/stub)
+---
 
-### Phase 3: Stub Implementation (future sprints)
-- [ ] Implement real `analyze_task` skill (LLM-powered)
-- [ ] Implement real `execute_task` skill (with tool use)
-- [ ] Implement real delegation skills
-- [ ] Remove or hide test-only stubs
+## Related Implementation AFs
 
-### Phase 4: Plugin Architecture (v1+)
-- [ ] Design skill plugin system
-- [ ] Allow external skill registration
-- [ ] Configuration-based skill loading
+| AF | Title | Scope |
+|----|-------|-------|
+| AF-0079 | Skills framework V1 removal | Remove V1 framework, stubs, simplify registry |
+| AF-0077 | Skills plugin architecture | Entry points, external registration (v1+) |
+| AF-0074 | research_v0 playbook | New capability-oriented skills |
 
 ---
 
 ## Non-goals
-- Implementing all stub skills in this AF (scope too large)
-- Building a full plugin system (v1+ feature)
-- Changing skill execution semantics
+
+- Implementing new skills (see AF-0074)
+- Framework refactoring (see AF-0079)
+- Plugin architecture (see AF-0077)
 
 ---
 
-## Acceptance criteria (Definition of Done)
-- [ ] Skill inventory documented with status for each
-- [ ] Architecture analysis complete
-- [ ] Implementation roadmap created
-- [ ] Follow-up AFs created for implementation work
-- [ ] Strategy document reviewed
+## Acceptance Criteria
+
+- [ ] Skills architecture section added to ARCHITECTURE.md
+- [ ] "How to add a skill" documented
+- [ ] Skill inventory table complete and accurate
+- [ ] V2 skill patterns documented with examples
 
 ---
 

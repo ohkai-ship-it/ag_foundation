@@ -1,5 +1,5 @@
 # BACKLOG ITEM — AF0059 — implement_playbooks_list
-# Version number: v0.2
+# Version number: v0.4
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -24,12 +24,13 @@
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob
-- **Target sprint:** TBD
+- **Target sprint:** Sprint08
 - **Related:** AF0012 (overlapping scope)
 
 ---
 
 ## Problem
+
 The `ag playbooks list` command is currently a stub that prints "⚠ Stub — not implemented yet". Users cannot discover available playbooks through the CLI.
 
 Current state:
@@ -54,6 +55,7 @@ Implement a working `ag playbooks list` command that:
 ---
 
 ## Acceptance criteria (Definition of Done)
+
 - [ ] `ag playbooks list` shows all available playbooks
 - [ ] Each playbook displays: name, description (if available)
 - [ ] `--json` flag outputs structured JSON
