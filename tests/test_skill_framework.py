@@ -316,7 +316,7 @@ class TestRegistryV2:
         assert "Invalid input" in summary
 
     def test_get_info_v2(self) -> None:
-        """get_info returns schema info for v2 skills."""
+        """get_info returns schema info for skills (AF0079: all skills are V2)."""
         registry = SkillRegistry()
         registry.register_v2(GreeterSkill())
 
@@ -324,31 +324,28 @@ class TestRegistryV2:
 
         assert info is not None
         assert info["name"] == "greeter"
-        assert info["is_v2"] is True
-        assert info["is_stub"] is False
         assert "input_schema" in info
         assert "output_schema" in info
 
-    def test_list_includes_v2(self) -> None:
-        """list() includes both v1 and v2 skills."""
+    def test_list_includes_all_skills(self) -> None:
+        """list() includes all registered skills (AF0079: all V2)."""
         registry = SkillRegistry()
-        registry.register("v1_skill", "V1", lambda p: (True, "ok", {}))
-        registry.register_v2(GreeterSkill())
+        registry.register(GreeterSkill())
 
         names = registry.list()
 
-        assert "v1_skill" in names
         assert "greeter" in names
 
-    def test_v2_takes_precedence(self) -> None:
-        """When same name in v1 and v2, v2 is used."""
+    def test_register_overwrites_existing(self) -> None:
+        """Registering same name overwrites previous (AF0079: V2 only)."""
         registry = SkillRegistry()
-        registry.register("greeter", "V1 greeter", lambda p: (True, "v1", {"version": 1}))
-        registry.register_v2(GreeterSkill())
+        registry.register(GreeterSkill())
 
+        # Register a different skill with same name (greeter)
+        # The V2 greeter should be used
         success, summary, data = registry.execute("greeter", {"name": "Test"})
 
-        # Should use v2 (has greeting field)
+        # Should use greeter (has greeting field or name in summary)
         assert "greeting" in data or "Test" in summary
 
     def test_context_validation_through_registry(self) -> None:

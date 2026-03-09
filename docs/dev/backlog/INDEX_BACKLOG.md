@@ -43,7 +43,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0073 | P2 | DONE | Index file linking convention | Docs/Process | Jacob | [🔗](items/AF0073_DONE_index_file_linking.md) |
-| 2 | AF-0079 | P1 | READY | Skills framework V1 removal | Skills/Framework | TBD | [🔗](items/AF0079_READY_skills_framework_v1_removal.md) |
+| 2 | AF-0079 | P1 | DONE | Skills framework V1 removal | Skills/Framework | Jacob | [🔗](items/AF0079_DONE_skills_framework_v1_removal.md) |
 | 3 | AF-0074 | P1 | READY | research_v0 playbook | Playbooks/Skills | Kai | [🔗](items/AF0074_READY_research_v0_playbook.md) |
 | 4 | AF-0059 | P2 | READY | Implement playbooks list | CLI | Jacob | [🔗](items/AF0059_READY_implement_playbooks_list.md) |
 | 5 | AF-0076 | P2 | READY | Playbooks registry cleanup | Playbooks/Registry | TBD | [🔗](items/AF0076_READY_playbooks_registry_cleanup.md) |

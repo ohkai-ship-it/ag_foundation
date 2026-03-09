@@ -178,9 +178,8 @@ class TestRuntimeHappyPath:
         """Runtime executes all playbook steps."""
         trace = runtime.execute(prompt="Test task", workspace="ws-test")
 
-        # default_v0 has 3 steps: analyze, execute, verify
-        # verify is optional, so we should have at least 2 steps
-        assert len(trace.steps) >= 2
+        # default_v0 has 1 echo step (AF0079 simplified stub playbook)
+        assert len(trace.steps) >= 1
 
         # Check steps have proper structure
         for step in trace.steps:
@@ -238,24 +237,65 @@ class TestRuntimeFailurePath:
         run_store: SQLiteRunStore,
         artifact_store: SQLiteArtifactStore,
     ) -> None:
-        """Skill failure on required step stops execution."""
-        # Create registry with only fail_skill
-        registry = SkillRegistry()
-        registry.register("analyze_task", "Always fails", lambda p: (False, "Failed", {}))
-        registry.register("execute_task", "Stub", lambda p: (True, "OK", {}))
-        registry.register("verify_result", "Stub", lambda p: (True, "OK", {}))
+        """Skill failure on required step stops execution (AF0079 updated)."""
+        from ag.core.playbook import (
+            Budgets,
+            Playbook,
+            PlaybookStep,
+            PlaybookStepType,
+            ReasoningMode,
+        )
+        from ag.playbooks.registry import _REGISTRY
 
-        runtime = create_runtime(
-            registry=registry,
-            run_store=run_store,
-            artifact_store=artifact_store,
+        # Create a test playbook with fail_skill as first required step
+        fail_playbook = Playbook(
+            playbook_version="0.1",
+            name="fail_test",
+            version="1.0.0",
+            description="Test playbook that fails",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=3, max_tokens=None, max_duration_seconds=60),
+            steps=[
+                PlaybookStep(
+                    step_id="step_0",
+                    name="fail",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="fail_skill",
+                    description="Intentionally fail",
+                    required=True,
+                    retry_count=0,
+                ),
+            ],
+            metadata={"stability": "test"},
         )
 
-        trace = runtime.execute(prompt="Test task", workspace="ws-test")
+        # Temporarily register the playbook
+        _REGISTRY["fail_test"] = fail_playbook
 
-        # analyze_task is required and fails
-        assert trace.final == FinalStatus.FAILURE
-        assert trace.verifier.status == VerifierStatus.FAILED
+        try:
+            # Use default registry which includes fail_skill
+            from ag.skills import get_default_registry
+
+            registry = get_default_registry()
+
+            runtime = create_runtime(
+                registry=registry,
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            trace = runtime.execute(
+                prompt="Test task",
+                workspace="ws-test",
+                playbook="fail_test",
+            )
+
+            # fail_skill is required and fails
+            assert trace.final == FinalStatus.FAILURE
+            assert trace.verifier.status == VerifierStatus.FAILED
+        finally:
+            # Clean up
+            del _REGISTRY["fail_test"]
 
     def test_failed_run_persisted(
         self,
@@ -302,25 +342,65 @@ class TestRuntimeFailurePath:
         run_store: SQLiteRunStore,
         artifact_store: SQLiteArtifactStore,
     ) -> None:
-        """Skills that raise exceptions are handled gracefully."""
-        registry = SkillRegistry()
-        registry.register(
-            "analyze_task",
-            "Raises exception",
-            lambda p: (_ for _ in ()).throw(RuntimeError("Boom!")),
+        """Skills that raise exceptions are handled gracefully (AF0079 updated)."""
+        from ag.core.playbook import (
+            Budgets,
+            Playbook,
+            PlaybookStep,
+            PlaybookStepType,
+            ReasoningMode,
+        )
+        from ag.playbooks.registry import _REGISTRY
+
+        # Create a playbook with error_skill that raises an exception
+        error_playbook = Playbook(
+            playbook_version="0.1",
+            name="error_test",
+            version="1.0.0",
+            description="Test playbook that errors",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=3, max_tokens=None, max_duration_seconds=60),
+            steps=[
+                PlaybookStep(
+                    step_id="step_0",
+                    name="error",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="error_skill",
+                    description="Intentionally raise exception",
+                    required=True,
+                    retry_count=0,
+                ),
+            ],
+            metadata={"stability": "test"},
         )
 
-        runtime = create_runtime(
-            registry=registry,
-            run_store=run_store,
-            artifact_store=artifact_store,
-        )
+        # Temporarily register the playbook
+        _REGISTRY["error_test"] = error_playbook
 
-        # Should not raise, should record failure
-        trace = runtime.execute(prompt="Test task", workspace="ws-test")
+        try:
+            # Use default registry which includes error_skill
+            from ag.skills import get_default_registry
 
-        assert trace.final == FinalStatus.FAILURE
-        assert "error" in trace.steps[0].error.lower() or "boom" in trace.steps[0].error.lower()
+            registry = get_default_registry()
+
+            runtime = create_runtime(
+                registry=registry,
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            # Should not raise, should record failure
+            trace = runtime.execute(
+                prompt="Test task",
+                workspace="ws-test",
+                playbook="error_test",
+            )
+
+            assert trace.final == FinalStatus.FAILURE
+            assert "error" in trace.steps[0].error.lower() or "intentional" in trace.steps[0].error.lower()
+        finally:
+            # Clean up
+            del _REGISTRY["error_test"]
 
 
 # ---------------------------------------------------------------------------
@@ -368,14 +448,12 @@ class TestDefaultPlaybook:
         for i, step in enumerate(DEFAULT_V0.steps):
             assert step.step_id == f"step_{i}"
 
-    def test_default_v0_uses_balanced_reasoning(self) -> None:
-        """default_v0 playbook uses balanced reasoning mode."""
+    def test_default_v0_uses_direct_reasoning(self) -> None:
+        """default_v0 playbook uses direct reasoning mode."""
         from ag.core import DEFAULT_V0, ReasoningMode
 
-        # v0 maps balanced to DIRECT
+        # AF0079: Simplified stub playbook uses DIRECT reasoning
         assert ReasoningMode.DIRECT in DEFAULT_V0.reasoning_modes
-        # Metadata should note balanced
-        assert DEFAULT_V0.metadata.get("reasoning_mode") == "balanced"
 
 
 # ---------------------------------------------------------------------------

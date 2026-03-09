@@ -80,7 +80,7 @@ In registry.py or your module's __init__.py:
 
     from ag.skills import get_default_registry
     registry = get_default_registry()
-    registry.register_v2(MySkill())
+    registry.register(MySkill())
 
 The skill is now available via `ag run --skill my_skill "prompt"`.
 

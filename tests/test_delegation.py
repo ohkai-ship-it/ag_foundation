@@ -1,9 +1,17 @@
-"""AF-0019: Delegation playbook integration tests.
+"""AF-0079: Delegation playbook tests (stub-based).
 
-Tests for:
-- Manual delegated run using stub skills
-- Delegated playbook CLI integration
-- Multi-step trace with subtasks in JSON output
+Tests for delegate_v0 playbook which now uses echo stubs
+after V1 delegation skills were removed in AF0079.
+
+Original V1 delegation tests verified:
+- 6-step playbook (normalize, plan, execute_x2, verify, finalize)
+- Subtask generation from plan_subtasks skill
+- Planning step type
+
+Current V2 stub tests verify:
+- 2-step echo playbook structure
+- Basic playbook execution
+- CLI integration
 """
 
 from __future__ import annotations
@@ -17,17 +25,15 @@ import pytest
 from typer.testing import CliRunner
 
 from ag.cli.main import app
-from ag.core.run_trace import StepType, Subtask
 from ag.core.runtime import Runtime
 from ag.playbooks import get_playbook, list_playbooks
-from ag.skills import get_default_registry
 from ag.storage import Workspace
 
 runner = CliRunner()
 
 
 # ---------------------------------------------------------------------------
-# Test: delegate_v0 playbook structure
+# Test: delegate_v0 playbook structure (AF0079 updated)
 # ---------------------------------------------------------------------------
 
 
@@ -51,131 +57,51 @@ class TestDelegateV0Playbook:
         playbooks = list_playbooks()
         assert "delegate_v0" in playbooks
 
-    def test_delegate_v0_has_six_steps(self) -> None:
-        """delegate_v0 has at least 6 steps per AF-0019."""
+    def test_delegate_v0_has_echo_steps(self) -> None:
+        """delegate_v0 uses echo_tool steps (AF0079 stub-based)."""
         playbook = get_playbook("delegate_v0")
         assert playbook is not None
-        assert len(playbook.steps) >= 6
-        # Check expected step names
-        step_names = [s.name for s in playbook.steps]
-        assert "normalize" in step_names
-        assert "plan" in step_names
-        assert "execute_subtask_1" in step_names
-        assert "execute_subtask_2" in step_names
-        assert "verify" in step_names
-        assert "finalize" in step_names
+        # Now has 2 echo steps instead of 6 delegation steps
+        assert len(playbook.steps) == 2
+        # Both steps use echo_tool
+        for step in playbook.steps:
+            assert step.skill_name == "echo_tool"
 
-    def test_delegate_v0_plan_step_has_min_subtasks_param(self) -> None:
-        """Plan step has min_subtasks parameter."""
+    def test_delegate_v0_metadata_indicates_stub(self) -> None:
+        """Playbook metadata indicates it's a test stub."""
         playbook = get_playbook("delegate_v0")
         assert playbook is not None
-        plan_step = next(s for s in playbook.steps if s.name == "plan")
-        assert plan_step.parameters.get("min_subtasks") == 2
+        assert playbook.metadata.get("stability") == "test"
+        assert "AF0079" in playbook.metadata.get("note", "")
 
 
 # ---------------------------------------------------------------------------
-# Test: Delegation skills registration
-# ---------------------------------------------------------------------------
-
-
-class TestDelegationSkills:
-    """Test delegation skills are registered."""
-
-    def test_normalize_input_registered(self) -> None:
-        """normalize_input skill exists."""
-        registry = get_default_registry()
-        assert registry.has("normalize_input")
-
-    def test_plan_subtasks_registered(self) -> None:
-        """plan_subtasks skill exists."""
-        registry = get_default_registry()
-        assert registry.has("plan_subtasks")
-
-    def test_execute_subtask_registered(self) -> None:
-        """execute_subtask skill exists."""
-        registry = get_default_registry()
-        assert registry.has("execute_subtask")
-
-    def test_verify_delegation_registered(self) -> None:
-        """verify_delegation skill exists."""
-        registry = get_default_registry()
-        assert registry.has("verify_delegation")
-
-    def test_finalize_result_registered(self) -> None:
-        """finalize_result skill exists."""
-        registry = get_default_registry()
-        assert registry.has("finalize_result")
-
-    def test_plan_subtasks_returns_at_least_two(self) -> None:
-        """plan_subtasks generates at least 2 subtasks."""
-        registry = get_default_registry()
-        success, summary, result = registry.execute(
-            "plan_subtasks", {"prompt": "Test task", "min_subtasks": 2}
-        )
-        assert success is True
-        assert "subtasks" in result
-        assert len(result["subtasks"]) >= 2
-
-
-# ---------------------------------------------------------------------------
-# Test: Manual delegated run
+# Test: Manual delegated run (AF0079 updated)
 # ---------------------------------------------------------------------------
 
 
 class TestManualDelegatedRun:
     """Test delegation playbook execution in manual mode."""
 
-    def test_delegate_v0_executes_all_steps(self) -> None:
-        """All 6 steps execute successfully."""
+    def test_delegate_v0_executes_echo_steps(self) -> None:
+        """Echo steps execute successfully."""
         with Runtime() as runtime:
             trace = runtime.execute(
-                prompt="Analyze this code and explain it",
+                prompt="Test delegation stub",
                 workspace="test-delegate-ws",
                 mode="manual",
                 playbook="delegate_v0",
             )
 
-            # Should have 6 steps
-            assert len(trace.steps) == 6
+            # Should have 2 steps (echo stubs)
+            assert len(trace.steps) == 2
 
             # All steps should succeed
             for step in trace.steps:
                 assert step.error is None, f"Step {step.step_number} failed: {step.error}"
+                assert step.skill_name == "echo_tool"
 
-    def test_delegate_v0_plan_step_has_subtasks(self) -> None:
-        """Plan step records subtasks in trace."""
-        with Runtime() as runtime:
-            trace = runtime.execute(
-                prompt="Test task",
-                workspace="test-subtask-ws",
-                mode="manual",
-                playbook="delegate_v0",
-            )
-
-            # Find the plan step (step 1)
-            plan_step = next(s for s in trace.steps if s.skill_name == "plan_subtasks")
-            assert plan_step.subtasks is not None
-            assert len(plan_step.subtasks) >= 2
-            # Check subtask structure
-            for subtask in plan_step.subtasks:
-                assert isinstance(subtask, Subtask)
-                assert subtask.subtask_id
-                assert subtask.description
-
-    def test_delegate_v0_plan_step_type_is_planning(self) -> None:
-        """Plan step has PLANNING step type."""
-        with Runtime() as runtime:
-            trace = runtime.execute(
-                prompt="Test task",
-                workspace="test-steptype-ws",
-                mode="manual",
-                playbook="delegate_v0",
-            )
-
-            plan_step = next(s for s in trace.steps if s.skill_name == "plan_subtasks")
-            assert plan_step.step_type == StepType.PLANNING
-
-    def test_delegate_v0_trace_has_delegation_metadata(self) -> None:
+    def test_delegate_v0_trace_has_playbook_metadata(self) -> None:
         """Trace playbook metadata shows delegate_v0."""
         with Runtime() as runtime:
             trace = runtime.execute(
@@ -187,6 +113,18 @@ class TestManualDelegatedRun:
 
             assert trace.playbook.name == "delegate_v0"
             assert trace.playbook.version == "1.0.0"
+
+    def test_delegate_v0_verifier_passes(self) -> None:
+        """Verifier passes for successful execution."""
+        with Runtime() as runtime:
+            trace = runtime.execute(
+                prompt="Test task",
+                workspace="test-verifier-ws",
+                mode="manual",
+                playbook="delegate_v0",
+            )
+
+            assert trace.verifier.status.value == "passed"
 
 
 # ---------------------------------------------------------------------------
@@ -228,8 +166,8 @@ class TestDelegationCLI:
             # Should mention the playbook
             assert "delegate_v0" in result.output or "completed" in result.output.lower()
 
-    def test_cli_runs_show_json_has_subtasks(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """ag runs show --json displays subtasks from delegation."""
+    def test_cli_runs_show_json_has_echo_steps(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """ag runs show --json displays echo steps from delegation stub."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir)
             workspace = f"cli-json-{os.getpid()}"
@@ -242,7 +180,7 @@ class TestDelegationCLI:
             ws = Workspace(workspace, tmp_path)
             ws.ensure_exists()
 
-            # First, run the delegation playbook
+            # Run the delegation playbook
             run_result = runner.invoke(
                 app,
                 [
@@ -259,7 +197,7 @@ class TestDelegationCLI:
             )
             assert run_result.exit_code == 0
 
-            # Now get the list of runs with --json for reliable parsing
+            # Get the list of runs with --json for reliable parsing
             list_result = runner.invoke(
                 app,
                 ["runs", "list", "--workspace", workspace, "--json"],
@@ -270,7 +208,7 @@ class TestDelegationCLI:
             assert len(runs_data) > 0
             run_id = runs_data[0]["run_id"]
 
-            # Now show the run as JSON
+            # Show the run as JSON
             show_result = runner.invoke(
                 app,
                 ["runs", "show", run_id, "--workspace", workspace, "--json"],
@@ -281,16 +219,12 @@ class TestDelegationCLI:
             # Parse the JSON
             trace_json = json.loads(show_result.stdout)
 
-            # Should have 6 steps
-            assert len(trace_json["steps"]) == 6
+            # Should have 2 steps (echo stubs)
+            assert len(trace_json["steps"]) == 2
 
-            # Find plan step and check subtasks
-            plan_step = next(
-                s for s in trace_json["steps"] if s.get("skill_name") == "plan_subtasks"
-            )
-            assert plan_step["step_type"] == "planning"
-            assert "subtasks" in plan_step
-            assert len(plan_step["subtasks"]) >= 2
+            # Both steps should use echo_tool
+            for step in trace_json["steps"]:
+                assert step["skill_name"] == "echo_tool"
 
     def test_cli_delegate_with_default_alias(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """CLI accepts 'delegate' as playbook name."""
@@ -320,64 +254,5 @@ class TestDelegationCLI:
                 env={"AG_DEV": "1", "AG_WORKSPACE_DIR": str(tmp_path)},
             )
             assert result.exit_code == 0
-
-
-# ---------------------------------------------------------------------------
-# Test: Subtask model
-# ---------------------------------------------------------------------------
-
-
-class TestSubtaskModel:
-    """Test Subtask model from run_trace."""
-
-    def test_subtask_creation(self) -> None:
-        """Subtask can be created with required fields."""
-        subtask = Subtask(
-            subtask_id="st-001",
-            description="Analyze requirements",
-        )
-        assert subtask.subtask_id == "st-001"
-        assert subtask.description == "Analyze requirements"
-        assert subtask.status == "pending"
-        assert subtask.result_summary is None
-
-    def test_subtask_serialization(self) -> None:
-        """Subtask serializes to dict correctly."""
-        subtask = Subtask(
-            subtask_id="st-002",
-            description="Execute plan",
-            status="completed",
-            result_summary="Done",
-        )
-        data = subtask.model_dump()
-        assert data["subtask_id"] == "st-002"
-        assert data["status"] == "completed"
-        assert data["result_summary"] == "Done"
-
-    def test_subtask_forbids_extra_fields(self) -> None:
-        """Subtask rejects unknown fields (pydantic extra=forbid)."""
-        with pytest.raises(Exception):  # ValidationError
-            Subtask(
-                subtask_id="st-003",
-                description="Test",
-                unknown_field="rejected",  # type: ignore
-            )
-
-
-# ---------------------------------------------------------------------------
-# Test: StepType.PLANNING
-# ---------------------------------------------------------------------------
-
-
-class TestPlanningStepType:
-    """Test PLANNING step type added for delegation."""
-
-    def test_planning_step_type_exists(self) -> None:
-        """PLANNING is a valid StepType."""
-        assert StepType.PLANNING == "planning"
-        assert StepType.PLANNING.value == "planning"
-
-    def test_planning_in_step_types(self) -> None:
-        """PLANNING is in the StepType enum."""
-        step_types = [st.value for st in StepType]
-        assert "planning" in step_types
+            # Should show playbook name in output
+            assert "delegate_v0" in result.output
