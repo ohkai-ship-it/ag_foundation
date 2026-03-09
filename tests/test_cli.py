@@ -676,3 +676,72 @@ class TestRunWithSkillFlag:
         assert result.exit_code == 0
         assert "--skill" in result.output
         assert "-s" in result.output
+
+
+# ---------------------------------------------------------------------------
+# Tests for playbooks list (AF-0076)
+# ---------------------------------------------------------------------------
+
+
+class TestPlaybooksListCommand:
+    """Tests for `ag playbooks list` command (AF-0076)."""
+
+    def test_playbooks_list_shows_table(self):
+        """ag playbooks list should display a table."""
+        result = runner.invoke(app, ["playbooks", "list"])
+        assert result.exit_code == 0
+        assert "Available Playbooks" in result.output
+        # Check columns exist
+        assert "Name" in result.output
+        assert "Version" in result.output
+        assert "Stability" in result.output
+        assert "Description" in result.output
+
+    def test_playbooks_list_shows_all_playbooks(self):
+        """ag playbooks list should show all registered playbooks."""
+        result = runner.invoke(app, ["playbooks", "list"])
+        assert result.exit_code == 0
+        # Check all playbooks appear
+        assert "default_v0" in result.output
+        assert "delegate_v0" in result.output
+        assert "summarize_v0" in result.output
+        assert "research_v0" in result.output
+
+    def test_playbooks_list_json_output(self):
+        """ag playbooks list --json should output JSON."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "list", "--json"])
+        assert result.exit_code == 0
+
+        data = json.loads(result.output)
+        assert isinstance(data, list)
+        assert len(data) >= 4  # At least 4 playbooks
+
+        # Check structure
+        names = [pb["name"] for pb in data]
+        assert "default_v0" in names
+        assert "summarize_v0" in names
+
+        # Check fields exist
+        for pb in data:
+            assert "name" in pb
+            assert "version" in pb
+            assert "stability" in pb
+            assert "description" in pb
+
+    def test_playbooks_list_stability_values(self):
+        """ag playbooks list should show correct stability values."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "list", "--json"])
+        assert result.exit_code == 0
+
+        data = json.loads(result.output)
+        stability_map = {pb["name"]: pb["stability"] for pb in data}
+
+        # Check expected stability values
+        assert stability_map.get("default_v0") == "test"
+        assert stability_map.get("delegate_v0") == "test"
+        assert stability_map.get("summarize_v0") == "experimental"
+        assert stability_map.get("research_v0") == "experimental"
