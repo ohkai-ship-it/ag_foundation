@@ -31,7 +31,7 @@ from __future__ import annotations
 import re
 from typing import Any, ClassVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 
@@ -61,10 +61,62 @@ class SourceDocument(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+def _convert_to_source_document(doc: dict | SourceDocument) -> SourceDocument:
+    """Convert various document formats to SourceDocument.
+
+    Handles:
+    - SourceDocument (passthrough)
+    - FetchedDocument dict (from fetch_web_content)
+    - Document dict (from load_documents)
+
+    Args:
+        doc: Document in any supported format
+
+    Returns:
+        SourceDocument instance
+    """
+    if isinstance(doc, SourceDocument):
+        return doc
+
+    # Handle dict format
+    if isinstance(doc, dict):
+        # FetchedDocument format (from fetch_web_content)
+        if "url" in doc:
+            return SourceDocument(
+                source=doc.get("url", "unknown"),
+                content=doc.get("content", ""),
+                title=doc.get("title"),
+                source_type="url",
+            )
+        # Document format (from load_documents)
+        if "path" in doc:
+            return SourceDocument(
+                source=doc.get("path", "unknown"),
+                content=doc.get("content", ""),
+                title=None,
+                source_type="file",
+            )
+        # Generic dict with source field
+        return SourceDocument(
+            source=doc.get("source", "unknown"),
+            content=doc.get("content", ""),
+            title=doc.get("title"),
+            source_type=doc.get("source_type", "unknown"),
+        )
+
+    # Fallback
+    return SourceDocument(source="unknown", content=str(doc), source_type="unknown")
+
+
 class SynthesizeResearchInput(SkillInput):
     """Input for synthesize_research skill.
 
     Schema: SCHEMA_INVENTORY.md#SynthesizeResearchInput
+
+    Accepts documents in multiple formats:
+    - SourceDocument objects
+    - FetchedDocument dicts (from fetch_web_content pipeline)
+    - Document dicts (from load_documents pipeline)
     """
 
     documents: list[SourceDocument] = Field(
@@ -84,7 +136,18 @@ class SynthesizeResearchInput(SkillInput):
         default=True, description="Include source citations in output"
     )
 
-    model_config = {"extra": "forbid"}
+    # Allow extra fields from pipeline chaining (e.g., failed_urls, total_fetched)
+    model_config = {"extra": "ignore"}
+
+    @model_validator(mode="before")
+    @classmethod
+    def convert_documents(cls, data: dict) -> dict:
+        """Convert incoming documents to SourceDocument format."""
+        if "documents" in data and data["documents"]:
+            data["documents"] = [
+                _convert_to_source_document(doc) for doc in data["documents"]
+            ]
+        return data
 
 
 class SynthesizeResearchOutput(SkillOutput):

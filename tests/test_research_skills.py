@@ -438,6 +438,84 @@ class TestResearchEdgeCases:
             )
             assert inp.output_format == fmt
 
+    def test_synthesize_accepts_fetched_documents(self) -> None:
+        """Test synthesize accepts FetchedDocument format from pipeline."""
+        # Simulate pipeline data from fetch_web_content
+        fetched_docs = [
+            {
+                "url": "https://example.com/article",
+                "content": "Article content here",
+                "status_code": 200,
+                "content_type": "text/html",
+                "title": "Example Article",
+                "error": None,
+            },
+            {
+                "url": "https://test.org/page",
+                "content": "Page content",
+                "status_code": 200,
+                "content_type": "text/html",
+                "title": None,
+                "error": None,
+            },
+        ]
+
+        # Should convert FetchedDocument dicts to SourceDocument
+        inp = SynthesizeResearchInput(
+            documents=fetched_docs,
+            output_format="markdown",
+        )
+
+        assert len(inp.documents) == 2
+        assert inp.documents[0].source == "https://example.com/article"
+        assert inp.documents[0].content == "Article content here"
+        assert inp.documents[0].source_type == "url"
+        assert inp.documents[0].title == "Example Article"
+
+    def test_synthesize_accepts_loaded_documents(self) -> None:
+        """Test synthesize accepts Document format from load_documents."""
+        # Simulate pipeline data from load_documents
+        loaded_docs = [
+            {
+                "path": "docs/readme.md",
+                "content": "# README\nThis is a readme file.",
+                "size_bytes": 30,
+            },
+        ]
+
+        inp = SynthesizeResearchInput(
+            documents=loaded_docs,
+            output_format="markdown",
+        )
+
+        assert len(inp.documents) == 1
+        assert inp.documents[0].source == "docs/readme.md"
+        assert inp.documents[0].source_type == "file"
+
+    def test_synthesize_ignores_extra_pipeline_fields(self) -> None:
+        """Test synthesize ignores extra fields from pipeline (e.g., failed_urls)."""
+        # Simulate full pipeline output from fetch_web_content
+        pipeline_data = {
+            "documents": [
+                {
+                    "url": "https://example.com",
+                    "content": "Content",
+                    "status_code": 200,
+                    "content_type": "text/html",
+                    "title": "Example",
+                    "error": None,
+                }
+            ],
+            "failed_urls": ["https://bad.example"],  # Extra field
+            "total_fetched": 1,  # Extra field
+            "total_failed": 1,  # Extra field
+            "error": None,  # Extra field
+        }
+
+        # Should not raise ValidationError for extra fields
+        inp = SynthesizeResearchInput(**pipeline_data)
+        assert len(inp.documents) == 1
+
     def test_fetch_urls_from_file(self, tmp_path) -> None:
         """Test loading URLs from a file in workspace."""
         from ag.skills.fetch_web_content import _load_urls_from_file
