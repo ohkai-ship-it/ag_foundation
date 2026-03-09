@@ -61,9 +61,19 @@ class FetchWebContentInput(SkillInput):
     """Input for fetch_web_content skill.
 
     Schema: SCHEMA_INVENTORY.md#FetchWebContentInput
+
+    URLs can be provided either:
+    1. Directly via the `urls` field
+    2. From a file in the workspace (default: inputs/urls.txt)
+
+    If urls is empty, the skill will read from urls_file in the workspace.
     """
 
     urls: list[str] = Field(default_factory=list, description="URLs to fetch")
+    urls_file: str = Field(
+        default="inputs/urls.txt",
+        description="Path to file containing URLs (one per line), relative to workspace",
+    )
     timeout_seconds: int = Field(
         default=DEFAULT_TIMEOUT, ge=1, le=120, description="Request timeout in seconds"
     )
@@ -294,6 +304,47 @@ def _fetch_url_sync(
 
 
 # ---------------------------------------------------------------------------
+# URL File Loading
+# ---------------------------------------------------------------------------
+
+
+def _load_urls_from_file(workspace_path: str, urls_file: str) -> list[str]:
+    """Load URLs from a text file in the workspace.
+
+    The file should contain one URL per line. Lines starting with # are comments.
+    Empty lines are ignored.
+
+    Args:
+        workspace_path: Path to workspace root
+        urls_file: Relative path to URLs file (e.g., "inputs/urls.txt")
+
+    Returns:
+        List of URLs found in the file, or empty list if file doesn't exist
+    """
+    from pathlib import Path
+
+    file_path = Path(workspace_path) / urls_file
+    if not file_path.exists():
+        return []
+
+    urls = []
+    try:
+        with open(file_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+                # Basic URL validation
+                if line.startswith(("http://", "https://")):
+                    urls.append(line)
+    except Exception:
+        return []
+
+    return urls
+
+
+# ---------------------------------------------------------------------------
 # Skill Implementation
 # ---------------------------------------------------------------------------
 
@@ -335,17 +386,25 @@ class FetchWebContentSkill(Skill[FetchWebContentInput, FetchWebContentOutput]):
     ) -> FetchWebContentOutput:
         """Fetch content from the provided URLs.
 
+        If no URLs are provided directly, attempts to load them from
+        the urls_file in the workspace (default: inputs/urls.txt).
+
         Args:
             input: URLs and fetch parameters
-            ctx: Skill context (not used for this capability)
+            ctx: Skill context (workspace_path used for file loading)
 
         Returns:
             Output with fetched documents and failure list
         """
-        if not input.urls:
+        # Get URLs either from input or from file
+        urls = input.urls
+        if not urls and ctx.workspace_path:
+            urls = _load_urls_from_file(ctx.workspace_path, input.urls_file)
+
+        if not urls:
             return FetchWebContentOutput(
                 success=True,
-                summary="No URLs provided",
+                summary=f"No URLs provided (checked {input.urls_file})",
                 documents=[],
                 failed_urls=[],
                 total_fetched=0,
@@ -356,7 +415,7 @@ class FetchWebContentSkill(Skill[FetchWebContentInput, FetchWebContentOutput]):
         failed_urls: list[str] = []
 
         # Fetch each URL synchronously (simple implementation)
-        for url in input.urls:
+        for url in urls:
             doc = _fetch_url_sync(
                 url=url,
                 timeout=input.timeout_seconds,
@@ -370,8 +429,8 @@ class FetchWebContentSkill(Skill[FetchWebContentInput, FetchWebContentOutput]):
         total_failed = len(failed_urls)
 
         return FetchWebContentOutput(
-            success=total_fetched > 0 or len(input.urls) == 0,
-            summary=f"Fetched {total_fetched}/{len(input.urls)} URLs",
+            success=total_fetched > 0 or len(urls) == 0,
+            summary=f"Fetched {total_fetched}/{len(urls)} URLs",
             documents=documents,
             failed_urls=failed_urls,
             total_fetched=total_fetched,

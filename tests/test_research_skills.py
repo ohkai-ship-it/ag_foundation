@@ -437,3 +437,69 @@ class TestResearchEdgeCases:
                 output_format=fmt,
             )
             assert inp.output_format == fmt
+
+    def test_fetch_urls_from_file(self, tmp_path) -> None:
+        """Test loading URLs from a file in workspace."""
+        from ag.skills.fetch_web_content import _load_urls_from_file
+
+        # Create urls file
+        inputs_dir = tmp_path / "inputs"
+        inputs_dir.mkdir()
+        urls_file = inputs_dir / "urls.txt"
+        urls_file.write_text(
+            """# This is a comment
+https://example.com
+https://test.org/page
+
+# Another comment
+https://api.example.com/data
+"""
+        )
+
+        urls = _load_urls_from_file(str(tmp_path), "inputs/urls.txt")
+
+        assert len(urls) == 3
+        assert "https://example.com" in urls
+        assert "https://test.org/page" in urls
+        assert "https://api.example.com/data" in urls
+
+    def test_fetch_urls_from_missing_file(self, tmp_path) -> None:
+        """Test loading URLs from non-existent file returns empty list."""
+        from ag.skills.fetch_web_content import _load_urls_from_file
+
+        urls = _load_urls_from_file(str(tmp_path), "inputs/urls.txt")
+        assert urls == []
+
+    def test_fetch_urls_file_integration(self, tmp_path) -> None:
+        """Test fetch_web_content reads from file when urls not provided."""
+        # Create urls file with a URL
+        inputs_dir = tmp_path / "inputs"
+        inputs_dir.mkdir()
+        urls_file = inputs_dir / "urls.txt"
+        urls_file.write_text("https://example.com\n")
+
+        skill = FetchWebContentSkill()
+        ctx = SkillContext(
+            workspace_path=str(tmp_path),
+            run_id="test-run",
+            provider=None,
+        )
+
+        # No URLs in input - should load from file
+        inp = FetchWebContentInput(urls=[])
+
+        with patch("ag.skills.fetch_web_content._fetch_url_sync") as mock_fetch:
+            mock_fetch.return_value = FetchedDocument(
+                url="https://example.com",
+                content="Test content",
+                content_type="text/html",
+                status_code=200,
+                error=None,
+            )
+
+            output = skill.execute(inp, ctx)
+
+            # Should have fetched the URL from the file
+            assert output.total_fetched == 1
+            assert mock_fetch.called
+            mock_fetch.assert_called_once()
