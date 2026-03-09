@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0059
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** Jacob

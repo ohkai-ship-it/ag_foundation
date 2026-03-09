@@ -42,10 +42,10 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0073 | P2 | READY | Index file linking convention | Docs/Process | TBD | (items/AF0073_READY_index_file_linking.md) |
-| 2 | AF-0079 | P1 | PROPOSED | Skills framework V1 removal | Skills/Framework | TBD | (items/AF0079_PROPOSED_skills_framework_v1_removal.md) |
-| 3 | AF-0074 | P1 | PROPOSED | research_v0 playbook | Playbooks/Skills | Kai | (items/AF0074_PROPOSED_research_v0_playbook.md) |
-| 4 | AF-0059 | P2 | PROPOSED | Implement playbooks list | CLI | Jacob | (items/AF0059_PROPOSED_implement_playbooks_list.md) |
-| 5 | AF-0076 | P2 | PROPOSED | Playbooks registry cleanup | Playbooks/Registry | TBD | (items/AF0076_PROPOSED_playbooks_registry_cleanup.md) |
+| 2 | AF-0079 | P1 | READY | Skills framework V1 removal | Skills/Framework | TBD | (items/AF0079_READY_skills_framework_v1_removal.md) |
+| 3 | AF-0074 | P1 | READY | research_v0 playbook | Playbooks/Skills | Kai | (items/AF0074_READY_research_v0_playbook.md) |
+| 4 | AF-0059 | P2 | READY | Implement playbooks list | CLI | Jacob | (items/AF0059_READY_implement_playbooks_list.md) |
+| 5 | AF-0076 | P2 | READY | Playbooks registry cleanup | Playbooks/Registry | TBD | (items/AF0076_READY_playbooks_registry_cleanup.md) |
 | — | — | — | **CHECKPOINT** | Review scope of AF-0069/AF-0070 | — | — | — |
 | 6 | AF-0069 | P1 | PROPOSED | Skills architecture documentation | Skills/Architecture | Kai | (items/AF0069_PROPOSED_skills_registry_deep_dive.md) |
 | 7 | AF-0070 | P1 | PROPOSED | Playbooks architecture documentation | Playbooks/Architecture | Kai | (items/AF0070_PROPOSED_playbooks_registry_deep_dive.md) |

@@ -13,7 +13,7 @@
 ## Metadata
 - **ID:** AF0074
 - **Type:** Feature / Implementation
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Playbooks / Skills
 - **Owner:** TBD

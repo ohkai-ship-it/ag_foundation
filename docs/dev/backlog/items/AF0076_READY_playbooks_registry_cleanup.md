@@ -13,7 +13,7 @@
 ## Metadata
 - **ID:** AF0076
 - **Type:** Cleanup / Engineering
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Playbooks / Registry
 - **Owner:** TBD

@@ -13,7 +13,7 @@
 ## Metadata
 - **ID:** AF0079
 - **Type:** Refactor / Breaking Change
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Skills / Framework
 - **Owner:** TBD
