@@ -39,16 +39,17 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 08 Scope (active)
+### Sprint 08 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0073 | P2 | DONE | Index file linking convention | Docs/Process | Jacob | [🔗](items/AF0073_DONE_index_file_linking.md) |
 | 2 | AF-0079 | P1 | DONE | Skills framework V1 removal | Skills/Framework | Jacob | [🔗](items/AF0079_DONE_skills_framework_v1_removal.md) |
 | 3 | AF-0074 | P1 | DONE | research_v0 playbook | Playbooks/Skills | Kai | [🔗](items/AF0074_DONE_research_v0_playbook.md) |
-| 4 | AF-0059 | P2 | DONE | Implement playbooks list | CLI | Jacob | [🔗](items/AF0059_DONE_implement_playbooks_list.md) |
+| 4 | AF-0059 | P2 | DROPPED | Implement playbooks list | CLI | Jacob | [🔗](items/AF0059_DROPPED_implement_playbooks_list.md) |
 | 5 | AF-0076 | P2 | DONE | Playbooks registry cleanup | Playbooks/Registry | TBD | [🔗](items/AF0076_DONE_playbooks_registry_cleanup.md) |
 | 6 | AF-0069 | P1 | DONE | Skills architecture documentation | Skills/Architecture | Kai | [🔗](items/AF0069_DONE_skills_registry_deep_dive.md) |
 | 7 | AF-0070 | P1 | DONE | Playbooks architecture documentation | Playbooks/Architecture | Kai | [🔗](items/AF0070_DONE_playbooks_registry_deep_dive.md) |
+| 8 | AF-0080 | P1 | DONE | Web search skill (+BUG-0013 fix) | Skills/Playbooks | Jacob | [🔗](items/AF0080_DONE_web_search_skill.md) |
 
 
 ### Sprint 07 Scope (completed)
@@ -169,6 +170,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 |---:|:--|---|---|---|
 | AF-0075 | DROPPED | Skills registry cleanup | Superseded by AF-0079 (V1 removal) | [🔗](items/AF0075_DROPPED_skills_registry_cleanup.md) |
 | AF-0056 | DROPPED | Direct skill runs through verifier | Already fixed via BUG-0009 | [🔗](items/AF0056_DROPPED_direct_skill_runs_verifier.md) |
+| AF-0059 | DROPPED | Implement playbooks list | Absorbed into AF-0076 | [🔗](items/AF0059_DROPPED_implement_playbooks_list.md) |
 
 ---
 

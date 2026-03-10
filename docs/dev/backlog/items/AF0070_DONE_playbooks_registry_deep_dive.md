@@ -262,8 +262,8 @@ ReasoningMode as metadata only — runtime doesn't change behavior based on it.
 
 ## References
 
-- Related: [AF-0069: Skills registry deep dive](AF0069_PROPOSED_skills_registry_deep_dive.md)
-- Related: [AF-0059: Implement playbooks list](AF0059_PROPOSED_implement_playbooks_list.md)
-- Related: [AF-0065: First skill set (summarize_v0)](AF0065_READY_first_skill_set.md)
+- Related: [AF-0069: Skills registry deep dive](AF0069_DONE_skills_registry_deep_dive.md)
+- Related: [AF-0059: Implement playbooks list](AF0059_DROPPED_implement_playbooks_list.md)
+- Related: [AF-0065: First skill set (summarize_v0)](AF0065_DONE_first_skill_set.md)
 - Schema: `src/ag/core/playbook.py`
 - Registry: `src/ag/playbooks/registry.py`

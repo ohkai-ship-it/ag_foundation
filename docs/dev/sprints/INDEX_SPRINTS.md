@@ -36,7 +36,7 @@ Each sprint folder:
 | Sprint 05 | Closed | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
 | Sprint 06 | Closed | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
 | Sprint 07 | Closed | [Sprint07_summarize_playbook](documentation/Sprint07_summarize_playbook/) |
-| Sprint 08 | Active | [Sprint08_skills_playbooks_maturity](documentation/Sprint08_skills_playbooks_maturity/) |
+| Sprint 08 | Closed | [Sprint08_skills_playbooks_maturity](documentation/Sprint08_skills_playbooks_maturity/) |
 
 ---
 

@@ -321,7 +321,10 @@ class TestResearchV0Playbook:
         assert playbook is not None
         assert playbook.metadata
         assert playbook.metadata.get("stability") == "experimental"
-        assert playbook.metadata.get("af_item") == "AF-0074"
+        # AF-0080 changed af_item to af_items (list) to track multiple items
+        af_items = playbook.metadata.get("af_items", [])
+        assert "AF-0074" in af_items
+        assert "AF-0080" in af_items
 
     def test_playbook_steps(self) -> None:
         """Test playbook has expected steps."""

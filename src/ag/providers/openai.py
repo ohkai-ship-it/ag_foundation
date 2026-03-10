@@ -98,14 +98,14 @@ class OpenAIProvider:
 
     def chat(
         self,
-        messages: list[ChatMessage],
+        messages: list[ChatMessage] | list[dict[str, str]],
         model: str | None = None,
         **kwargs: Any,
     ) -> ChatResponse:
         """Send a chat completion request to OpenAI.
 
         Args:
-            messages: Conversation messages
+            messages: Conversation messages (ChatMessage objects or dicts)
             model: Model override (uses config default if None)
             **kwargs: Additional OpenAI API parameters
 
@@ -119,8 +119,10 @@ class OpenAIProvider:
         model_name = model or self._config.model
 
         try:
-            # Convert messages to OpenAI format
-            openai_messages = [msg.to_dict() for msg in messages]
+            # Convert messages to OpenAI format (accept both ChatMessage and dict)
+            openai_messages = [
+                msg.to_dict() if hasattr(msg, "to_dict") else msg for msg in messages
+            ]
 
             response = client.chat.completions.create(
                 model=model_name,

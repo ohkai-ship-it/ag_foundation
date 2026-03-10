@@ -434,7 +434,10 @@ class SynthesizeResearchSkill(Skill[SynthesizeResearchInput, SynthesizeResearchO
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=input.max_tokens,
             )
-            report = response.get("content", "")
+            # Handle both ChatResponse (dataclass) and dict response
+            report = (
+                response.content if hasattr(response, "content") else response.get("content", "")
+            )
         except Exception as e:
             return SynthesizeResearchOutput(
                 success=False,

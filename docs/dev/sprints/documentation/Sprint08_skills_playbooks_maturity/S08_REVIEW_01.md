@@ -13,7 +13,7 @@
 - **Scope:** Sprint08
 - **Executor:** Jacob
 - **Date:** 2026-03-09
-- **Commit / tag:** `58547da`
+- **Commit / tag:** `b6b9baa`
 - **Environment:** Windows, Python 3.14.0, pip 25.2
 
 ### Inputs (links)
@@ -126,7 +126,7 @@ Evidence: `bug_triage.md`
 - **Date:** 2026-03-09
 - **Evidence folder:** `artifacts/`
 - **Notes:**
-  - All 5 passes executed successfully
+  - All 5 passes executed; follow-ups documented
   - 6/7 AF files verified (AF-0059 missing DONE version)
   - 404 tests pass, 1 warning-as-error failure (pre-existing SQLite issue)
   - BUG-0013 filed for research_v0 pipeline
@@ -160,9 +160,14 @@ Evidence: `bug_triage.md`
   - `pytest -q` → 404 passed, 3 deselected
   - `pytest -W error` → 1 failure (pre-existing SQLite warning)
 - Evidence inspected:
+  - `env.txt`
+  - `scope_links.md`
+  - `index_diff_notes.md`
+  - `pytest_summary.txt`
+  - `cli_outputs.txt` → New commands work ✅
   - `happy_trace.json` → Labels match trace ✅
   - `failure_trace.json` → Errors recorded correctly ✅
-  - `cli_outputs.txt` → New commands work ✅
+  - `bug_triage.md`
 
 ---
 
@@ -194,7 +199,7 @@ Accepting with follow-ups to track BUG-0013 resolution.
 
 ### Next actions
 - [x] Close sprint (ACCEPT WITH FOLLOW-UPS)
-- [ ] Fix AF-0059 reference (mark as DROPPED or create DONE file)
-- [ ] Clean up duplicate AF files
+- [x] Fix AF-0059 reference (mark as DROPPED or create DONE file)
+- [x] Clean up duplicate AF files
 - [ ] Prioritize BUG-0013 for next sprint
-- [ ] Commit lint fixes from review
+- [x] Commit lint fixes from review

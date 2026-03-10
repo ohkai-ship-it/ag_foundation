@@ -47,6 +47,7 @@ from ag.skills.load_documents import LoadDocumentsSkill
 from ag.skills.stubs import EchoSkill, ErrorSkill, FailSkill
 from ag.skills.summarize_docs import SummarizeDocsSkill
 from ag.skills.synthesize_research import SynthesizeResearchSkill
+from ag.skills.web_search import WebSearchSkill
 
 
 @dataclass
@@ -135,6 +136,8 @@ class SkillRegistry:
 
         # Parse input from parameters
         # Filter to only include fields defined in the schema (ignore extras like 'step')
+        # This is required for skills with extra="forbid" in their input schema.
+        # Skills that need aliased inputs should define those aliases as schema fields.
         try:
             schema_fields = set(skill_info.input_schema.model_fields.keys())
             filtered_params = {k: v for k, v in parameters.items() if k in schema_fields}
@@ -228,6 +231,9 @@ def create_default_registry() -> SkillRegistry:
     # Production skills (AF-0074: research playbook)
     registry.register(FetchWebContentSkill())
     registry.register(SynthesizeResearchSkill())
+
+    # Production skills (AF-0080: web search)
+    registry.register(WebSearchSkill())
 
     # Test stub skills (AF-0079: V2 stubs for testing)
     registry.register(EchoSkill())

@@ -57,6 +57,12 @@ from .summarize_docs import (
     SummarizeDocsOutput,
     SummarizeDocsSkill,
 )
+from .web_search import (
+    SearchResult,
+    WebSearchInput,
+    WebSearchOutput,
+    WebSearchSkill,
+)
 
 __all__ = [
     # Base framework (AF0060)
@@ -83,4 +89,9 @@ __all__ = [
     "EmitResultInput",
     "EmitResultOutput",
     "EmitResultSkill",
+    # AF0080: Web search skill
+    "SearchResult",
+    "WebSearchInput",
+    "WebSearchOutput",
+    "WebSearchSkill",
 ]

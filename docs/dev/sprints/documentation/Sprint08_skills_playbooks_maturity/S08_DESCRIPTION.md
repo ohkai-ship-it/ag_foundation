@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint08
 - **Name:** skills_playbooks_maturity
-- **Dates:** 2026-03-09 → TBD
+- **Dates:** 2026-03-09 → 2026-03-10
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Active
+- **State:** Closed
 
 ---
 
@@ -141,17 +141,17 @@ Implement `ag playbooks list` command:
 ## 6) Exit criteria
 
 ### Phase 1 (items 1-5)
-- [ ] V1 skill framework completely removed
-- [ ] `ag skills list` shows only: load_documents, summarize_docs, emit_result, fetch_web_content, synthesize_research
-- [ ] `ag run --playbook research_v0` works end-to-end
-- [ ] `ag playbooks list` shows all playbooks with descriptions
-- [ ] Playbooks registry derives list from dict
-- [ ] All tests pass, coverage ≥95%
+- [x] V1 skill framework completely removed
+- [x] `ag skills list` shows only: load_documents, summarize_docs, emit_result, fetch_web_content, synthesize_research, web_search
+- [x] `ag run --playbook research_v0` works end-to-end
+- [ ] `ag playbooks list` shows all playbooks with descriptions (DROPPED - AF-0059)
+- [x] Playbooks registry derives list from dict
+- [x] All tests pass, coverage ≥95%
 
 ### Phase 2 (items 6-7, conditional)
-- [ ] Skills architecture documented in ARCHITECTURE.md
-- [ ] Playbooks architecture documented in ARCHITECTURE.md
-- [ ] "How to add skills/playbooks" guides complete
+- [x] Skills architecture documented in SKILLS_ARCHITECTURE_0.1.md
+- [x] Playbooks architecture documented (AF-0070)
+- [ ] "How to add skills/playbooks" guides complete (deferred)
 
 ---
 
@@ -160,27 +160,37 @@ Implement `ag playbooks list` command:
 ### Shipped items
 | ID | Status | Title |
 |--|--|--|
-| | | |
+| AF-0073 | DONE | Index file linking convention |
+| AF-0079 | DONE | Skills framework V1 removal |
+| AF-0074 | DONE | research_v0 playbook |
+| AF-0076 | DONE | Playbooks registry cleanup |
+| AF-0069 | DONE | Skills architecture documentation |
+| AF-0070 | DONE | Playbooks architecture documentation |
+| AF-0080 | DONE | Web search skill (+BUG-0013 fix) |
 
 ### Not shipped (with reasons)
 | ID | Status | Title | Reason |
 |--|--|--|--|
-| | | | |
+| AF-0059 | DROPPED | Implement playbooks list | Deprioritized; existing CLI sufficient |
+
+### Bug fixes
+| ID | Status | Title |
+|--|--|--|
+| BUG-0013 | FIXED | research_v0 pipeline broken - fixed via AF-0080 web_search skill |
 
 ### Evidence
-- RunTrace IDs: (to be filled)
-- Test summary: (to be filled)
+- All 433 tests pass
+- Coverage meets thresholds
+- Pipeline verification: `ag run -p research_v0 -m llm "Research the meteorite sighting over Germany"` → success
 
 ### Learnings
-- (to be filled)
+- Schema contract mismatches between skills (emit_result vs synthesize_research) need field aliasing
+- DuckDuckGo package was renamed to `ddgs` - updated dependency
+- Pipeline data flow requires careful schema alignment across skill boundaries
 
 ---
 
 ## 8) PR plan
 | PR | Primary AF | Branch | Status |
 |--|--|--|--|
-| PR-01 | AF-0073 | chore/index-linking | Planned |
-| PR-02 | AF-0079 | refactor/v1-removal | Planned |
-| PR-03 | AF-0074 | feat/research-v0 | Planned |
-| PR-04 | AF-0059 | feat/playbooks-list | Planned |
-| PR-05 | AF-0076 | chore/playbooks-cleanup | Planned |
+| PR-01 | All Sprint08 | sprint08/skills-playbooks-maturity | Merged |

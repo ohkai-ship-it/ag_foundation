@@ -19,7 +19,6 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
-| BUG-0013 | P1 | OPEN | research_v0 playbook pipeline broken | Playbooks/Runtime | [](reports/BUG0013_OPEN_research_v0_pipeline_broken.md) |
 | BUG-0012 | P2 | OPEN | Test workspace cleanup pollution | Testing/Storage | [](reports/BUG0012_OPEN_test_workspace_cleanup.md) |
 | BUG-0007 | P1 | OPEN | OpenAI provider test isolation failure | Testing | [](reports/BUG0007_OPEN_openai_test_isolation.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [](reports/BUG0002_OPEN_missing_ag_run.md) |
@@ -31,6 +30,7 @@
 ## FIXED bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0013 | P1 | FIXED | research_v0 playbook pipeline broken | Playbooks/Runtime | [](reports/BUG0013_FIXED_research_v0_pipeline_broken.md) |
 | BUG-0009 | P0 | FIXED | Direct skill skips verifier | CLI/Core/Verifier | [](reports/BUG0009_FIXED_direct_skill_skips_verifier.md) |
 | BUG-0010 | P0 | FIXED | Skill trace missing artifacts evidence | Core/Recorder/Skills | [](reports/BUG0010_FIXED_skill_trace_missing_artifacts.md) |
 | BUG-0008 | P0 | FIXED | CLI cannot route to strategic_brief skill | CLI / Routing | [](reports/BUG0008_FIXED_skill_routing_missing.md) |

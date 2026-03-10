@@ -40,7 +40,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 
@@ -56,17 +56,22 @@ if TYPE_CHECKING:
 class EmitResultInput(SkillInput):
     """Input schema for emit_result skill.
 
-    Receives results from previous pipeline step (e.g., summarize_docs output).
+    Receives results from previous pipeline step (e.g., summarize_docs or
+    synthesize_research output).
 
     Attributes:
-        document_summary: Summary text from previous step
-        key_points: Key points extracted
-        sources: Source file paths
+        document_summary: Summary text from previous step (or 'report')
+        key_points: Key points extracted (or 'key_findings')
+        sources: Source file paths (or 'sources_used')
         artifact_name: Name for the artifact file
         artifact_type: MIME type of the artifact
+
+    Note:
+        Accepts both summarize_docs schema (document_summary, key_points, sources)
+        and synthesize_research schema (report, key_findings, sources_used).
     """
 
-    # Pipeline results from previous step
+    # Pipeline results from previous step (canonical field names)
     document_summary: str = Field(
         default="",
         description="Summary text from previous step",
@@ -84,6 +89,20 @@ class EmitResultInput(SkillInput):
         description="Number of source files",
     )
 
+    # Aliased fields from synthesize_research (normalized by validator)
+    report: str = Field(
+        default="",
+        description="Alias for document_summary (from synthesize_research)",
+    )
+    key_findings: list[str] = Field(
+        default_factory=list,
+        description="Alias for key_points (from synthesize_research)",
+    )
+    sources_used: list[str] = Field(
+        default_factory=list,
+        description="Alias for sources (from synthesize_research)",
+    )
+
     # Artifact configuration
     artifact_name: str = Field(
         default="summary.json",
@@ -95,6 +114,26 @@ class EmitResultInput(SkillInput):
     )
 
     model_config = {"extra": "ignore"}  # Allow extra fields from pipeline
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_field_names(cls, data: dict) -> dict:
+        """Normalize synthesize_research schema to emit_result schema.
+
+        Maps:
+            report → document_summary
+            key_findings → key_points
+            sources_used → sources
+        """
+        if isinstance(data, dict):
+            # Map synthesize_research fields to emit_result canonical fields
+            if "report" in data and not data.get("document_summary"):
+                data["document_summary"] = data["report"]
+            if "key_findings" in data and not data.get("key_points"):
+                data["key_points"] = data["key_findings"]
+            if "sources_used" in data and not data.get("sources"):
+                data["sources"] = data["sources_used"]
+        return data
 
 
 class EmitResultOutput(SkillOutput):
