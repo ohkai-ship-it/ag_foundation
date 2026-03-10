@@ -355,7 +355,14 @@ INDEX files MUST be updated:
 | Decisions | `/docs/dev/decisions/INDEX_DECISIONS.md` |
 | Sprints | `/docs/dev/sprints/INDEX_SPRINTS.md` |
 
-### 7.4 Sprint Start Ritual
+### 7.4 Linking Convention
+Filename columns in index files MUST use clickable markdown links:
+- Format: `[filename](subfolder/filename)`
+- Example: `[AF0073_READY_index_file_linking.md](items/AF0073_READY_index_file_linking.md)`
+- Links must be relative to the index file location
+- Works in VS Code, GitHub, and most markdown renderers
+
+### 7.5 Sprint Start Ritual
 **Jeff + Kai:**
 - Create AFs (Status = Ready)
 - Create sprint description file
@@ -370,7 +377,7 @@ INDEX files MUST be updated:
 - **Update ALL INDEX files**
 - Confirm with Kai before starting implementation
 
-### 7.5 Status Transitions
+### 7.6 Status Transitions
 
 **Backlog Items:**
 ```

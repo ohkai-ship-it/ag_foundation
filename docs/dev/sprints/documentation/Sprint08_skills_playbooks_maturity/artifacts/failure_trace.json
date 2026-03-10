@@ -1,0 +1,55 @@
+{
+  "trace_version": "0.1",
+  "run_id": "8108d1f3-5091-4df7-b4c7-90c8059e4775",
+  "workspace_id": "skills01",
+  "workspace_source": null,
+  "mode": "supervised",
+  "llm": null,
+  "playbook": {
+    "name": "skill:error_skill",
+    "version": "1.0.0"
+  },
+  "started_at": "2026-03-09T14:42:20.416588Z",
+  "ended_at": "2026-03-09T14:42:20.416669Z",
+  "duration_ms": 0,
+  "steps": [
+    {
+      "step_id": "8108d1f3-5091-4df7-b4c7-90c8059e4775-step-0",
+      "step_number": 0,
+      "step_type": "skill_call",
+      "skill_name": "error_skill",
+      "input_summary": "test",
+      "output_summary": "Skill execution failed: Intentional error for testing",
+      "started_at": "2026-03-09T14:42:20.416588Z",
+      "ended_at": "2026-03-09T14:42:20.416669Z",
+      "duration_ms": 0,
+      "tokens_used": null,
+      "error": "Skill execution failed: Intentional error for testing",
+      "artifacts": [],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "8108d1f3-5091-4df7-b4c7-90c8059e4775-error_skill_result",
+      "path": "error_skill_result.json",
+      "artifact_type": "application/json",
+      "size_bytes": 46,
+      "checksum": null,
+      "created_at": "2026-03-09T14:42:20.416900Z",
+      "metadata": {},
+      "category": null
+    }
+  ],
+  "verifier": {
+    "status": "failed",
+    "checked_at": "2026-03-09T14:42:20.416669Z",
+    "message": "Step 0 failed: Skill execution failed: Intentional error for testing",
+    "evidence": {}
+  },
+  "final": "failure",
+  "error": "Skill execution failed: Intentional error for testing",
+  "metadata": {}
+}

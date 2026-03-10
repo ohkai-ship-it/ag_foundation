@@ -1279,9 +1279,47 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
 
 
 @playbooks_app.command("list")
-def playbooks_list() -> None:
+def playbooks_list(
+    json_output: bool = typer.Option(False, "--json", help="Output as JSON."),
+) -> None:
     """List available playbooks."""
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    from ag.playbooks.registry import list_playbooks_detailed
+
+    playbooks = list_playbooks_detailed()
+
+    if json_output:
+        import json
+
+        print(json.dumps(playbooks, indent=2))
+        return
+
+    # Build Rich table
+    from rich.table import Table
+
+    table = Table(title="Available Playbooks")
+    table.add_column("Name", style="cyan")
+    table.add_column("Version", style="dim")
+    table.add_column("Stability", style="yellow")
+    table.add_column("Description")
+
+    for pb in playbooks:
+        stability = pb.get("stability", "unknown")
+        # Color coding for stability
+        if stability == "production":
+            stability_display = f"[green]{stability}[/green]"
+        elif stability in ("test", "experimental"):
+            stability_display = f"[yellow]{stability}[/yellow]"
+        else:
+            stability_display = f"[dim]{stability}[/dim]"
+
+        table.add_row(
+            pb.get("name", ""),
+            pb.get("version", ""),
+            stability_display,
+            pb.get("description", ""),
+        )
+
+    console.print(table)
 
 
 @playbooks_app.command("show")

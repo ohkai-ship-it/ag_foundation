@@ -17,11 +17,11 @@
 ## Metadata
 - **ID:** AF0073
 - **Type:** Documentation / Process
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Docs/Process
-- **Owner:** TBD
-- **Target sprint:** Backlog
+- **Owner:** Jacob
+- **Target sprint:** Sprint 08
 - **Depends on:** None
 
 ---
@@ -80,13 +80,48 @@ To:
 ---
 
 ## Acceptance criteria
-- [ ] All index files use clickable links in filename column
-- [ ] Links work correctly in VS Code and GitHub markdown preview
-- [ ] Templates updated to show correct format for new entries
-- [ ] FOUNDATION_MANUAL.md section on Index Discipline updated (if needed)
+- [x] All index files use clickable links in filename column
+- [x] Links work correctly in VS Code and GitHub markdown preview
+- [x] Templates updated to show correct format for new entries (convention documented in index headers)
+- [x] FOUNDATION_MANUAL.md section on Index Discipline updated (if needed)
 
 ---
 
 ## Notes
 - This improves developer experience when navigating documentation
 - Relative paths (`items/filename.md`) work from the index file location
+
+---
+
+# Completion section
+
+## 1) Metadata
+- **Backlog item (primary):** AF0073
+- **PR:** sprint08/skills-playbooks-maturity
+- **Author:** Jacob
+- **Date:** 2026-03-09
+- **Branch:** sprint08/skills-playbooks-maturity
+- **Risk level:** P2
+- **Runtime mode used for verification:** N/A (documentation only)
+
+---
+
+## 2) Acceptance criteria verification
+- [x] All index files use clickable links in filename column
+- [x] Links work correctly in VS Code and GitHub markdown preview
+- [x] Linking convention documented in each index file header
+- [x] FOUNDATION_MANUAL.md section 7.4 added for linking convention
+
+---
+
+## 3) What changed (file-level)
+- `docs/dev/backlog/INDEX_BACKLOG.md` — All filename entries converted to clickable links, version bumped to v0.3
+- `docs/dev/bugs/INDEX_BUGS.md` — All filename entries converted to clickable links, version bumped to v0.3
+- `docs/dev/decisions/INDEX_DECISIONS.md` — All filename entries converted to clickable links, version bumped to v0.3
+- `docs/dev/foundation/FOUNDATION_MANUAL.md` — Added section 7.4 documenting the linking convention
+
+---
+
+## 4) Architecture alignment
+- **Layering:** Documentation/process change only, no code affected
+- **Pattern:** Markdown relative links (`[text](path)`) work in VS Code, GitHub, and most markdown renderers

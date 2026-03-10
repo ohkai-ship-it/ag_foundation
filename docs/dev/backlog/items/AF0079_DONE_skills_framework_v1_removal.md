@@ -13,10 +13,10 @@
 ## Metadata
 - **ID:** AF0079
 - **Type:** Refactor / Breaking Change
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Skills / Framework
-- **Owner:** TBD
+- **Owner:** Jacob
 - **Target sprint:** Sprint08
 
 ---
@@ -168,3 +168,47 @@ def create_default_registry() -> SkillRegistry:
 - **AF-0075:** Skills registry cleanup (simplified — just add `--all` flag)
 - **AF-0074:** research_v0 playbook (new skills use simplified framework)
 - **AF-0069:** Skills architecture documentation (document final pattern)
+
+---
+
+## Completion
+
+| Field | Value |
+|-------|-------|
+| PR / Branch | `sprint08/skills-playbooks-maturity` |
+| Author | Jacob |
+| Date completed | 2025-03-09 |
+| File changes | `src/ag/skills/registry.py` (rewrote), `src/ag/skills/stubs.py` (new), `src/ag/skills/__init__.py`, `src/ag/skills/base.py`, `src/ag/playbooks/default_v0.py`, `src/ag/playbooks/delegate_v0.py`, `tests/test_delegation.py`, `tests/test_runtime.py`, `tests/test_skill_framework.py` |
+
+### Changes Made
+
+1. **Registry Simplification:**
+   - Removed V1 `SkillFn` type alias
+   - Renamed `SkillV2Info` → `SkillInfo`
+   - Added backward-compatibility aliases: `register_v2()`, `get_v2()`, `is_v2()`
+   - Single `register()` method for Pydantic-based skills
+
+2. **Test Stubs Created:**
+   - `src/ag/skills/stubs.py`: `EchoSkill`, `FailSkill`, `ErrorSkill`
+   - V2-based test skills for CLI and runtime tests
+
+3. **Playbooks Updated:**
+   - `default_v0`: Now uses `echo_tool` (single step)
+   - `delegate_v0`: Now uses `echo_tool` (two steps)
+   - Both marked as `stability: test`
+
+4. **Tests Updated:**
+   - `test_delegation.py`: Rewrote for stub-based playbook
+   - `test_runtime.py`: Updated for V2-only registry
+   - `test_skill_framework.py`: Removed V1-specific tests
+
+### Deliverables Completed
+
+- [x] Delete V1 types and methods from `registry.py`
+- [x] Delete all V1 stub skill implementations
+- [x] Rename V2 methods to standard names (with backward-compat aliases)
+- [x] Update `create_default_registry()`
+- [x] Update CLI `skills list` command (uses `list()` method)
+- [x] Update/remove affected tests
+- [x] Update imports in `__init__.py`
+- [x] Verify playbooks still work (369 tests pass)

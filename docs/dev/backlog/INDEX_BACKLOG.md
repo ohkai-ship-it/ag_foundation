@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v0.2
+# Version number: v0.4
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -12,6 +12,7 @@
 > **Location:** `/docs/dev/backlog/INDEX_BACKLOG.md`
 > **Naming (required):** `AF####_<Status>_<three_word_description>.md` in `/docs/dev/backlog/items/`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
+> **Linking convention:** Filename column uses clickable links: `[🔗](items/filename)`
 
 ## Status legend
 PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
@@ -23,156 +24,156 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | (items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
-| AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | (items/AF0077_PROPOSED_skills_plugin_architecture.md) |
-| AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | (items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
-| AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | (items/AF0072_PROPOSED_playbook_validation_error.md) |
-| AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch** | Storage | Jacob | (items/AF0015_PROPOSED_resolve_storage_db.md) |
-| AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | (items/AF0046_READY_test_isolation_framework.md) |
-| AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | (items/AF0057_PROPOSED_playbook_artifacts_in_trace.md) |
-| AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | (items/AF0064_PROPOSED_process_documentation_hardening.md) |
-| AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity** (+playbooks list) | CLI | Jacob | (items/AF0012_PROPOSED_cli_reference_surface.md) |
-| AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | (items/AF0036_PROPOSED_remove_global_cli.md) |
+| AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
+| AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
+| AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | [🔗](items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
+| AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | [🔗](items/AF0072_PROPOSED_playbook_validation_error.md) |
+| AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch** | Storage | Jacob | [🔗](items/AF0015_PROPOSED_resolve_storage_db.md) |
+| AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_READY_test_isolation_framework.md) |
+| AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | [🔗](items/AF0057_PROPOSED_playbook_artifacts_in_trace.md) |
+| AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_PROPOSED_process_documentation_hardening.md) |
+| AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity** (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
+| AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | [🔗](items/AF0036_PROPOSED_remove_global_cli.md) |
 
 ---
 
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 08 Scope (planned)
+### Sprint 08 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0073 | P2 | READY | Index file linking convention | Docs/Process | TBD | (items/AF0073_READY_index_file_linking.md) |
-| 2 | AF-0079 | P1 | READY | Skills framework V1 removal | Skills/Framework | TBD | (items/AF0079_READY_skills_framework_v1_removal.md) |
-| 3 | AF-0074 | P1 | READY | research_v0 playbook | Playbooks/Skills | Kai | (items/AF0074_READY_research_v0_playbook.md) |
-| 4 | AF-0059 | P2 | READY | Implement playbooks list | CLI | Jacob | (items/AF0059_READY_implement_playbooks_list.md) |
-| 5 | AF-0076 | P2 | READY | Playbooks registry cleanup | Playbooks/Registry | TBD | (items/AF0076_READY_playbooks_registry_cleanup.md) |
-| — | — | — | **CHECKPOINT** | Review scope of AF-0069/AF-0070 | — | — | — |
-| 6 | AF-0069 | P1 | PROPOSED | Skills architecture documentation | Skills/Architecture | Kai | (items/AF0069_PROPOSED_skills_registry_deep_dive.md) |
-| 7 | AF-0070 | P1 | PROPOSED | Playbooks architecture documentation | Playbooks/Architecture | Kai | (items/AF0070_PROPOSED_playbooks_registry_deep_dive.md) |
+| 1 | AF-0073 | P2 | DONE | Index file linking convention | Docs/Process | Jacob | [🔗](items/AF0073_DONE_index_file_linking.md) |
+| 2 | AF-0079 | P1 | DONE | Skills framework V1 removal | Skills/Framework | Jacob | [🔗](items/AF0079_DONE_skills_framework_v1_removal.md) |
+| 3 | AF-0074 | P1 | DONE | research_v0 playbook | Playbooks/Skills | Kai | [🔗](items/AF0074_DONE_research_v0_playbook.md) |
+| 4 | AF-0059 | P2 | DROPPED | Implement playbooks list | CLI | Jacob | [🔗](items/AF0059_DROPPED_implement_playbooks_list.md) |
+| 5 | AF-0076 | P2 | DONE | Playbooks registry cleanup | Playbooks/Registry | TBD | [🔗](items/AF0076_DONE_playbooks_registry_cleanup.md) |
+| 6 | AF-0069 | P1 | DONE | Skills architecture documentation | Skills/Architecture | Kai | [🔗](items/AF0069_DONE_skills_registry_deep_dive.md) |
+| 7 | AF-0070 | P1 | DONE | Playbooks architecture documentation | Playbooks/Architecture | Kai | [🔗](items/AF0070_DONE_playbooks_registry_deep_dive.md) |
+| 8 | AF-0080 | P1 | DONE | Web search skill (+BUG-0013 fix) | Skills/Playbooks | Jacob | [🔗](items/AF0080_DONE_web_search_skill.md) |
 
 
 ### Sprint 07 Scope (completed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0065 | P0 | DONE | First skill set (summarize_v0) | Skills | Kai | (items/AF0065_DONE_first_skill_set.md) |
-| 2 | AF-0068 | P1 | DONE | Skills/playbooks folder restructure | Skills/Playbooks | Kai | (items/AF0068_DONE_skills_playbooks_folder_restructure.md) |
-| 3 | AF-0066 | P1 | DONE | E2E integration test | Testing | Kai | (items/AF0066_DONE_e2e_integration_test.md) |
-| 4 | AF-0062 | P1 | DONE | Trace LLM model tracking | Core | Kai | (items/AF0062_DONE_trace_llm_model_tracking.md) |
-| 5 | AF-0067 | P2 | DONE | Skill code documentation | Skills/Docs | Kai | (items/AF0067_DONE_skill_code_documentation.md) |
+| 1 | AF-0065 | P0 | DONE | First skill set (summarize_v0) | Skills | Kai | [🔗](items/AF0065_DONE_first_skill_set.md) |
+| 2 | AF-0068 | P1 | DONE | Skills/playbooks folder restructure | Skills/Playbooks | Kai | [🔗](items/AF0068_DONE_skills_playbooks_folder_restructure.md) |
+| 3 | AF-0066 | P1 | DONE | E2E integration test | Testing | Kai | [🔗](items/AF0066_DONE_e2e_integration_test.md) |
+| 4 | AF-0062 | P1 | DONE | Trace LLM model tracking | Core | Kai | [🔗](items/AF0062_DONE_trace_llm_model_tracking.md) |
+| 5 | AF-0067 | P2 | DONE | Skill code documentation | Skills/Docs | Kai | [🔗](items/AF0067_DONE_skill_code_documentation.md) |
 
 ### Sprint 06 Scope
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0058 | P0 | DONE | Workspace folder restructure (+DB filename) | Storage | Jacob | (items/AF0058_DONE_workspace_folder_restructure.md) |
-| 2 | AF-0061 | P2 | DONE | Status CAPS convention | Docs/Process | Kai | (items/AF0061_DONE_status_caps_convention.md) |
-| 3 | AF-0060 | P0 | DONE | Skill definition framework | Skills | Kai | (items/AF0060_DONE_skill_definition_framework.md) |
-| 4 | AF-0063 | P1 | DONE | Schema inventory documentation | Docs/Core | Kai | (items/AF0063_DONE_schema_inventory_documentation.md) |
-| 5 | AF-0013 | P1 | DONE | Contract inventory hardening | Contracts | Jacob | (items/AF0013_DONE_contract_inventory_hardening.md) |
+| 1 | AF-0058 | P0 | DONE | Workspace folder restructure (+DB filename) | Storage | Jacob | [🔗](items/AF0058_DONE_workspace_folder_restructure.md) |
+| 2 | AF-0061 | P2 | DONE | Status CAPS convention | Docs/Process | Kai | [🔗](items/AF0061_DONE_status_caps_convention.md) |
+| 3 | AF-0060 | P0 | DONE | Skill definition framework | Skills | Kai | [🔗](items/AF0060_DONE_skill_definition_framework.md) |
+| 4 | AF-0063 | P1 | DONE | Schema inventory documentation | Docs/Core | Kai | [🔗](items/AF0063_DONE_schema_inventory_documentation.md) |
+| 5 | AF-0013 | P1 | DONE | Contract inventory hardening | Contracts | Jacob | [🔗](items/AF0013_DONE_contract_inventory_hardening.md) |
 
 ## Sprint 05 items — completed (follow-ups)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0047 | P0 | DONE | Foundation consolidation refactor | Docs/Process | Jacob | (items/AF0047_DONE_foundation_consolidation.md) |
-| AF-0052 | P0 | DONE | Restore coverage threshold | Testing | Jacob | (items/AF0052_DONE_restore_coverage_threshold.md) |
-| AF-0053 | P0 | DONE | Provider test stability | Testing | Jacob | (items/AF0053_DONE_provider_test_stability.md) |
-| AF-0054 | P1 | DONE | Citation model unification | Core | Jacob | (items/AF0054_DONE_citation_model_unification.md) |
-| AF-0055 | P1 | DONE | Verifier loop bounding | Verifier | Jacob | (items/AF0055_DONE_verifier_loop_bounding.md) |
+| AF-0047 | P0 | DONE | Foundation consolidation refactor | Docs/Process | Jacob | [🔗](items/AF0047_DONE_foundation_consolidation.md) |
+| AF-0052 | P0 | DONE | Restore coverage threshold | Testing | Jacob | [🔗](items/AF0052_DONE_restore_coverage_threshold.md) |
+| AF-0053 | P0 | DONE | Provider test stability | Testing | Jacob | [🔗](items/AF0053_DONE_provider_test_stability.md) |
+| AF-0054 | P1 | DONE | Citation model unification | Core | Jacob | [🔗](items/AF0054_DONE_citation_model_unification.md) |
+| AF-0055 | P1 | DONE | Verifier loop bounding | Verifier | Jacob | [🔗](items/AF0055_DONE_verifier_loop_bounding.md) |
 
 ## Sprint 05 items — completed (ACCEPT WITH FOLLOW-UPS)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0048 | P0 | DONE | Structured brief skill | Skills | Jacob | (items/AF0048_DONE_structured_brief_skill.md) |
-| AF-0049 | P0 | DONE | Evidence capture discipline | Core | Jacob | (items/AF0049_DONE_evidence_capture_discipline.md) |
-| AF-0050 | P0 | DONE | Verifier schema loop | Verifier | Jacob | (items/AF0050_DONE_verifier_schema_loop.md) |
-| AF-0051 | P1 | DONE | Artifact export hardening | Storage | Jacob | (items/AF0051_DONE_artifact_export_hardening.md) |
+| AF-0048 | P0 | DONE | Structured brief skill | Skills | Jacob | [🔗](items/AF0048_DONE_structured_brief_skill.md) |
+| AF-0049 | P0 | DONE | Evidence capture discipline | Core | Jacob | [🔗](items/AF0049_DONE_evidence_capture_discipline.md) |
+| AF-0050 | P0 | DONE | Verifier schema loop | Verifier | Jacob | [🔗](items/AF0050_DONE_verifier_schema_loop.md) |
+| AF-0051 | P1 | DONE | Artifact export hardening | Storage | Jacob | [🔗](items/AF0051_DONE_artifact_export_hardening.md) |
 
 ---
 
 ## Sprint 04 items — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0039 | P0 | DONE | Create canonical /docs/dev skeleton + root doc moves | Docs/Process | Kai/Jeff | (items/AF0039_DONE_new_dev_skeleton.md) |
-| AF-0040 | P1 | DONE | Merge WORKFLOW/PROCESS into canonical foundation docs | Docs/Process | Kai/Jeff | (items/AF0040_DONE_workflow_docs_merge.md) |
-| AF-0041 | P0 | DONE | Backlog migration: merge templates + rename/move AFs | Docs/Backlog | Jacob | (items/AF0041_DONE_backlog_migration.md) |
-| AF-0042 | P1 | DONE | Bugs + Decisions migration: rename/move + update indexes | Docs/Bugs/Decisions | Jacob | (items/AF0042_DONE_bugs_decisions_migration.md) |
-| AF-0043 | P0 | DONE | Sprint system migration: per-sprint folders + deprecate SPRINT_LOG | Docs/Sprints | Jacob | (items/AF0043_DONE_sprint_system_migration.md) |
-| AF-0044 | P1 | DONE | Review artifact migration: reviews into sprint folders | Docs/Reviews | Jacob | (items/AF0044_DONE_review_migration.md) |
-| AF-0045 | P0 | DONE | CI enforcement: ruff + pytest + coverage via pre-commit/Actions | CI/Quality | Jacob | (items/AF0045_DONE_ci_enforcement.md) |
+| AF-0039 | P0 | DONE | Create canonical /docs/dev skeleton + root doc moves | Docs/Process | Kai/Jeff | [🔗](items/AF0039_DONE_new_dev_skeleton.md) |
+| AF-0040 | P1 | DONE | Merge WORKFLOW/PROCESS into canonical foundation docs | Docs/Process | Kai/Jeff | [🔗](items/AF0040_DONE_workflow_docs_merge.md) |
+| AF-0041 | P0 | DONE | Backlog migration: merge templates + rename/move AFs | Docs/Backlog | Jacob | [🔗](items/AF0041_DONE_backlog_migration.md) |
+| AF-0042 | P1 | DONE | Bugs + Decisions migration: rename/move + update indexes | Docs/Bugs/Decisions | Jacob | [🔗](items/AF0042_DONE_bugs_decisions_migration.md) |
+| AF-0043 | P0 | DONE | Sprint system migration: per-sprint folders + deprecate SPRINT_LOG | Docs/Sprints | Jacob | [🔗](items/AF0043_DONE_sprint_system_migration.md) |
+| AF-0044 | P1 | DONE | Review artifact migration: reviews into sprint folders | Docs/Reviews | Jacob | [🔗](items/AF0044_DONE_review_migration.md) |
+| AF-0045 | P0 | DONE | CI enforcement: ruff + pytest + coverage via pre-commit/Actions | CI/Quality | Jacob | [🔗](items/AF0045_DONE_ci_enforcement.md) |
 
 ---
 
 ## Sprint 03 items — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0027 | P0 | DONE | Default workspace policy (intuitive precedence) | CLI/Core/Storage | Jacob | (items/AF0027_DONE_default_workspace_policy.md) |
-| AF-0028 | P0 | DONE | Run ID truncation fix | CLI | Jacob | (items/AF0028_DONE_run_id_truncation.md) |
-| AF-0029 | P0 | DONE | RunTrace verification hardening | Core/Storage | Jacob | (items/AF0029_DONE_runtrace_verification_hardening.md) |
-| AF-0030 | P0 | DONE | RunTrace metadata completeness (workspace_source) | Core/Storage | Jacob | (items/AF0030_DONE_runtrace_metadata_completeness.md) |
-| AF-0031 | P0 | DONE | CLI truthfulness enforcement | CLI | Jacob | (items/AF0031_DONE_cli_truthfulness_enforcement.md) |
-| AF-0032 | P0 | DONE | Observability command expansion | CLI | Jacob | (items/AF0032_DONE_observability_command_expansion.md) |
-| AF-0033 | P0 | DONE | Early .env loading + manual mode gate fix | CLI | Jacob | (items/AF0033_DONE_early_env_loading.md) |
-| AF-0034 | P0 | DONE | Workspace error message hardening (no name leakage) | CLI | Jacob | (items/AF0034_DONE_workspace_error_message.md) |
-| AF-0035 | P2 | DONE | Clarify --workspace flag help text | CLI | Jacob | (items/AF0035_DONE_clarify_workspace_flag.md) |
-| AF-0037 | P1 | DONE | Standardize workspace-required error messaging | CLI | Jacob | (items/AF0037_DONE_standardize_workspace_error.md) |
-| AF-0038 | P1 | DONE | Ensure --json applies to error paths | CLI | Jacob | (items/AF0038_DONE_json_error_path.md) |
+| AF-0027 | P0 | DONE | Default workspace policy (intuitive precedence) | CLI/Core/Storage | Jacob | [🔗](items/AF0027_DONE_default_workspace_policy.md) |
+| AF-0028 | P0 | DONE | Run ID truncation fix | CLI | Jacob | [🔗](items/AF0028_DONE_run_id_truncation.md) |
+| AF-0029 | P0 | DONE | RunTrace verification hardening | Core/Storage | Jacob | [🔗](items/AF0029_DONE_runtrace_verification_hardening.md) |
+| AF-0030 | P0 | DONE | RunTrace metadata completeness (workspace_source) | Core/Storage | Jacob | [🔗](items/AF0030_DONE_runtrace_metadata_completeness.md) |
+| AF-0031 | P0 | DONE | CLI truthfulness enforcement | CLI | Jacob | [🔗](items/AF0031_DONE_cli_truthfulness_enforcement.md) |
+| AF-0032 | P0 | DONE | Observability command expansion | CLI | Jacob | [🔗](items/AF0032_DONE_observability_command_expansion.md) |
+| AF-0033 | P0 | DONE | Early .env loading + manual mode gate fix | CLI | Jacob | [🔗](items/AF0033_DONE_early_env_loading.md) |
+| AF-0034 | P0 | DONE | Workspace error message hardening (no name leakage) | CLI | Jacob | [🔗](items/AF0034_DONE_workspace_error_message.md) |
+| AF-0035 | P2 | DONE | Clarify --workspace flag help text | CLI | Jacob | [🔗](items/AF0035_DONE_clarify_workspace_flag.md) |
+| AF-0037 | P1 | DONE | Standardize workspace-required error messaging | CLI | Jacob | [🔗](items/AF0037_DONE_standardize_workspace_error.md) |
+| AF-0038 | P1 | DONE | Ensure --json applies to error paths | CLI | Jacob | [🔗](items/AF0038_DONE_json_error_path.md) |
 
 ---
 
 ## Sprint 02 items — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0017 | P0 | DONE | OpenAI API integration (provider adapter) + config wiring | Providers | Jacob | (items/AF0017_DONE_openai_api_integration.md) |
-| AF-0019 | P0 | DONE | Agent network playbook v0: delegation with multi-step trace | Kernel | Jacob | (items/AF0019_DONE_agent_network_playbook.md) |
-| AF-0011 | P1 | DONE | CLI global options: --workspace/--json/--quiet/--verbose truly global | CLI | Jacob | (items/AF0011_DONE_cli_global_options.md) |
-| AF-0014 | P1 | DONE | Resolve Recorder interface discrepancy (docs vs implementation) | Kernel | Jacob | (items/AF0014_DONE_resolve_recorder_interface.md) |
-| AF-0018 | P1 | DONE | Provider abstraction + Claude/local stubs | Providers | Jacob | (items/AF0018_DONE_provider_abstraction_claude.md) |
-| AF-0016 | P2 | DONE | Resolve contract drift: ReasoningMode enum vs examples; Artifact semantics | Contracts | Jacob | (items/AF0016_DONE_resolve_contract_drift.md) |
+| AF-0017 | P0 | DONE | OpenAI API integration (provider adapter) + config wiring | Providers | Jacob | [🔗](items/AF0017_DONE_openai_api_integration.md) |
+| AF-0019 | P0 | DONE | Agent network playbook v0: delegation with multi-step trace | Kernel | Jacob | [🔗](items/AF0019_DONE_agent_network_playbook.md) |
+| AF-0011 | P1 | DONE | CLI global options: --workspace/--json/--quiet/--verbose truly global | CLI | Jacob | [🔗](items/AF0011_DONE_cli_global_options.md) |
+| AF-0014 | P1 | DONE | Resolve Recorder interface discrepancy (docs vs implementation) | Kernel | Jacob | [🔗](items/AF0014_DONE_resolve_recorder_interface.md) |
+| AF-0018 | P1 | DONE | Provider abstraction + Claude/local stubs | Providers | Jacob | [🔗](items/AF0018_DONE_provider_abstraction_claude.md) |
+| AF-0016 | P2 | DONE | Resolve contract drift: ReasoningMode enum vs examples; Artifact semantics | Contracts | Jacob | [🔗](items/AF0016_DONE_resolve_contract_drift.md) |
 
 ---
 
 ## Sprint 02 hardening extension — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0021 | P1 | DONE | Storage lifecycle hardening (SQLite deterministic closure) | Storage | Jacob | (items/AF0021_DONE_storage_lifecycle_hardening.md) |
-| AF-0022 | P1 | DONE | Provider coverage hardening (≥95% target) | Providers | Jacob | (items/AF0022_DONE_provider_coverage_hardening.md) |
-| AF-0023 | P1 | DONE | Environment & configuration hardening | Config | Jacob | (items/AF0023_DONE_environment_configuration_hardening.md) |
-| AF-0024 | P1 | DONE | Workspace lifecycle correction (ag ws create/list) | CLI | Jacob | (items/AF0024_DONE_workspace_lifecycle_correction.md) |
-| AF-0025 | P1 | DONE | Test discipline enforcement (Ruff + docs) | Testing | Jacob | (items/AF0025_DONE_test_discipline_enforcement.md) |
-| AF-0026 | P0 | DONE | Workspace selection policy enforcement | CLI/Runtime | Jacob | (items/AF0026_DONE_workspace_selection_policy.md) |
+| AF-0021 | P1 | DONE | Storage lifecycle hardening (SQLite deterministic closure) | Storage | Jacob | [🔗](items/AF0021_DONE_storage_lifecycle_hardening.md) |
+| AF-0022 | P1 | DONE | Provider coverage hardening (≥95% target) | Providers | Jacob | [🔗](items/AF0022_DONE_provider_coverage_hardening.md) |
+| AF-0023 | P1 | DONE | Environment & configuration hardening | Config | Jacob | [🔗](items/AF0023_DONE_environment_configuration_hardening.md) |
+| AF-0024 | P1 | DONE | Workspace lifecycle correction (ag ws create/list) | CLI | Jacob | [🔗](items/AF0024_DONE_workspace_lifecycle_correction.md) |
+| AF-0025 | P1 | DONE | Test discipline enforcement (Ruff + docs) | Testing | Jacob | [🔗](items/AF0025_DONE_test_discipline_enforcement.md) |
+| AF-0026 | P0 | DONE | Workspace selection policy enforcement | CLI/Runtime | Jacob | [🔗](items/AF0026_DONE_workspace_selection_policy.md) |
 
 ---
 
 ## Sprint 01 items — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0004 | P0 | DONE | Sprint OS hygiene: sprint log + docs/dev pointers + handoff rules | Docs | Jeff | (items/AF0004_DONE_sprint_os_hygiene.md) |
-| AF-0010 | P0 | DONE | Python project bootstrap (packaging + CLI stub + pytest) | Repo | Jacob | (items/AF0010_DONE_python_project_bootstrap.md) |
-| AF-0005 | P0 | DONE | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Kernel | Jeff | (items/AF0005_DONE_contracts_taskspec_runtrace.md) |
-| AF-0006 | P0 | DONE | Workspace + storage baseline (sqlite + filesystem) | Storage | Jacob | (items/AF0006_DONE_workspace_storage_baseline.md) |
-| AF-0007 | P0 | DONE | Core runtime skeleton v0 (interfaces + playbook + stub skills) | Kernel | Jacob | (items/AF0007_DONE_core_runtime_skeleton.md) |
-| AF-0008 | P0 | DONE | CLI v0: ag run + runs show --json, truthful labels, manual gate | CLI | Jacob | (items/AF0008_DONE_cli_ag_run.md) |
-| AF-0009 | P1 | DONE | Artifact registry v0 + ag artifacts list | Storage | Jacob | (items/AF0009_DONE_artifact_registry_ag.md) |
+| AF-0004 | P0 | DONE | Sprint OS hygiene: sprint log + docs/dev pointers + handoff rules | Docs | Jeff | [🔗](items/AF0004_DONE_sprint_os_hygiene.md) |
+| AF-0010 | P0 | DONE | Python project bootstrap (packaging + CLI stub + pytest) | Repo | Jacob | [🔗](items/AF0010_DONE_python_project_bootstrap.md) |
+| AF-0005 | P0 | DONE | Contracts: TaskSpec + RunTrace + Playbook schemas v0.1 | Kernel | Jeff | [🔗](items/AF0005_DONE_contracts_taskspec_runtrace.md) |
+| AF-0006 | P0 | DONE | Workspace + storage baseline (sqlite + filesystem) | Storage | Jacob | [🔗](items/AF0006_DONE_workspace_storage_baseline.md) |
+| AF-0007 | P0 | DONE | Core runtime skeleton v0 (interfaces + playbook + stub skills) | Kernel | Jacob | [🔗](items/AF0007_DONE_core_runtime_skeleton.md) |
+| AF-0008 | P0 | DONE | CLI v0: ag run + runs show --json, truthful labels, manual gate | CLI | Jacob | [🔗](items/AF0008_DONE_cli_ag_run.md) |
+| AF-0009 | P1 | DONE | Artifact registry v0 + ag artifacts list | Storage | Jacob | [🔗](items/AF0009_DONE_artifact_registry_ag.md) |
 
 ---
 
 ## Sprint 00 items — completed
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0001 | P0 | DONE | Kick-off: establish new docs/dev foundation | Docs/Process | Kai/Jeff | (items/AF0001_DONE_kick_off_establish.md) |
-| AF-0002 | P0 | DONE | New cornerstone docs (IoT-in-space vision) | Docs/Architecture | Jeff | (items/AF0002_DONE_new_cornerstone_docs.md) |
-| AF-0003 | P0 | DONE | Core runtime skeleton (request + event driven) — docs only | Architecture/Kernel | Jeff/Jacob | (items/AF0003_DONE_core_runtime_skeleton.md) |
+| AF-0001 | P0 | DONE | Kick-off: establish new docs/dev foundation | Docs/Process | Kai/Jeff | [🔗](items/AF0001_DONE_kick_off_establish.md) |
+| AF-0002 | P0 | DONE | New cornerstone docs (IoT-in-space vision) | Docs/Architecture | Jeff | [🔗](items/AF0002_DONE_new_cornerstone_docs.md) |
+| AF-0003 | P0 | DONE | Core runtime skeleton (request + event driven) — docs only | Architecture/Kernel | Jeff/Jacob | [🔗](items/AF0003_DONE_core_runtime_skeleton.md) |
 
 ---
 
 ## Dropped items
 | ID | Status | Title | Reason | Filename |
 |---:|:--|---|---|---|
-| AF-0075 | DROPPED | Skills registry cleanup | Superseded by AF-0079 (V1 removal) | (items/AF0075_DROPPED_skills_registry_cleanup.md) |
-| AF-0056 | DROPPED | Direct skill runs through verifier | Already fixed via BUG-0009 | (items/AF0056_DROPPED_direct_skill_runs_verifier.md) |
+| AF-0075 | DROPPED | Skills registry cleanup | Superseded by AF-0079 (V1 removal) | [🔗](items/AF0075_DROPPED_skills_registry_cleanup.md) |
+| AF-0056 | DROPPED | Direct skill runs through verifier | Already fixed via BUG-0009 | [🔗](items/AF0056_DROPPED_direct_skill_runs_verifier.md) |
+| AF-0059 | DROPPED | Implement playbooks list | Absorbed into AF-0076 | [🔗](items/AF0059_DROPPED_implement_playbooks_list.md) |
 
 ---
 
 ## Notes
 - Bugs are tracked in `/docs/dev/bugs/INDEX_BUGS.md` (not mixed into this backlog index).
 - During migration, keep IDs stable (AF-#### in content), but filenames follow the new convention above.
-

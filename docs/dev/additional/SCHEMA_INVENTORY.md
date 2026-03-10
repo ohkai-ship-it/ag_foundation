@@ -61,6 +61,22 @@
 | `SkillOutput` | base.py | Base output schema for v2 skills (success, summary, error) | 0.1 |
 | `StubSkillOutput` | base.py | Extension of SkillOutput for stub responses (stub=True, stub_data) | 0.1 |
 
+#### fetch_web_content (AF0074)
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `FetchedDocument` | fetch_web_content.py | Document fetched from URL (url, content, status_code, content_type, title, error) | 0.1 |
+| `FetchWebContentInput` | fetch_web_content.py | Input for URL fetching (urls, timeout_seconds, max_content_length) | 0.1 |
+| `FetchWebContentOutput` | fetch_web_content.py | Output with fetched documents (documents, failed_urls, total_fetched, total_failed) | 0.1 |
+
+#### synthesize_research (AF0074)
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `SourceDocument` | synthesize_research.py | Source document for synthesis (source, content, source_type) | 0.1 |
+| `SynthesizeResearchInput` | synthesize_research.py | Input for research synthesis (documents, output_format, max_tokens, include_citations) | 0.1 |
+| `SynthesizeResearchOutput` | synthesize_research.py | Synthesized report output (report, key_findings, sources_used, source_count) | 0.1 |
+
 ---
 
 ### 3. Provider Schemas (`src/ag/providers/`)
@@ -147,3 +163,4 @@ When modifying schemas:
 - **AF0060:** Skill definition framework (added skill schemas)
 - **AF0062:** Trace LLM model tracking (will extend RunTrace)
 - **AF0063:** This document
+- **AF0074:** Research playbook skills (fetch_web_content, synthesize_research)

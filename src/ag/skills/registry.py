@@ -1,44 +1,35 @@
-"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067).
+"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067, AF0074, AF0079).
 
-This module provides the SkillRegistry class that manages both legacy (v1) and
-typed (v2) skills. The registry is the central coordination point for skill
-discovery, registration, and execution.
+This module provides the SkillRegistry class that manages typed skills.
+The registry is the central coordination point for skill discovery,
+registration, and execution.
 
 Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
-    SkillInfo   — Metadata for legacy v1 skills (name, description, fn)
-    SkillV2Info — Metadata for typed v2 skills (name, description, skill, schemas)
+    SkillInfo — Metadata for registered skills (name, description, skill, schemas)
 
-V1 vs V2 Skills:
-    V1 (Legacy):
-        - Simple callable: (params: dict) -> tuple[bool, str, dict]
-        - No type safety, runtime validation only
-        - Used by: stub skills, quick prototypes
-
-    V2 (Typed, recommended):
-        - Subclass of Skill[InputT, OutputT] ABC
-        - Pydantic schemas for input/output validation
-        - Type hints, IDE support, better error messages
-        - Used by: load_documents, summarize_docs, emit_result
+Skills use the Pydantic-based Skill[InputT, OutputT] ABC pattern:
+    - Subclass of Skill ABC with typed input/output schemas
+    - Pydantic schemas for input/output validation
+    - Type hints, IDE support, better error messages
+    - Used by: load_documents, summarize_docs, emit_result, fetch_web_content, etc.
 
 How to Register Skills:
-    # V2 skill (recommended)
-    registry.register_v2(MySkill())
-
-    # V1 skill (legacy)
-    registry.register("my_skill", my_skill_fn, "Does something")
+    registry.register(MySkill())
 
 How to Execute Skills:
-    # Using registry.execute (handles both v1/v2)
+    # Using registry.execute
     success, summary, data = registry.execute("my_skill", params, context)
 
-    # V2 skill direct execution
-    skill_info = registry.get_v2("my_skill")
+    # Direct execution
+    skill_info = registry.get_skill("my_skill")
     output = skill_info.skill.execute(input_obj, context)
 
 Built-in Skills:
     - load_documents: Loads documents from workspace inputs folder
     - summarize_docs: LLM-powered document summarization
     - emit_result: Emits final results to run trace
+    - fetch_web_content: Fetches content from URLs (AF0074)
+    - synthesize_research: LLM-powered research synthesis (AF0074)
 
 See Also:
     - base.py: Skill ABC and schema definitions
@@ -47,33 +38,23 @@ See Also:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 from ag.skills.emit_result import EmitResultSkill
+from ag.skills.fetch_web_content import FetchWebContentSkill
 from ag.skills.load_documents import LoadDocumentsSkill
+from ag.skills.stubs import EchoSkill, ErrorSkill, FailSkill
 from ag.skills.summarize_docs import SummarizeDocsSkill
-
-# Skill function signature: (params: dict) -> tuple[bool, str, dict]
-# Returns: (success, output_summary, result_data)
-SkillFn = Callable[[dict[str, Any]], tuple[bool, str, dict[str, Any]]]
+from ag.skills.synthesize_research import SynthesizeResearchSkill
+from ag.skills.web_search import WebSearchSkill
 
 
 @dataclass
 class SkillInfo:
-    """Metadata about a registered legacy skill."""
+    """Metadata about a registered skill (AF0079 simplified).
 
-    name: str
-    description: str
-    fn: SkillFn
-    is_stub: bool = True  # Mark if this is a stub skill
-
-
-@dataclass
-class SkillV2Info:
-    """Metadata about a registered v2 skill (AF0060).
-
-    v2 skills use the Skill protocol with typed schemas.
+    Skills use the Skill protocol with typed Pydantic schemas.
     """
 
     name: str
@@ -84,44 +65,29 @@ class SkillV2Info:
     requires_llm: bool = False
 
 
-class SkillRegistry:
-    """Registry of available skills.
+# Backward compatibility alias (AF0079)
+SkillV2Info = SkillInfo
 
-    Supports both legacy (v1) and new (v2) skill formats:
-    - v1: SkillFn = Callable[[dict], tuple[bool, str, dict]]
-    - v2: Skill protocol with typed schemas (AF0060)
+
+class SkillRegistry:
+    """Registry of available skills (AF0079 simplified).
+
+    All skills use the Pydantic-based Skill protocol.
+    V1 legacy support has been removed.
 
     v0: Skills are registered at startup. No dynamic loading.
     """
 
     def __init__(self) -> None:
         self._skills: dict[str, SkillInfo] = {}
-        self._skills_v2: dict[str, SkillV2Info] = {}
 
-    def register(
-        self,
-        name: str,
-        description: str,
-        fn: SkillFn,
-        is_stub: bool = True,
-    ) -> None:
-        """Register a legacy (v1) skill.
-
-        Args:
-            name: Unique skill name
-            description: Human-readable description
-            fn: Skill function
-            is_stub: Whether this is a stub skill (default True for legacy)
-        """
-        self._skills[name] = SkillInfo(name=name, description=description, fn=fn, is_stub=is_stub)
-
-    def register_v2(self, skill: Skill[Any, Any]) -> None:
-        """Register a v2 skill (AF0060).
+    def register(self, skill: Skill[Any, Any]) -> None:
+        """Register a skill.
 
         Args:
             skill: Skill instance implementing the Skill protocol
         """
-        self._skills_v2[skill.name] = SkillV2Info(
+        self._skills[skill.name] = SkillInfo(
             name=skill.name,
             description=skill.description,
             skill=skill,
@@ -130,17 +96,9 @@ class SkillRegistry:
             requires_llm=skill.requires_llm,
         )
 
-    def get(self, name: str) -> SkillInfo | None:
-        """Get a legacy skill by name."""
+    def get_skill(self, name: str) -> SkillInfo | None:
+        """Get a skill by name."""
         return self._skills.get(name)
-
-    def get_v2(self, name: str) -> SkillV2Info | None:
-        """Get a v2 skill by name."""
-        return self._skills_v2.get(name)
-
-    def is_v2(self, name: str) -> bool:
-        """Check if a skill is a v2 skill."""
-        return name in self._skills_v2
 
     def execute(
         self,
@@ -150,14 +108,10 @@ class SkillRegistry:
     ) -> tuple[bool, str, dict[str, Any]]:
         """Execute a skill by name.
 
-        Handles both v1 and v2 skills transparently:
-        - v1: Calls fn(parameters)
-        - v2: Builds typed input, calls execute(input, ctx), converts output
-
         Args:
             name: Skill name
             parameters: Skill parameters
-            context: Optional SkillContext for v2 skills
+            context: Optional SkillContext
 
         Returns:
             Tuple of (success, output_summary, result_data)
@@ -165,24 +119,10 @@ class SkillRegistry:
         Raises:
             KeyError: If skill not found
         """
-        # Check v2 skills first (preferred)
-        if name in self._skills_v2:
-            return self._execute_v2(name, parameters, context)
-
-        # Fall back to v1 skill
-        skill = self._skills.get(name)
-        if skill is None:
+        skill_info = self._skills.get(name)
+        if skill_info is None:
             raise KeyError(f"Skill not found: {name}")
-        return skill.fn(parameters)
 
-    def _execute_v2(
-        self,
-        name: str,
-        parameters: dict[str, Any],
-        context: SkillContext | None,
-    ) -> tuple[bool, str, dict[str, Any]]:
-        """Execute a v2 skill with typed schemas."""
-        skill_info = self._skills_v2[name]
         skill = skill_info.skill
 
         # Build context if not provided
@@ -196,6 +136,8 @@ class SkillRegistry:
 
         # Parse input from parameters
         # Filter to only include fields defined in the schema (ignore extras like 'step')
+        # This is required for skills with extra="forbid" in their input schema.
+        # Skills that need aliased inputs should define those aliases as schema fields.
         try:
             schema_fields = set(skill_info.input_schema.model_fields.keys())
             filtered_params = {k: v for k, v in parameters.items() if k in schema_fields}
@@ -210,185 +152,57 @@ class SkillRegistry:
         except Exception as e:
             return False, f"Skill execution failed: {e}", {"error": str(e)}
 
+    def list_skills(self) -> list[str]:
+        """List all registered skill names."""
+        return sorted(self._skills.keys())
+
     def list(self) -> list[str]:
-        """List all registered skill names (v1 and v2)."""
-        all_names = set(self._skills.keys()) | set(self._skills_v2.keys())
-        return sorted(all_names)
+        """List all registered skill names (alias for list_skills)."""
+        return self.list_skills()
 
     def has(self, name: str) -> bool:
-        """Check if a skill is registered (v1 or v2)."""
-        return name in self._skills or name in self._skills_v2
+        """Check if a skill is registered."""
+        return name in self._skills
 
     def get_info(self, name: str) -> dict[str, Any] | None:
-        """Get skill info dict (works for both v1 and v2).
+        """Get skill info dict.
 
-        Returns dict with: name, description, is_stub, is_v2,
-        and for v2: input_schema, output_schema, requires_llm
+        Returns dict with: name, description, requires_llm,
+        input_schema, output_schema
         """
-        if name in self._skills_v2:
-            info = self._skills_v2[name]
-            return {
-                "name": info.name,
-                "description": info.description,
-                "is_stub": False,
-                "is_v2": True,
-                "requires_llm": info.requires_llm,
-                "input_schema": info.input_schema.model_json_schema(),
-                "output_schema": info.output_schema.model_json_schema(),
-            }
-        if name in self._skills:
-            info = self._skills[name]
-            return {
-                "name": info.name,
-                "description": info.description,
-                "is_stub": info.is_stub,
-                "is_v2": False,
-            }
-        return None
+        if name not in self._skills:
+            return None
 
+        info = self._skills[name]
+        return {
+            "name": info.name,
+            "description": info.description,
+            "requires_llm": info.requires_llm,
+            "input_schema": info.input_schema.model_json_schema(),
+            "output_schema": info.output_schema.model_json_schema(),
+        }
 
-# ---------------------------------------------------------------------------
-# Stub Skills for v0 Testing
-# ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # Backward Compatibility Aliases (AF0079)
+    # -------------------------------------------------------------------------
+    # These methods provide API compatibility during the V1 → V2 transition.
+    # They will be removed in a future version.
 
+    def register_v2(self, skill: Skill[Any, Any]) -> None:
+        """Register a skill (alias for register, for backward compatibility)."""
+        self.register(skill)
 
-def _echo_tool(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Echo skill: returns input as output. Useful for testing."""
-    message = params.get("message", "")
-    return True, f"Echo: {message}", {"echoed": message}
+    def get_v2(self, name: str) -> SkillInfo | None:
+        """Get a skill by name (alias for get_skill, for backward compatibility)."""
+        return self.get_skill(name)
 
+    def get(self, name: str) -> SkillInfo | None:
+        """Get a skill by name (alias for get_skill, for backward compatibility)."""
+        return self.get_skill(name)
 
-def _analyze_task(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Stub analyze skill: pretends to analyze a task."""
-    prompt = params.get("prompt", "")
-    return True, f"Analyzed task: {prompt[:50]}...", {"analysis": "Task understood"}
-
-
-def _execute_task(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Stub execute skill: pretends to execute a task."""
-    return True, "Task executed successfully", {"result": "completed"}
-
-
-def _verify_result(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Stub verify skill: pretends to verify results."""
-    return True, "Verification passed", {"verified": True}
-
-
-def _fail_skill(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Skill that always fails. Useful for failure testing."""
-    return False, "Intentional failure for testing", {"error": "forced_failure"}
-
-
-def _error_skill(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Skill that raises an exception. Useful for error handling tests."""
-    raise RuntimeError("Intentional error for testing")
-
-
-# ---------------------------------------------------------------------------
-# AF-0019: Delegation Skills
-# ---------------------------------------------------------------------------
-
-
-def _normalize_input(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Normalize and validate task input for delegation.
-
-    Returns prepared context for subsequent steps.
-    """
-    prompt = params.get("prompt", "")
-    if not prompt.strip():
-        return False, "Empty prompt", {"error": "prompt_empty"}
-
-    # Simple normalization: trim, lowercase for analysis
-    normalized = prompt.strip()
-    return (
-        True,
-        f"Input normalized: {normalized[:50]}...",
-        {
-            "normalized_prompt": normalized,
-            "word_count": len(normalized.split()),
-            "ready_for_planning": True,
-        },
-    )
-
-
-def _plan_subtasks(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Generate subtasks from the prompt.
-
-    v0 heuristic: Split prompt into analysis + execution subtasks.
-    Returns at least 2 subtasks as required by AF-0019.
-    """
-    prompt = params.get("prompt", "")
-    params.get("min_subtasks", 2)
-
-    # v0 simple planning: always generate exactly 2 subtasks
-    subtasks = [
-        {
-            "subtask_id": "subtask_0",
-            "description": f"Analyze requirements: {prompt[:30]}...",
-            "status": "pending",
-        },
-        {
-            "subtask_id": "subtask_1",
-            "description": f"Execute solution: {prompt[:30]}...",
-            "status": "pending",
-        },
-    ]
-
-    return (
-        True,
-        f"Planned {len(subtasks)} subtasks",
-        {
-            "subtasks": subtasks,
-            "plan_complete": True,
-        },
-    )
-
-
-def _execute_subtask(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Execute a single subtask from the plan.
-
-    Args via params:
-        subtask_index: Which subtask to execute (0 or 1)
-        subtasks: List of subtasks from planning (optional, for context)
-    """
-    subtask_index = params.get("subtask_index", 0)
-
-    # v0 stub: pretend to execute the subtask
-    result = f"Subtask {subtask_index} executed successfully"
-    return (
-        True,
-        result,
-        {
-            "subtask_index": subtask_index,
-            "status": "completed",
-            "result_summary": result,
-        },
-    )
-
-
-def _verify_delegation(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Verify all subtask results and aggregate evidence."""
-    # v0 stub: always pass verification
-    return (
-        True,
-        "All subtasks verified",
-        {
-            "verification_status": "passed",
-            "evidence": {"subtasks_checked": 2, "all_passed": True},
-        },
-    )
-
-
-def _finalize_result(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]:
-    """Summarize delegation results and prepare final output."""
-    return (
-        True,
-        "Delegation completed successfully",
-        {
-            "summary": "All subtasks executed and verified",
-            "finalized": True,
-        },
-    )
+    def is_v2(self, name: str) -> bool:
+        """Check if skill is V2 (always True now, for backward compatibility)."""
+        return name in self._skills
 
 
 # ---------------------------------------------------------------------------
@@ -397,48 +211,34 @@ def _finalize_result(params: dict[str, Any]) -> tuple[bool, str, dict[str, Any]]
 
 
 def create_default_registry() -> SkillRegistry:
-    """Create a registry with default skills.
+    """Create a registry with default production skills.
 
-    Skills are categorized as:
-    - Real skills: Do actual work (load_documents, summarize_docs, emit_result)
-    - Stub skills: Placeholder implementations for testing
+    Skills registered:
+    - Production: load_documents, summarize_docs, emit_result,
+                  fetch_web_content, synthesize_research (AF-0074)
+    - Test stubs: echo_tool, fail_skill, error_skill
 
     Returns:
-        SkillRegistry with default skills registered
+        SkillRegistry with production skills registered
     """
     registry = SkillRegistry()
 
-    # Testing skills (stubs)
-    registry.register("echo_tool", "Echoes input message", _echo_tool, is_stub=True)
+    # Production skills (AF-0065: summarize playbook)
+    registry.register(LoadDocumentsSkill())
+    registry.register(SummarizeDocsSkill())
+    registry.register(EmitResultSkill())
 
-    # Playbook skills (stubs)
-    registry.register("analyze_task", "Analyze task requirements", _analyze_task, is_stub=True)
-    registry.register("execute_task", "Execute the main task", _execute_task, is_stub=True)
-    registry.register("verify_result", "Verify execution results", _verify_result, is_stub=True)
+    # Production skills (AF-0074: research playbook)
+    registry.register(FetchWebContentSkill())
+    registry.register(SynthesizeResearchSkill())
 
-    # AF-0019: Delegation skills (stubs)
-    registry.register("normalize_input", "Normalize task input", _normalize_input, is_stub=True)
-    registry.register(
-        "plan_subtasks", "Generate subtasks from prompt", _plan_subtasks, is_stub=True
-    )
-    registry.register("execute_subtask", "Execute a single subtask", _execute_subtask, is_stub=True)
-    registry.register(
-        "verify_delegation", "Verify delegation results", _verify_delegation, is_stub=True
-    )
-    registry.register(
-        "finalize_result", "Finalize delegation output", _finalize_result, is_stub=True
-    )
+    # Production skills (AF-0080: web search)
+    registry.register(WebSearchSkill())
 
-    # Failure testing skills (stubs)
-    registry.register("fail_skill", "Always fails (for testing)", _fail_skill, is_stub=True)
-    registry.register(
-        "error_skill", "Always raises exception (for testing)", _error_skill, is_stub=True
-    )
-
-    # AF-0065: Summarize playbook skills (REAL - do actual work)
-    registry.register_v2(LoadDocumentsSkill())
-    registry.register_v2(SummarizeDocsSkill())
-    registry.register_v2(EmitResultSkill())
+    # Test stub skills (AF-0079: V2 stubs for testing)
+    registry.register(EchoSkill())
+    registry.register(FailSkill())
+    registry.register(ErrorSkill())
 
     return registry
 
@@ -453,3 +253,9 @@ def get_default_registry() -> SkillRegistry:
     if _default_registry is None:
         _default_registry = create_default_registry()
     return _default_registry
+
+
+def reset_default_registry() -> None:
+    """Reset the default registry (for testing)."""
+    global _default_registry
+    _default_registry = None
