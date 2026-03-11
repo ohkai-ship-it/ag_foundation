@@ -70,6 +70,16 @@ Evidence: `ruff_summary.txt`, `pytest_summary.txt`
 
 ---
 
+### Pass 2.5 — Autonomy Gate verification (if behavior touched)
+- [ ] Verify all user-visible labels are trace-derived
+- [ ] Verify policy checks are enforced where applicable (permission/confirmation/budget)
+- [ ] Verify retry/timeout/failure behavior is trace-aligned
+- [ ] Verify workspace isolation under failure-path scenarios
+
+Evidence: `cli_outputs.txt`, `happy_trace.json`, `failure_trace.json`, `pytest_summary.txt`
+
+---
+
 ### Pass 3 — CLI “truthful UX” spot-check (if CLI touched)
 - [ ] Run at least one happy-path command and capture output
 - [ ] Verify labels shown are trace-derived
@@ -143,6 +153,10 @@ Evidence: `bug_triage.md`
 
 ### Decision rationale
 Why this decision was made.
+
+Decision rule for autonomy-affecting sprints:
+- Open P0 Autonomy Gate failure => `REJECT`
+- Open P1/P2 items may allow `ACCEPT WITH FOLLOW-UPS` only if follow-up AF/BUG items are created and indexed
 
 ---
 

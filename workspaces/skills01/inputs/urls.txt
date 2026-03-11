@@ -1,5 +1,0 @@
-# URLs for research_v0 playbook
-# One URL per line, lines starting with # are comments
-
-https://en.wikipedia.org/wiki/D%C3%BCsseldorf_meteorite
-https://www.lpi.usra.edu/meteor/metbull.php?code=7706

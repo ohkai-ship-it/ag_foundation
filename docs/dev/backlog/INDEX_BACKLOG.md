@@ -24,6 +24,13 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
+| AF-0087 | P1 | PROPOSED | Policy hook runtime validation baseline | Core Runtime/Policy | TBD | [🔗](items/AF0087_PROPOSED_policy_hook_validation.md) |
+| AF-0086 | P2 | PROPOSED | Test suite audit | Testing | TBD | [🔗](items/AF0086_PROPOSED_test_suite_audit.md) |
+| AF-0085 | P1 | PROPOSED | CLI consistency audit | CLI | TBD | [🔗](items/AF0085_PROPOSED_cli_consistency_audit.md) |
+| AF-0084 | P3 | PROPOSED | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_PROPOSED_index_link_emoji_fix.md) |
+| AF-0083 | P1 | PROPOSED | Artifact evidence strategy | Core Runtime | TBD | [🔗](items/AF0083_PROPOSED_artifact_evidence_strategy.md) |
+| AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
+| AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
 | AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
 | AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
 | AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | [🔗](items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
@@ -38,6 +45,29 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ---
 
 ## Sprints *IN DESCENDING ORDER*
+
+### Sprint 10 Scope (preliminary)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
+| 2 | AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
+| 3 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity** (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
+| 4 | AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
+| 5 | AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
+
+### Sprint 09 Scope (active)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_READY_test_isolation_framework.md) |
+| 2 | AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | [🔗](items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
+| 3 | AF-0085 | P1 | PROPOSED | CLI consistency audit | CLI | TBD | [🔗](items/AF0085_PROPOSED_cli_consistency_audit.md) |
+| 4 | AF-0087 | P1 | PROPOSED | Policy hook runtime validation baseline | Core Runtime/Policy | TBD | [🔗](items/AF0087_PROPOSED_policy_hook_validation.md) |
+| 5 | AF-0086 | P2 | PROPOSED | Test suite audit | Testing | TBD | [🔗](items/AF0086_PROPOSED_test_suite_audit.md) |
+| 6 | AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | [🔗](items/AF0072_PROPOSED_playbook_validation_error.md) |
+| 7 | AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch** | Storage | Jacob | [🔗](items/AF0015_PROPOSED_resolve_storage_db.md) |
+| 8 | AF-0083 | P1 | PROPOSED | Artifact evidence strategy | Core Runtime | TBD | [🔗](items/AF0083_PROPOSED_artifact_evidence_strategy.md) |
+| 9 | AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | [🔗](items/AF0057_PROPOSED_playbook_artifacts_in_trace.md) |
+| 10 | AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_PROPOSED_process_documentation_hardening.md) |
 
 ### Sprint 08 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

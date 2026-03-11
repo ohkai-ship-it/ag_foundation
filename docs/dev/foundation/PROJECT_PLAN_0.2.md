@@ -1,64 +1,63 @@
 # ag_foundation --- Project Plan
-
-# Version number: v0.4
-
-# Updated: 2026-03-06
+# Version number: v0.5
+# Updated: 2026-03-11
 
 ------------------------------------------------------------------------
 
 ## Purpose
 
-ag_foundation builds a **modular agent network core** that can plan,
-execute, verify, and learn from runs.\
-IoT integration, web/app UI, and other sensors/data sources are **later
-integrations**; the foundation must make those easy to attach.
+ag_foundation builds a modular agent network core that can plan,
+execute, verify, and learn from runs.
+IoT integration, web/app UI, and other sensors/data sources are later
+integrations; the foundation must make those easy to attach.
 
-The current phase prioritizes **skill architecture hardening**. Skills are
-the core unit of capability — everything else (RAG, API, IoT) depends on
-skills working correctly first.
+The current phase prioritizes reliability and safety hardening for
+bounded autonomy. Skills are established, but autonomy expansion now
+depends on enforcement, resilience, and governance quality gates.
 
 ------------------------------------------------------------------------
 
-# Current State Summary (after Sprint 05)
+# Current State Summary (after Sprint 08)
 
 The system has:
 
--   ✅ Architecturally modular runtime
--   ✅ Trace-contract enforced
--   ✅ Workspace-isolated
--   ✅ CI disciplined (ruff + pytest -W error + coverage thresholds)
--   ✅ Governance consolidated
--   ✅ Deterministic sprint execution model
--   ⚠️ **Skills are stub-only** — no LLM integration
--   ⚠️ **Skill contracts undefined** — no input/output schemas
--   ⚠️ **Workspace structure incomplete** — no `inputs/` folder convention
+-  Modular runtime with clear layered architecture
+-  Trace-contract enforcement and truthful UX discipline
+-  Workspace isolation and explicit workspace selection policy
+-  CI discipline (ruff + pytest -W error + coverage)
+-  Skill framework v2 and working playbooks (`summarize_v0`, `research_v0`)
+-  Architecture and inventory documentation synchronized (schemas/contracts)
+-  Policy hooks exist but enforcement depth is still maturing
+-  Reliability debt remains (warning-clean tests, isolation hardening)
+-  Autonomy remains playbook-driven; dynamic composition is future work
 
 Canonical governance documents:
 
--   `/docs/dev/foundation/FOUNDATION_MANUAL.md`
--   `/docs/dev/foundation/SPRINT_MANUAL.md`
+- `/docs/dev/foundation/FOUNDATION_MANUAL.md`
+- `/docs/dev/foundation/SPRINT_MANUAL.md`
 
-**Key gap:** The skill layer is the weakest part of the architecture.
-Until skills have proper contracts, LLM integration, and evidence capture,
-the system cannot deliver real capability.
+Key shift:
+The highest risk is no longer missing skills; it is scaling autonomy
+without sufficiently hardened reliability and policy enforcement.
 
 ------------------------------------------------------------------------
 
-# Strategic Focus (Post-Sprint 05)
+# Strategic Focus (Post-Sprint 08)
 
 We are transitioning from:
 
-> Runtime architecture hardening
+> Skill architecture establishment
 
 to:
 
-> Skill architecture hardening
+> Reliability + safety hardening for bounded autonomy
 
 Key rule going forward:
 
--   **Skills first** — everything else depends on working skills
--   No RAG, API, or IoT until skills are solid
--   Architecture must be validated by real LLM-calling skills
+- Reliability and policy enforcement before deeper autonomy
+- Keep truthful UX and workspace isolation non-negotiable
+- Preserve bounded autonomy: humans define WHAT, agents decide HOW
+- Expand planner autonomy only behind explicit quality gates
 
 ------------------------------------------------------------------------
 
@@ -77,253 +76,185 @@ Key rule going forward:
 ## Sprint 05 --- High-Pressure Skills (Closed)
 
 Exit status of Phase 0:
-✔ Modular runtime
-✔ Delegation pattern
-✔ Trace contract
-✔ Truthful CLI
-✔ CI enforcement
-✔ Governance consolidation
-✔ Schema verifier with repair loop
-⚠️ Skills remain stubs (no LLM calls)
+ Modular runtime
+ Delegation pattern
+ Trace contract
+ Truthful CLI
+ CI enforcement
+ Governance consolidation
+ Schema verifier with repair loop
 
 ------------------------------------------------------------------------
 
-# Phase 1 --- Skill Architecture Hardening
+# Phase 1 --- Skill & Playbook Foundation (Completed)
 
-This phase makes skills the foundation for all future capability.
+## Sprint 06 --- Skill Foundation (Closed)
+
+## Sprint 07 --- First Real Skills (Closed)
+
+## Sprint 08 --- Skill Ecosystem Expansion (Closed)
+
+Exit status of Phase 1:
+ Skills have defined contracts and schemas
+ LLM-powered skills and playbooks validated
+ Sprint-level architecture documentation completed
+ Autonomy-enabling reliability and policy maturity still required
 
 ------------------------------------------------------------------------
 
-## Sprint 06 --- Skill Foundation (Current)
+# Phase 2 --- Autonomy Readiness Hardening (Current)
 
-Goal: Establish the skill architecture that enables real LLM-powered capabilities.
+This phase operationalizes bounded autonomy with strong enforcement,
+resilience, and deterministic review gates.
 
-Scope (per INDEX_BACKLOG):
+------------------------------------------------------------------------
 
-| Order | AF | Title |
-|-------|-----|-------|
-| 1 | AF-0058 | Workspace folder restructure (inputs/, runs/<id>/) |
-| 2 | AF-0060 | Skill definition framework (schemas, protocols) |
-| 3 | AF-0063 | Schema inventory documentation |
-| 4 | AF-0013 | Contract inventory hardening |
+## Sprint 09 --- Reliability + Safety Hardening
 
-Why this matters:
-- AF-0058 establishes the workspace interface skills depend on
-- AF-0060 defines how skills declare inputs/outputs and call LLMs
-- AF-0063 documents what schemas exist (prerequisite for contracts)
-- AF-0013 reconciles documentation with implementation
+Goal: Eliminate known reliability blockers before autonomy expansion.
+
+Scope focus:
+- Test isolation framework and warning-clean discipline
+- CLI consistency audit and reference parity follow-ups
+- Policy hook enforcement baseline in runtime paths
+- Failure-path coverage and deterministic cleanup behavior
+
+Planned high-priority items (from current backlog state):
+- AF-0046 (READY) test isolation framework
+- AF-0071 warning-clean test discipline
+- AF-0085 CLI consistency audit
+- AF-0086 test suite audit
 
 Exit criteria:
-- Workspace has `inputs/` and `runs/<id>/` structure
-- Skill protocol defined with input/output schemas
-- SkillContext provides LLM access pattern
-- Schema inventory complete
-- No undocumented contract drift
-
-Reference: `/docs/dev/additional/SKILLS_ARCHITECTURE_0.1.md`
+- `pytest -W error` passes without known warning exceptions
+- Isolation regressions addressed (workspace/provider cleanup)
+- CLI behavior and docs parity gaps triaged and scheduled
+- Policy checks explicitly validated on touched behavior
 
 ------------------------------------------------------------------------
 
-## Sprint 07 --- First Real Skills
+## Sprint 10 --- Planner + Verifier Maturity
 
-Goal: Prove the skill framework by implementing real LLM-calling skills.
+Goal: Strengthen planning and verification behavior without breaking
+bounded autonomy.
 
-Scope (per INDEX_BACKLOG):
+Scope focus:
+- Playbook validation hardening
+- Artifact evidence strategy and trace linkage
+- Failure handling rigor (retry/timeout behavior validation)
+- Verifier strategy maturity for non-happy paths
 
-| Order | AF | Title |
-|-------|-----|-------|
-| 1 | AF-0065 | First skill set (from scratch, not strategic_brief) |
-| 2 | AF-0066 | E2E integration test (skill → verifier → trace → artifact) |
-| 3 | AF-0062 | Trace LLM model tracking |
-
-Why this matters:
-- AF-0065 validates that the framework actually works
-- AF-0066 proves the full pipeline end-to-end
-- AF-0062 ensures LLM usage is observable
+Planned high-priority items:
+- AF-0072 playbook validation error
+- AF-0057 playbook artifacts in trace
+- AF-0083 artifact evidence strategy
 
 Exit criteria:
-- At least 2 working skills that call LLM
-- Skills produce evidence and artifacts
-- E2E test passes in CI (mock provider)
-- E2E test passes manually (real provider)
-- Trace shows model used
+- Invalid playbook configurations fail clearly and tracefully
+- Artifact evidence is trace-linked and reviewable
+- Retry/failure behavior is testable and deterministic
+- Verifier outcomes are consistent across happy and failure paths
 
 ------------------------------------------------------------------------
 
-## Sprint 08 --- Skill Ecosystem Expansion
+## Sprint 11 --- Controlled Autonomy Enablement
 
-Goal: Build out the skill library and playbook composition.
+Goal: Prepare the system for Guided Agent evolution behind explicit gates.
 
-Scope:
-- Additional skills: code_review, generate_tests, refactor
-- Playbook library with multiple workflows
-- Default playbook selection logic
+Scope focus:
+- Controlled planner evolution (suggestions, not unconstrained autonomy)
+- Policy/confirmation escalation discipline for higher-impact actions
+- Operational quality gates integrated into sprint close ritual
+
+Candidate follow-up themes:
+- AF-0077 skills plugin architecture (if gate-ready)
+- AF-0078 playbooks plugin architecture (if gate-ready)
+- AF-0064 process documentation hardening
 
 Exit criteria:
-- 5+ working skills
-- Multiple playbooks demonstrating composition
-- Playbook selection documented
+- Guided autonomy scope is explicitly bounded and documented
+- Safety and policy checks are enforced, not only declared
+- Review/autonomy gates are integrated in sprint templates and closure
 
 ------------------------------------------------------------------------
 
-# Phase 2 --- Capability Expansion (Deferred)
+# Autonomy Phase Gates (Required)
 
-These sprints are deferred until skill architecture is proven.
+| Gate | Purpose | Required Conditions |
+|------|---------|---------------------|
+| Gate A: Reliability | Move from foundation to autonomy-ready execution | warning-clean tests, isolation stability, failure-path coverage, deterministic cleanup |
+| Gate B: Guided Autonomy | Enable guided planning behavior | policy enforcement present, verifier/failure rigor, trace-derived labels for all new behavior |
+| Gate C: Goals-Only Preparation | Prepare for dynamic composition | mature policy engine, stronger evidence model, controlled playbook/skill extensibility |
+
+Gate rule:
+No sprint may claim autonomy progression while a P0 gate condition is unmet.
 
 ------------------------------------------------------------------------
 
-## Sprint 09+ --- Retrieval Interface Layer (RAG)
+# Phase 3 --- Capability Expansion (Deferred Until Gate B)
 
-Goal: Introduce retrieval as a pluggable interface.
+These areas remain deferred until autonomy readiness gates are satisfied.
 
-Scope:
+## Retrieval Interface Layer (RAG)
 - Retriever interface definition
 - Workspace-bound indexing model
 - Evidence bundle capture in trace
 - Citation linking in trace contract
 
-Prerequisite: Sprint 07 complete (skills must work first)
-
-------------------------------------------------------------------------
-
-## Sprint 10+ --- Workspace & Artifact Maturity
-
-Goal: Strengthen durable state and artifact lifecycle.
-
-Scope:
-- Artifact registry formalization
-- Export/import boundaries
-- Artifact reproducibility guarantees
-- Workspace migration model
-
-------------------------------------------------------------------------
-
-## Sprint 11+ --- Internal API Readiness
-
-Goal: Prepare core runtime for API exposure.
-
-Scope:
+## Internal API Readiness
 - Internal adapter interface definition
-- CLI → service layer mapping
+- CLI -> service layer mapping
 - Future endpoint definitions
 
-Prerequisite: Skills work, RAG works, then API.
-
-------------------------------------------------------------------------
-
-## Sprint 12+ --- Policy & Budget Engine
-
-Goal: Formalize guardrails and execution governance.
-
-Scope:
-- Budget enforcement hooks
-- Retry/backoff formalization
-- Safe-action classification
-
-------------------------------------------------------------------------
-
-## Sprint 13+ --- Integration Phase (IoT/Web)
-
-Goal: Attach real-world I/O.
-
-Scope:
+## Integration Phase (IoT/Web)
 - IoT adapters
 - Web/app adapters
 - Multi-interface orchestration
 
-Prerequisite: Everything above works first.
-
 ------------------------------------------------------------------------
 
-# Phase 3 --- Autonomy Evolution (Future)
-
-The system's autonomy level will evolve over time.
+# Phase 4 --- Autonomy Evolution (Future)
 
 ## Autonomy Spectrum
 
 ```
 RIGID                                                    AUTONOMOUS
 (human decides everything)                    (agent decides everything)
-    │                                                         │
-    ▼                                                         ▼
-┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐
-│ Script │  │Playbook│  │ Guided │  │ Goals  │  │  Full  │
-│        │  │        │  │ Agent  │  │  Only  │  │ Agent  │
-└────────┘  └────────┘  └────────┘  └────────┘  └────────┘
-     │           │           │           │           │
-     │      PHASE 1     PHASE 3     PHASE 4     PHASE 5
-     │      (now)       (future)    (future)    (future)
+    |                                                         |
+    v                                                         v
++--------+  +--------+  +--------+  +--------+  +--------+
+| Script |  |Playbook|  | Guided |  | Goals  |  |  Full  |
+|        |  |        |  | Agent  |  |  Only  |  | Agent  |
++--------+  +--------+  +--------+  +--------+  +--------+
 ```
 
-### Phase 1: Playbook-Driven (Current Focus)
+Current operational mode:
+Playbook-driven bounded autonomy.
 
-- Humans define playbooks (skill sequence, data mapping)
-- Agents have autonomy WITHIN skill execution
-- Predictable, testable, debuggable
+Future progression:
+- Guided Agent: planner suggestions with human approval
+- Goals Only: constrained autonomous composition
+- Full Agent: long-term and policy-engine dependent
 
-### Phase 3: Guided Agent (Future)
-
-- Agent can suggest playbook modifications
-- Human approves before execution
-- Semi-autonomous planning
-
-### Phase 4: Goals Only (Future)
-
-- Human provides goal, agent selects playbook
-- Agent composes skills dynamically
-- Monitoring and guardrails required
-
-### Phase 5: Full Agent (Long-term)
-
-- Agent defines its own skills
-- Minimal human oversight
-- Requires robust safety/policy engine
-
-**Key principle:** Humans define WHAT, agents decide HOW.
-
-------------------------------------------------------------------------
-
-# Architectural Trajectory Summary
-
-We have NOT completed structural maturity.
-
-The skill layer is the critical gap. Until skills:
-- Have defined input/output schemas
-- Can call LLMs via provider injection
-- Produce evidence and artifacts
-- Are testable in isolation
-
-...the system cannot deliver real capability.
-
-Current optimization targets:
-
-1.  **Skill architecture** — most urgent
-2.  **Schema discipline** — enables verification
-3.  **Evidence model** — enables trust
-4.  **Workspace structure** — enables skill I/O
-
-Deferred until skills work:
-
-1.  RAG/Retrieval
-2.  Internal API
-3.  Policy engine
-4.  IoT/Web integration
+Core principle:
+Humans define WHAT, agents decide HOW.
 
 ------------------------------------------------------------------------
 
 # Current Strategic Position
 
-The runtime is stable but the skill layer is immature.
+The runtime and skill foundations are now strong enough to shift focus to
+reliability and safety enforcement for autonomy scaling.
 
 The next failure mode is:
 
-> Building features (RAG, API, IoT) on top of broken skill foundations.
+> Expanding planner autonomy without hardened policy and reliability gates.
 
-The focus from Sprint 06 onward must be:
+Near-term focus from Sprint 09 onward must be:
 
--   Skill contracts first
--   Real LLM integration
--   Evidence and artifact discipline
--   Verifiable, testable skills
+- Reliability and warning-clean test discipline
+- Policy enforcement in runtime behavior
+- Failure-path and verifier maturity
+- Explicit autonomy gates in sprint planning and review
 
-That is the path to capability.
+That is the path to trustworthy bounded agentic autonomy.

@@ -380,6 +380,33 @@ Update `S##_DESCRIPTION.md`:
 
 ---
 
+## 9. Autonomy Gate (Required For Autonomy-Affecting Sprints)
+
+This gate is mandatory when sprint scope touches planner, orchestrator,
+verifier, skill chaining, policy hooks, or user-visible execution labels.
+
+### 9.1 Start Gate (Sprint Planning)
+- [ ] Scope identifies autonomy-affecting AF/BUG items explicitly
+- [ ] Policy impact identified (permission, confirmation, budget, escalation)
+- [ ] Trace impact identified (new/changed labels and required trace fields)
+- [ ] Failure-path scenarios identified up front
+- [ ] Workspace-boundary risks identified
+
+### 9.2 Close Gate (Sprint Review/Closure)
+- [ ] User-visible labels verified as trace-derived
+- [ ] Policy checks verified in touched behavior paths
+- [ ] Retry/timeout/failure behavior verified and trace-aligned
+- [ ] Workspace isolation verified in happy and failure paths
+- [ ] `pytest -W error` evidence captured
+- [ ] Open autonomy blockers converted to AF/BUG items with index updates
+
+### 9.3 Decision Rule
+- If any P0 Autonomy Gate item is unchecked: sprint cannot be Closed.
+- If only P1/P2 items remain: `ACCEPT WITH FOLLOW-UPS` is allowed only if
+   follow-up AF/BUG items are created and indexed.
+
+---
+
 ## Quick Reference: Commands
 
 ### CI Commands

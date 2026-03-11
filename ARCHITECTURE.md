@@ -110,6 +110,7 @@ A registry of skills that declare:
 |-------|------|------------|--------|
 | `load_documents` | File I/O | Read documents from workspace | summarize_v0 |
 | `summarize_docs` | LLM | Generate summary from documents | summarize_v0 |
+| `web_search` | Search API | Discover URLs from research query | research_v0 |
 | `fetch_web_content` | HTTP | Fetch and extract text from URLs | research_v0 |
 | `synthesize_research` | LLM | Synthesize research report | research_v0 |
 | `fail_skill` | Test | Always fails (testing) | tests |
@@ -326,9 +327,19 @@ Example modes:
 | Name | Stability | Skills Used | Purpose |
 |------|-----------|-------------|---------|
 | `summarize_v0` | experimental | load_documents, summarize_docs | Summarize documents from workspace |
-| `research_v0` | experimental | fetch_web_content, synthesize_research | Research pipeline: fetch URLs, synthesize report |
+| `research_v0` | experimental | load_documents, web_search, fetch_web_content, synthesize_research | Research pipeline: load local context + discover/fetch/synthesize web sources |
 | `default_v0` | test | (echo-style) | Testing playbook execution |
 | `delegate_v0` | test | (echo-style) | Testing multi-step delegation |
+
+### 5.4 Current Autonomy Boundaries (Post-Sprint08)
+
+Current runtime behavior is bounded, playbook-driven autonomy.
+
+- Playbook structure is human-defined and static at runtime.
+- Agents decide parameters and output content within skill/schema boundaries.
+- Dynamic playbook composition is deferred to future phases.
+- Policy hooks exist, but enforcement maturity is roadmap-driven and must be validated per sprint.
+- Autonomy progression requires passing reliability/safety gates (see project plan and sprint process docs).
 
 #### How to Add a Playbook
 
@@ -387,6 +398,16 @@ Safety is implemented as hook points in orchestrator/executor boundaries.
 - **Redaction**: before recording/exporting sensitive data
 - **Budget enforcement**: token/cost/tool-call caps
 - **Escalation**: when verification fails or confidence is low
+
+### 7.1 Autonomy Readiness Constraints
+
+Any autonomy expansion must preserve these constraints:
+
+- **Truthful UX**: all user-visible labels remain trace-derived.
+- **Workspace isolation**: no read/write outside active workspace boundaries.
+- **Deterministic failure behavior**: retries/timeouts/failures are explicit and traceable.
+- **Policy enforcement**: permission/confirmation/budget checks are enforced in runtime behavior, not only documented as hooks.
+- **Review gate compliance**: autonomy-affecting changes pass sprint autonomy gate checks before closure.
 
 ---
 
@@ -581,3 +602,13 @@ Event Adapter replaces the CLI Adapter in step (1) and emits `EventSpec -> TaskS
 ## 11. Next cornerstone docs to author
 - `CLI_REFERENCE.md` (trace-derived UX, LLM-first; manual dev-only)
 - `REVIEW_GUIDE.md` (how to validate runs + traces + changes)
+
+### 11.2 Known Gaps (Implementation Debt)
+
+Post-Sprint08, these gaps are known and tracked for roadmap sequencing:
+
+- Policy hook depth (permission/confirmation/budget) requires stronger runtime enforcement.
+- Playbook validation hardening is still an active quality concern.
+- Artifact evidence strategy needs stronger trace linkage patterns.
+- Test isolation and warning-clean discipline remain reliability priorities.
+- Plugin architecture for skills/playbooks is deferred until autonomy readiness gates are stable.

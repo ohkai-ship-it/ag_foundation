@@ -74,7 +74,7 @@ Skills that produce artifacts (like `emit_result`) should have those artifacts:
 
 ## Acceptance criteria (Definition of Done)
 
-- [ ] After `ag run --playbook summarize_v0 ...`, trace step for `emit_result` 
+- [ ] After `ag run --playbook research_v0 ...`, trace step for `emit_result` 
       has non-empty `artifacts` list
 - [ ] Run-level `artifacts` includes skill-produced artifacts
 - [ ] `ag runs show <id> --json` shows artifacts correctly

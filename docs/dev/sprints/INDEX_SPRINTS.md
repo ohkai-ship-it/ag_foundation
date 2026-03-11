@@ -37,6 +37,8 @@ Each sprint folder:
 | Sprint 06 | Closed | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
 | Sprint 07 | Closed | [Sprint07_summarize_playbook](documentation/Sprint07_summarize_playbook/) |
 | Sprint 08 | Closed | [Sprint08_skills_playbooks_maturity](documentation/Sprint08_skills_playbooks_maturity/) |
+| Sprint 09 | Active | [Sprint09_reliability_safety_hardening](documentation/Sprint09_reliability_safety_hardening/) |
+| Sprint 10 | Preliminary | (backlog planning only) |
 
 ---
 
