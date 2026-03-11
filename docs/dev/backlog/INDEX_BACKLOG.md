@@ -48,8 +48,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 09 Scope (active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_Ready_test_isolation_framework.md) |
-| 2 | AF-0071 | P1 | READY | Warning-clean test discipline (+BUG-0012) | Testing/Storage | Jacob | [🔗](items/AF0071_READY_warning_clean_test_discipline.md) |
+| 1 | AF-0046 | P1 | DONE | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_DONE_test_isolation_framework.md) |
+| 2 | AF-0071 | P1 | DONE | Warning-clean test discipline (+BUG-0012) | Testing/Storage | Jacob | [🔗](items/AF0071_DONE_warning_clean_test_discipline.md) |
 | 3 | AF-0085 | P1 | READY | CLI consistency audit | CLI | Jacob | [🔗](items/AF0085_READY_cli_consistency_audit.md) |
 | 4 | AF-0087 | P1 | READY | Policy hook runtime validation baseline | Core Runtime/Policy | Jacob | [🔗](items/AF0087_READY_policy_hook_validation.md) |
 | 5 | AF-0086 | P2 | READY | Test suite audit | Testing | Jacob | [🔗](items/AF0086_READY_test_suite_audit.md) |
