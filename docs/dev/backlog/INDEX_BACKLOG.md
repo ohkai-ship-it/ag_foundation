@@ -54,7 +54,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 4 | AF-0087 | P1 | DONE | Policy hook runtime validation baseline | Core Runtime/Policy | Jacob | [🔗](items/AF0087_DONE_policy_hook_validation.md) |
 | 5 | AF-0086 | P2 | DONE | Test suite audit | Testing | Jacob | [🔗](items/AF0086_DONE_test_suite_audit.md) |
 | 6 | AF-0072 | P2 | DONE | Playbook validation error | CLI | Jacob | [🔗](items/AF0072_DONE_playbook_validation_error.md) |
-| 7 | AF-0015 | P2 | READY | Resolve storage DB filename mismatch | Storage | Jacob | [🔗](items/AF0015_READY_resolve_storage_db.md) |
+| 7 | AF-0015 | P2 | DONE | Resolve storage DB filename mismatch | Storage | Jacob | [🔗](items/AF0015_DONE_resolve_storage_db.md) |
 | 8 | AF-0083 | P1 | DONE | Artifact evidence strategy | Core Runtime | Jacob | [🔗](items/AF0083_DONE_artifact_evidence_strategy.md) |
 | 9 | AF-0057 | P1 | DONE | Playbook artifacts in trace | Core Runtime | Jacob | [🔗](items/AF0057_DONE_playbook_artifacts_in_trace.md) |
 | 10 | AF-0064 | P1 | READY | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_READY_process_documentation_hardening.md) |

@@ -91,6 +91,18 @@ class TestWorkspace:
         assert ws.inputs_path.exists()  # AF0058: inputs/ folder for user content
         assert ws.runs_path.exists()  # AF0058: runs/ folder for run outputs
 
+    def test_db_filename_is_canonical(self, temp_root: Path) -> None:
+        """Workspace uses canonical db.sqlite filename (AF-0015)."""
+        ws = Workspace("test-ws", temp_root)
+        ws.ensure_exists()
+
+        # Verify the canonical filename constant
+        assert ws.DB_FILE == "db.sqlite"
+
+        # Verify db_path uses the canonical filename
+        assert ws.db_path.name == "db.sqlite"
+        assert ws.db_path == ws.path / "db.sqlite"
+
     def test_path_safety_rejects_traversal(self, temp_root: Path) -> None:
         """Path components with traversal are rejected."""
         ws = Workspace("test-ws", temp_root)
