@@ -142,6 +142,7 @@ class EmitResultOutput(SkillOutput):
     Attributes:
         artifact_id: Unique identifier for the artifact
         artifact_path: Path where artifact was stored
+        artifact_type: MIME type of the artifact
         bytes_written: Size of artifact in bytes
     """
 
@@ -152,6 +153,10 @@ class EmitResultOutput(SkillOutput):
     artifact_path: str = Field(
         default="",
         description="Path where artifact was stored",
+    )
+    artifact_type: str = Field(
+        default="application/json",
+        description="MIME type of the artifact",
     )
     bytes_written: int = Field(
         default=0,
@@ -235,32 +240,43 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             runs_dir.mkdir(parents=True, exist_ok=True)
             artifact_path = runs_dir / input.artifact_name
 
-            # Build output data from pipeline results
-            output_data = {
-                "artifact_id": artifact_id,
-                "created_at": datetime.now(UTC).isoformat(),
-                "run_id": ctx.run_id,
-                "step_number": ctx.step_number,
-                # Actual content from pipeline
-                "summary": input.document_summary,
-                "key_points": input.key_points,
-                "sources": input.sources,
-                "source_count": input.source_count,
-            }
+            # Determine output format from filename extension
+            is_markdown = input.artifact_name.lower().endswith((".md", ".markdown"))
+
+            if is_markdown:
+                # Write markdown format for .md files
+                content = self._format_markdown(input, artifact_id, ctx.run_id)
+            else:
+                # Write JSON format for .json files (default)
+                output_data = {
+                    "artifact_id": artifact_id,
+                    "created_at": datetime.now(UTC).isoformat(),
+                    "run_id": ctx.run_id,
+                    "step_number": ctx.step_number,
+                    # Actual content from pipeline
+                    "summary": input.document_summary,
+                    "key_points": input.key_points,
+                    "sources": input.sources,
+                    "source_count": input.source_count,
+                }
+                content = json.dumps(output_data, indent=2, default=str)
 
             # Write to file
-            content = json.dumps(output_data, indent=2, default=str)
             artifact_path.write_text(content, encoding="utf-8")
             bytes_written = len(content.encode("utf-8"))
 
             # Return relative path from workspace
             rel_path = str(artifact_path.relative_to(workspace_path))
 
+            # Determine MIME type from format
+            mime_type = "text/markdown" if is_markdown else "application/json"
+
             return EmitResultOutput(
                 success=True,
                 summary=f"Artifact stored: {rel_path} ({bytes_written:,} bytes)",
                 artifact_id=artifact_id,
                 artifact_path=rel_path,
+                artifact_type=mime_type,
                 bytes_written=bytes_written,
             )
 
@@ -274,3 +290,52 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
     def to_legacy_tuple(self, output: EmitResultOutput) -> tuple[bool, str, dict[str, Any]]:
         """Convert output to legacy skill return format."""
         return output.to_legacy_tuple()
+
+    def _format_markdown(self, input: EmitResultInput, artifact_id: str, run_id: str | None) -> str:
+        """Format result as markdown document.
+
+        Args:
+            input: Skill input with document_summary, key_points, sources
+            artifact_id: Generated artifact ID
+            run_id: Optional run ID
+
+        Returns:
+            Formatted markdown string
+        """
+        lines = []
+
+        # Title
+        lines.append("# Research Report")
+        lines.append("")
+
+        # Metadata (as comment for traceability)
+        lines.append(f"<!-- artifact_id: {artifact_id} -->")
+        if run_id:
+            lines.append(f"<!-- run_id: {run_id} -->")
+        lines.append(f"<!-- generated: {datetime.now(UTC).isoformat()} -->")
+        lines.append("")
+
+        # Summary/Report
+        if input.document_summary:
+            lines.append("## Summary")
+            lines.append("")
+            lines.append(input.document_summary)
+            lines.append("")
+
+        # Key Points/Findings
+        if input.key_points:
+            lines.append("## Key Findings")
+            lines.append("")
+            for point in input.key_points:
+                lines.append(f"- {point}")
+            lines.append("")
+
+        # Sources
+        if input.sources:
+            lines.append("## Sources")
+            lines.append("")
+            for i, source in enumerate(input.sources, 1):
+                lines.append(f"{i}. {source}")
+            lines.append("")
+
+        return "\n".join(lines)

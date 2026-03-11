@@ -154,9 +154,13 @@ class TestGlobalJsonPropagation:
                 env={"AG_WORKSPACE_DIR": tmpdir},
             )
             assert result.exit_code == 0
-            # Should be valid JSON
+            # Should be valid JSON with pagination info (AF-0088)
             data = json.loads(result.output)
-            assert isinstance(data, list)
+            assert isinstance(data, dict)
+            assert "runs" in data
+            assert "total" in data
+            assert "showing" in data
+            assert isinstance(data["runs"], list)
 
     def test_local_json_overrides_global(self) -> None:
         """Local --json and global --json both work (no conflict)."""
@@ -185,7 +189,10 @@ class TestGlobalJsonPropagation:
             )
             assert result.exit_code == 0
             data = json.loads(result.output)
-            assert isinstance(data, list)
+            # AF-0088: JSON output now includes pagination info
+            assert isinstance(data, dict)
+            assert "runs" in data
+            assert isinstance(data["runs"], list)
 
 
 # ---------------------------------------------------------------------------

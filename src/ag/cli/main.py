@@ -377,9 +377,7 @@ def run(
 
         if get_playbook(playbook) is None:
             available = list_playbooks()
-            err_console.print(
-                f"[bold red]Error:[/bold red] Playbook '{playbook}' not found."
-            )
+            err_console.print(f"[bold red]Error:[/bold red] Playbook '{playbook}' not found.")
             err_console.print(f"Available playbooks: {', '.join(available)}")
             err_console.print("Run [cyan]ag playbooks list[/cyan] for details.")
             raise typer.Exit(code=1)
@@ -666,14 +664,19 @@ def run(
 @runs_app.command("list")
 def runs_list(
     ctx: typer.Context,
-    limit: int = typer.Option(10, "--limit", "-n", help="Max runs to show."),
+    limit: int = typer.Option(10, "--limit", "-n", help="Max runs to show (default: 10)."),
+    all_runs: bool = typer.Option(False, "--all", "-a", help="Show all runs (ignores --limit)."),
     status: Optional[str] = typer.Option(
         None, "--status", "-s", help="Filter by status (success/failure)."
     ),
     workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Filter by workspace."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
-    """List recent runs."""
+    """List recent runs.
+
+    Shows most recent runs first. By default shows 10 runs.
+    Use --all to show all runs, or --limit N to show N runs.
+    """
     # Resolve global options
     cli_ctx = get_cli_ctx(ctx)
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
@@ -686,7 +689,12 @@ def runs_list(
     run_store = _get_run_store()
 
     try:
-        runs = run_store.list(resolved_workspace, limit=limit)
+        # Get total count for pagination info
+        total_count = run_store.count(resolved_workspace)
+
+        # Use high limit when --all is specified
+        effective_limit = 10000 if all_runs else limit
+        runs = run_store.list(resolved_workspace, limit=effective_limit)
 
         # Filter by status if provided
         if status:
@@ -694,14 +702,27 @@ def runs_list(
             runs = [r for r in runs if r.final.value == status_filter]
 
         if resolved_json:
-            output = [json.loads(r.to_json()) for r in runs]
+            output = {
+                "total": total_count,
+                "showing": len(runs),
+                "runs": [json.loads(r.to_json()) for r in runs],
+            }
             console.print(json.dumps(output, indent=2))
         else:
             if not runs:
                 console.print(f"No runs found in workspace '{resolved_workspace}'")
                 return
 
-            table = Table(title=f"Runs in workspace '{resolved_workspace}'")
+            # Show pagination info in title
+            if all_runs or len(runs) >= total_count:
+                title = f"Runs in workspace '{resolved_workspace}' ({total_count} total)"
+            else:
+                title = (
+                    f"Runs in workspace '{resolved_workspace}' "
+                    f"(showing {len(runs)} of {total_count})"
+                )
+
+            table = Table(title=title)
             table.add_column("Run ID", style="cyan", no_wrap=True)
             table.add_column("Status")
             table.add_column("Verifier")
@@ -725,6 +746,13 @@ def runs_list(
                 )
 
             console.print(table)
+
+            # Show hint if truncated
+            if not all_runs and len(runs) < total_count:
+                console.print(
+                    f"[dim]Use --all to show all {total_count} runs, "
+                    f"or --limit N to show more.[/dim]"
+                )
 
     finally:
         run_store.close()

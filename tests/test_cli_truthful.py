@@ -341,7 +341,9 @@ class TestRunsList:
         result = runner.invoke(app, ["runs", "list", "--workspace", "ws-test", "--json"])
 
         assert result.exit_code == 0
-        runs = json.loads(result.stdout)
+        # AF-0088: JSON output includes pagination info
+        data = json.loads(result.stdout)
+        runs = data["runs"]
         assert len(runs) >= 1
         assert any(r["run_id"] == run_id for r in runs)
 
@@ -363,8 +365,10 @@ class TestRunsList:
         )
 
         assert result.exit_code == 0
-        runs = json.loads(result.stdout)
-        assert runs == []
+        # AF-0088: JSON output includes pagination info
+        data = json.loads(result.stdout)
+        assert data["runs"] == []
+        assert data["total"] == 0
 
     def test_runs_list_requires_workspace(self) -> None:
         """ag runs list requires --workspace flag."""

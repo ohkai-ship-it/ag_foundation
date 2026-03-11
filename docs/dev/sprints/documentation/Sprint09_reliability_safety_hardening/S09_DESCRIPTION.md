@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint09
 - **Name:** reliability_safety_hardening
-- **Dates:** 2026-03-11 → TBD
+- **Dates:** 2026-03-11 → 2026-03-11
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Active
+- **State:** Closed
 
 ---
 
@@ -102,12 +102,12 @@ Harden bounded autonomy reliability and safety so Gate A conditions are provably
 
 ## 6) Exit criteria
 
-- [ ] `pytest -W error` passes cleanly
-- [ ] isolation regressions for providers/workspace resolved
-- [ ] CLI consistency findings triaged with explicit follow-up mapping
-- [ ] policy checks validated on touched behavior paths
-- [ ] failure-path behavior is explicit and trace-aligned
-- [ ] no open P0 Autonomy Gate failures at sprint close
+- [x] `pytest -W error` passes cleanly
+- [x] isolation regressions for providers/workspace resolved
+- [x] CLI consistency findings triaged with explicit follow-up mapping
+- [x] policy checks validated on touched behavior paths
+- [x] failure-path behavior is explicit and trace-aligned
+- [x] no open P0 Autonomy Gate failures at sprint close
 
 ---
 
@@ -116,22 +116,41 @@ Harden bounded autonomy reliability and safety so Gate A conditions are provably
 ### Shipped items
 | ID | Status | Title |
 |--|--|--|
-| TBD | TBD | TBD |
+| AF-0046 | DONE | Test isolation framework (+BUG-0007) |
+| AF-0071 | DONE | Warning-clean test discipline (+BUG-0012) |
+| AF-0085 | DONE | CLI consistency audit |
+| AF-0087 | DONE | Policy hook runtime validation baseline |
+| AF-0086 | DONE | Test suite audit |
+| AF-0072 | DONE | Playbook validation error |
+| AF-0015 | DONE | Resolve storage DB filename mismatch |
+| AF-0083 | DONE | Artifact evidence strategy |
+| AF-0057 | DONE | Playbook artifacts in trace |
+| AF-0064 | DONE | Process documentation hardening |
+| AF-0088 | DONE | Runs list pagination |
+| AF-0089 | DONE | Report output format |
+| BUG-0007 | FIXED | OpenAI provider test isolation failure |
+| BUG-0014 | FIXED | Trace summary encoding (verified working) |
 
 ### Not shipped (with reasons)
 | ID | Status | Title | Reason |
 |--|--|--|--|
-| TBD | TBD | TBD | TBD |
+| (none) | — | All scope items shipped | — |
 
 ### Evidence
-- TBD
+- **Tests:** 461 passed, 3 deselected
+- **Coverage:** 86%
+- **Lint:** `ruff check src tests` — All checks passed
+- **Format:** `ruff format --check src tests` — 55 files already formatted
+- **CI discipline:** `pytest -W error` clean
 
 ### Learnings
-- TBD
+- Review process identified two missing scope items (AF-0088, AF-0089) which were added and completed
+- UTF-8 encoding issue (BUG-0014) was Windows terminal encoding, not code bug — added regression test
+- JSON output format changes require updating dependent tests across multiple files
 
 ---
 
 ## 8) PR plan
 | PR | Primary AF | Branch | Status |
 |--|--|--|--|
-| PR-01 | Sprint09 scope | feat/sprint09-reliability-safety-hardening | Open |
+| PR-01 | Sprint09 scope | feat/sprint09-reliability-safety-hardening | Merged |

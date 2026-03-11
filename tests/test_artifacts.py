@@ -546,8 +546,9 @@ class TestPlaybookArtifactsInTrace:
 
     def test_artifact_id_captured_from_skill_result(self, tmp_path: Path) -> None:
         """Runtime should capture artifact_id from skill execution result."""
-        from ag.core import Artifact, Step, StepType
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
+        from ag.core import Step, StepType
 
         # Verify Step schema supports artifacts field
         step = Step(
@@ -566,9 +567,10 @@ class TestPlaybookArtifactsInTrace:
 
     def test_artifact_object_in_trace_artifacts(self, tmp_path: Path) -> None:
         """Artifact objects should be appendable to trace.artifacts."""
-        from ag.core import Artifact, RunTrace, FinalStatus, ExecutionMode
-        from ag.core.run_trace import Verifier, VerifierStatus, PlaybookMetadata
-        from datetime import datetime, UTC
+        from datetime import UTC, datetime
+
+        from ag.core import Artifact, ExecutionMode, FinalStatus, RunTrace
+        from ag.core.run_trace import PlaybookMetadata, Verifier, VerifierStatus
 
         artifact = Artifact(
             artifact_id="art-test123",
@@ -599,6 +601,7 @@ class TestPlaybookArtifactsInTrace:
     def test_runtime_artifact_capture_code_path(self, tmp_path: Path) -> None:
         """Verify the artifact capture code path in runtime exists."""
         import inspect
+
         from ag.core.runtime import V0Orchestrator
 
         # Get the source of the orchestrator's run method

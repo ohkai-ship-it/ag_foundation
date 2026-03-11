@@ -414,6 +414,87 @@ class TestEmitResultSkill:
         assert content["key_points"] == ["point 1", "point 2"]
         assert "created_at" in content
 
+    def test_markdown_output_format(self, tmp_path: Path) -> None:
+        """AF-0089: .md artifact writes markdown, not JSON."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(
+            workspace_path=tmp_path,
+            run_id="md-run",
+            step_number=1,
+        )
+        input_data = EmitResultInput(
+            document_summary="This is the summary.",
+            key_points=["First point", "Second point"],
+            sources=["source1.txt", "source2.txt"],
+            artifact_name="research_report.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        artifact_path = tmp_path / result.artifact_path
+        content = artifact_path.read_text(encoding="utf-8")
+
+        # Should be markdown, not JSON
+        assert not content.startswith("{")
+        assert "# Research Report" in content
+        assert "## Summary" in content
+        assert "This is the summary." in content
+        assert "## Key Findings" in content
+        assert "- First point" in content
+        assert "- Second point" in content
+        assert "## Sources" in content
+        assert "1. source1.txt" in content
+        assert "2. source2.txt" in content
+        # Should have artifact_id in comment for traceability
+        assert f"artifact_id: {result.artifact_id}" in content
+
+    def test_json_output_for_json_extension(self, tmp_path: Path) -> None:
+        """AF-0089: .json artifact writes JSON as expected."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="json-run")
+        input_data = EmitResultInput(
+            document_summary="test",
+            artifact_name="result.json",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        artifact_path = tmp_path / result.artifact_path
+        content = artifact_path.read_text(encoding="utf-8")
+
+        # Should be valid JSON
+        data = json.loads(content)
+        assert data["summary"] == "test"
+
+    def test_artifact_type_mime_for_markdown(self, tmp_path: Path) -> None:
+        """AF-0089: artifact_type is text/markdown for .md files."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="mime-md")
+        input_data = EmitResultInput(
+            document_summary="test",
+            artifact_name="report.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.artifact_type == "text/markdown"
+
+    def test_artifact_type_mime_for_json(self, tmp_path: Path) -> None:
+        """AF-0089: artifact_type is application/json for .json files."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="mime-json")
+        input_data = EmitResultInput(
+            document_summary="test",
+            artifact_name="result.json",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.artifact_type == "application/json"
+
 
 # ---------------------------------------------------------------------------
 # Integration Tests

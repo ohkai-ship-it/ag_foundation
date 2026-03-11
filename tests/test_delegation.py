@@ -204,7 +204,9 @@ class TestDelegationCLI:
                 env=env,
             )
             assert list_result.exit_code == 0
-            runs_data = json.loads(list_result.stdout)
+            # AF-0088: JSON output includes pagination info
+            data = json.loads(list_result.stdout)
+            runs_data = data["runs"]
             assert len(runs_data) > 0
             run_id = runs_data[0]["run_id"]
 

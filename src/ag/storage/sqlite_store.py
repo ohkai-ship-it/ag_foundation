@@ -188,6 +188,19 @@ class SQLiteRunStore:
                 runs.append(trace)
         return runs
 
+    def count(self, workspace_id: str) -> int:
+        """Count total runs in a workspace."""
+        ws = Workspace(workspace_id, self._root)
+        if not ws.exists():
+            return 0
+
+        conn = self._get_conn(workspace_id)
+        cursor = conn.execute(
+            "SELECT COUNT(*) FROM runs WHERE workspace_id = ?",
+            (workspace_id,),
+        )
+        return cursor.fetchone()[0]
+
     def delete(self, workspace_id: str, run_id: str) -> bool:
         """Delete a run."""
         ws = Workspace(workspace_id, self._root)

@@ -43,7 +43,7 @@ These rules are absolute. No PR may violate them. No exception exists without ex
 ### 1.5 Small PR Discipline
 - Every PR must be reviewable in ~15–30 minutes.
 - If larger, split into multiple PRs.
-- 1 PR = 1 primary AF item (exactly).
+- 1 PR = 1 primary AF item (for traceability — the PR references one primary work item, but may include multiple items from the same sprint).
 
 ### 1.6 CI Discipline
 - Ruff linting must pass.

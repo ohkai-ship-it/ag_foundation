@@ -46,6 +46,17 @@ class RunStore(Protocol):
         """
         ...
 
+    def count(self, workspace_id: str) -> int:
+        """Count total runs in a workspace.
+
+        Args:
+            workspace_id: Workspace to count runs in
+
+        Returns:
+            Total number of runs in the workspace
+        """
+        ...
+
     def delete(self, workspace_id: str, run_id: str) -> bool:
         """Delete a run.
 

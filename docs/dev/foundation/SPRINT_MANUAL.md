@@ -34,6 +34,15 @@ Read these documents completely before starting:
 
 ## 1. Branch Creation Phase
 
+> **Branch lifecycle (CRITICAL):**
+> - Create ONE branch per sprint at sprint start
+> - Commit all sprint work (multiple AFs) to this branch
+> - Merge to main via ONE PR at sprint close only
+>
+> PRs are NOT created continuously during the sprint.
+> The "1 PR = 1 primary AF" rule refers to the PR description referencing
+> a primary work item for traceability — not creating separate PRs per AF.
+
 ### 1.1 Create Branch
 Execute:
 ```bash
@@ -244,10 +253,23 @@ In AF completion section, include:
 
 ## 6. PR Creation Protocol
 
+### 6.0 When to Create a PR (CRITICAL)
+
+> **PRs are created ONLY at sprint close, not during the sprint.**
+>
+> - **During sprint:** Commit work directly to feature branch (multiple commits per AF is fine)
+> - **At sprint close:** Create ONE PR to merge feature branch → main
+> - **PR scope:** One PR covers all sprint work items
+
+This is the intended workflow:
+1. Sprint start: Create feature branch from main
+2. During sprint: Commit work to feature branch
+3. Sprint end: Create ONE PR to merge the entire sprint branch to main
+
 ### 6.1 PR Template Sections (All Required)
 
 **Primary work item:**
-- Exactly one AF#### reference
+- Exactly one AF#### reference (designate the primary focus for traceability)
 
 **Summary:**
 - What changed (2–5 bullets)
