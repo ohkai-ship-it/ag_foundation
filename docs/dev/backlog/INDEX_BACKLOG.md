@@ -56,7 +56,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 6 | AF-0072 | P2 | DONE | Playbook validation error | CLI | Jacob | [🔗](items/AF0072_DONE_playbook_validation_error.md) |
 | 7 | AF-0015 | P2 | READY | Resolve storage DB filename mismatch | Storage | Jacob | [🔗](items/AF0015_READY_resolve_storage_db.md) |
 | 8 | AF-0083 | P1 | READY | Artifact evidence strategy | Core Runtime | Jacob | [🔗](items/AF0083_READY_artifact_evidence_strategy.md) |
-| 9 | AF-0057 | P1 | READY | Playbook artifacts in trace | Core Runtime | Jacob | [🔗](items/AF0057_READY_playbook_artifacts_in_trace.md) |
+| 9 | AF-0057 | P1 | DONE | Playbook artifacts in trace | Core Runtime | Jacob | [🔗](items/AF0057_DONE_playbook_artifacts_in_trace.md) |
 | 10 | AF-0064 | P1 | READY | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_READY_process_documentation_hardening.md) |
 
 ### Sprint 08 Scope (closed)
