@@ -220,12 +220,34 @@ class TestRunCommand:
 
         result = runner.invoke(
             app,
-            ["run", "--workspace", "test-ws", "--playbook", "custom", "Test"],
+            ["run", "--workspace", "test-ws", "--playbook", "default_v0", "Test"],
             env={"AG_WORKSPACE_DIR": str(tmp_path)},
         )
 
-        # Should not fail; option is accepted (stub doesn't use it yet)
+        # Should succeed with valid playbook
         assert result.exit_code == 0
+
+    def test_run_with_invalid_playbook_fails(self, monkeypatch, tmp_path):
+        """ag run --playbook with invalid name should fail (AF-0072)."""
+        monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "test-ws", "--playbook", "nonexistent", "Test"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        # Should fail with clear error
+        assert result.exit_code == 1
+        assert "not found" in result.output
+        assert "Available playbooks" in result.output
 
 
 # ---------------------------------------------------------------------------

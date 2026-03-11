@@ -371,6 +371,19 @@ def run(
         if not resolved_quiet and not resolved_json:
             _print_manual_mode_banner()
 
+    # Validate playbook if specified (AF-0072: no silent fallback)
+    if playbook:
+        from ag.playbooks import get_playbook, list_playbooks
+
+        if get_playbook(playbook) is None:
+            available = list_playbooks()
+            err_console.print(
+                f"[bold red]Error:[/bold red] Playbook '{playbook}' not found."
+            )
+            err_console.print(f"Available playbooks: {', '.join(available)}")
+            err_console.print("Run [cyan]ag playbooks list[/cyan] for details.")
+            raise typer.Exit(code=1)
+
     # Direct skill execution mode (bypasses playbook)
     if skill:
         from datetime import UTC, datetime
