@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0087
 - **Type:** Engineering / Testing
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Core Runtime / Policy
 - **Owner:** TBD

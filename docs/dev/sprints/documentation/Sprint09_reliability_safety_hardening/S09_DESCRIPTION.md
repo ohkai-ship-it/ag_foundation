@@ -134,4 +134,4 @@ Harden bounded autonomy reliability and safety so Gate A conditions are provably
 ## 8) PR plan
 | PR | Primary AF | Branch | Status |
 |--|--|--|--|
-| PR-01 | Sprint09 scope | sprint09/reliability-safety-hardening | Open |
+| PR-01 | Sprint09 scope | feat/sprint09-reliability-safety-hardening | Open |

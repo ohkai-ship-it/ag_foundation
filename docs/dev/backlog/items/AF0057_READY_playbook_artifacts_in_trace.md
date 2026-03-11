@@ -22,7 +22,7 @@
 
 - **ID:** AF-0057
 - **Type:** Foundation
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Core Runtime / Skill Framework
 - **Owner:** TBD

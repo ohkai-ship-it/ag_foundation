@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0083
 - **Type:** Architecture / Foundation
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Core Runtime / Artifacts
 - **Owner:** TBD

@@ -17,7 +17,7 @@
 ## Metadata
 - **ID:** AF0072
 - **Type:** Bug Fix / CLI
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** CLI
 - **Owner:** TBD

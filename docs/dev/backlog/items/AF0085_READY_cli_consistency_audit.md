@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0085
 - **Type:** Architecture / CLI
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** CLI
 - **Owner:** TBD

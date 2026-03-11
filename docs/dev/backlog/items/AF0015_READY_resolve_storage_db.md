@@ -4,7 +4,7 @@
 ## Metadata
 - **ID:** AF-0015
 - **Type:** Quality
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Storage
 - **Owner:** Jacob

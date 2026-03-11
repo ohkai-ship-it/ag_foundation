@@ -17,7 +17,7 @@
 ## Metadata
 - **ID:** AF0071
 - **Type:** Bug Fix / Testing
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Testing / Storage
 - **Owner:** TBD

@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0086
 - **Type:** Architecture / Testing
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Testing
 - **Owner:** TBD

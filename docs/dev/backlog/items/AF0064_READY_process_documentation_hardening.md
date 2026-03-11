@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0064
 - **Type:** Process
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Process / Docs
 - **Owner:** Kai
