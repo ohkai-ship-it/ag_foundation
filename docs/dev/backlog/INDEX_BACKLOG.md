@@ -52,7 +52,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 2 | AF-0071 | P1 | DONE | Warning-clean test discipline (+BUG-0012) | Testing/Storage | Jacob | [🔗](items/AF0071_DONE_warning_clean_test_discipline.md) |
 | 3 | AF-0085 | P1 | DONE | CLI consistency audit | CLI | Jacob | [🔗](items/AF0085_DONE_cli_consistency_audit.md) |
 | 4 | AF-0087 | P1 | DONE | Policy hook runtime validation baseline | Core Runtime/Policy | Jacob | [🔗](items/AF0087_DONE_policy_hook_validation.md) |
-| 5 | AF-0086 | P2 | READY | Test suite audit | Testing | Jacob | [🔗](items/AF0086_READY_test_suite_audit.md) |
+| 5 | AF-0086 | P2 | DONE | Test suite audit | Testing | Jacob | [🔗](items/AF0086_DONE_test_suite_audit.md) |
 | 6 | AF-0072 | P2 | DONE | Playbook validation error | CLI | Jacob | [🔗](items/AF0072_DONE_playbook_validation_error.md) |
 | 7 | AF-0015 | P2 | READY | Resolve storage DB filename mismatch | Storage | Jacob | [🔗](items/AF0015_READY_resolve_storage_db.md) |
 | 8 | AF-0083 | P1 | DONE | Artifact evidence strategy | Core Runtime | Jacob | [🔗](items/AF0083_DONE_artifact_evidence_strategy.md) |
