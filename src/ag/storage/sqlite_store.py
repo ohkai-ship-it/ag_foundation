@@ -213,6 +213,10 @@ class SQLiteRunStore:
             conn.close()
         self._connections.clear()
 
+    def __del__(self) -> None:
+        """Ensure connections are closed on garbage collection."""
+        self.close()
+
     def __enter__(self) -> "SQLiteRunStore":
         """Context manager entry."""
         return self
@@ -397,6 +401,10 @@ class SQLiteArtifactStore:
         for conn in self._connections.values():
             conn.close()
         self._connections.clear()
+
+    def __del__(self) -> None:
+        """Ensure connections are closed on garbage collection."""
+        self.close()
 
     def __enter__(self) -> "SQLiteArtifactStore":
         """Context manager entry."""
