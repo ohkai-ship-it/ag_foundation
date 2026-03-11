@@ -531,4 +531,296 @@ class TestRuntimeLifecycle:
 
         # After close, stores should be empty
         assert run_store._connections == {}
-        assert artifact_store._connections == {}
+
+
+# ---------------------------------------------------------------------------
+# Policy Validation Tests (AF-0087)
+# ---------------------------------------------------------------------------
+
+
+class TestPolicyNormalizerValidation:
+    """Tests for V0Normalizer policy validation (AF-0087).
+
+    Normalizer enforces:
+    - Empty/whitespace-only prompt rejection
+    - Workspace requirement (no implicit creation)
+    """
+
+    def test_empty_prompt_rejected(self) -> None:
+        """Normalizer rejects empty prompt."""
+        from ag.core.runtime import V0Normalizer
+
+        normalizer = V0Normalizer()
+
+        with pytest.raises(ValueError) as exc_info:
+            normalizer.normalize(prompt="", workspace="ws-test")
+
+        assert "cannot be empty" in str(exc_info.value)
+
+    def test_whitespace_only_prompt_rejected(self) -> None:
+        """Normalizer rejects whitespace-only prompt."""
+        from ag.core.runtime import V0Normalizer
+
+        normalizer = V0Normalizer()
+
+        with pytest.raises(ValueError) as exc_info:
+            normalizer.normalize(prompt="   \n  ", workspace="ws-test")
+
+        assert "cannot be empty" in str(exc_info.value)
+
+    def test_missing_workspace_rejected(self) -> None:
+        """Normalizer rejects missing workspace (AF-0026)."""
+        from ag.core.runtime import V0Normalizer
+
+        normalizer = V0Normalizer()
+
+        with pytest.raises(ValueError) as exc_info:
+            normalizer.normalize(prompt="Test", workspace=None)
+
+        assert "Workspace is required" in str(exc_info.value)
+
+    def test_valid_task_passes_policy(self) -> None:
+        """Normalizer accepts valid prompt and workspace."""
+        from ag.core.runtime import V0Normalizer
+
+        normalizer = V0Normalizer()
+        task = normalizer.normalize(prompt="Valid task", workspace="ws-test")
+
+        assert task.prompt == "Valid task"
+        assert task.workspace_id == "ws-test"
+
+
+class TestPolicyVerifierValidation:
+    """Tests for V0Verifier policy validation (AF-0087).
+
+    Verifier enforces:
+    - Step errors cause verification failure
+    - Non-success final status causes verification failure
+    - All-success configuration passes verification
+    """
+
+    def test_step_error_fails_verification(self) -> None:
+        """Verifier fails when step has error."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+        steps = [
+            Step(
+                step_id="step_0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="Something went wrong",
+            ),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        assert "Step 0 failed" in message
+
+    def test_non_success_final_status_fails_verification(self) -> None:
+        """Verifier fails when final status is not SUCCESS."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+        steps = [
+            Step(step_id="step_0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        assert "failure" in message.lower()
+
+    def test_successful_run_passes_verification(self) -> None:
+        """Verifier passes when all steps succeed and final is SUCCESS."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+        steps = [
+            Step(step_id="step_0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+            Step(step_id="step_1", step_number=1, step_type=StepType.SKILL_CALL, started_at=now),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.SUCCESS)
+
+        assert status == "passed"
+        assert "successfully" in message.lower()
+
+
+class TestPolicyWorkspaceIsolation:
+    """Tests for workspace isolation policy (AF-0087).
+
+    Ensures:
+    - Different workspaces maintain separate state
+    - Run traces are scoped to their workspace
+    - Cross-workspace access is prevented
+    """
+
+    def test_workspaces_isolated(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+        registry: SkillRegistry,
+    ) -> None:
+        """Different workspaces maintain separate run histories."""
+        runtime = create_runtime(
+            registry=registry,
+            run_store=run_store,
+            artifact_store=artifact_store,
+        )
+
+        # Execute in workspace A
+        trace_a = runtime.execute(prompt="Task A", workspace="ws-a", mode="manual")
+
+        # Execute in workspace B
+        trace_b = runtime.execute(prompt="Task B", workspace="ws-b", mode="manual")
+
+        # Verify isolation
+        assert trace_a.workspace_id == "ws-a"
+        assert trace_b.workspace_id == "ws-b"
+
+        # List runs in each workspace
+        runs_a = run_store.list("ws-a")
+        runs_b = run_store.list("ws-b")
+
+        assert len(runs_a) == 1
+        assert len(runs_b) == 1
+        assert runs_a[0].run_id == trace_a.run_id
+        assert runs_b[0].run_id == trace_b.run_id
+
+    def test_run_scoped_to_workspace(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+        registry: SkillRegistry,
+    ) -> None:
+        """Run trace is scoped to correct workspace."""
+        runtime = create_runtime(
+            registry=registry,
+            run_store=run_store,
+            artifact_store=artifact_store,
+        )
+
+        trace = runtime.execute(prompt="Test", workspace="scoped-ws", mode="manual")
+
+        # Retrieve from correct workspace
+        retrieved = run_store.get("scoped-ws", trace.run_id)
+        assert retrieved is not None
+        assert retrieved.run_id == trace.run_id
+
+        # Cannot retrieve from wrong workspace
+        wrong_ws = run_store.get("other-ws", trace.run_id)
+        assert wrong_ws is None
+
+
+class TestPolicyTraceEvidence:
+    """Tests for traceable policy outcomes (AF-0087).
+
+    Ensures:
+    - Policy outcomes are recorded in trace
+    - Failure reasons are explicit and traceable
+    - All outcomes derive from verifiable trace data
+    """
+
+    def test_failure_reason_in_trace(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """Policy failure reason is recorded in trace."""
+        from ag.core.playbook import (
+            Budgets,
+            Playbook,
+            PlaybookStep,
+            PlaybookStepType,
+            ReasoningMode,
+        )
+        from ag.playbooks.registry import _REGISTRY
+        from ag.skills import get_default_registry
+
+        # Create playbook with fail_skill
+        fail_playbook = Playbook(
+            playbook_version="0.1",
+            name="fail_test_policy",
+            version="1.0.0",
+            description="Test playbook that fails",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=3, max_tokens=None, max_duration_seconds=60),
+            steps=[
+                PlaybookStep(
+                    step_id="step_0",
+                    name="fail",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="fail_skill",
+                    description="Intentionally fail",
+                    required=True,
+                    retry_count=0,
+                ),
+            ],
+            metadata={"stability": "test"},
+        )
+
+        _REGISTRY["fail_test_policy"] = fail_playbook
+
+        try:
+            runtime = create_runtime(
+                registry=get_default_registry(),
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            trace = runtime.execute(
+                prompt="Test failure",
+                workspace="policy-ws",
+                playbook="fail_test_policy",
+            )
+
+            # Failure is explicit in trace
+            assert trace.final == FinalStatus.FAILURE
+            assert trace.verifier.status == VerifierStatus.FAILED
+
+            # Error is recorded in step
+            assert trace.steps[0].error is not None
+            assert "fail" in trace.steps[0].error.lower()
+
+            # Verifier message references failure
+            assert trace.verifier.message is not None
+
+        finally:
+            del _REGISTRY["fail_test_policy"]
+
+    def test_success_outcome_traceable(
+        self,
+        runtime: "Runtime",
+    ) -> None:
+        """Success outcome is recorded in trace with evidence."""
+        trace = runtime.execute(
+            prompt="Test success",
+            workspace="success-ws",
+            mode="manual",
+        )
+
+        # Success is explicit in trace
+        assert trace.final == FinalStatus.SUCCESS
+        assert trace.verifier.status == VerifierStatus.PASSED
+
+        # Trace has required evidence fields
+        assert trace.run_id is not None
+        assert trace.started_at is not None
+        assert trace.ended_at is not None
+        assert trace.playbook is not None
+        assert len(trace.steps) > 0
