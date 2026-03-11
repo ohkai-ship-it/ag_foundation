@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0064
 - **Type:** Process
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Process / Docs
 - **Owner:** Kai
-- **Target sprint:** Sprint06
+- **Target sprint:** Sprint09
 
 ---
 
@@ -67,20 +67,20 @@ Consolidated process documentation fixes:
 ## Acceptance criteria (Definition of Done)
 
 ### Sprint PR timing
-- [ ] SPRINT_MANUAL.md updated with clear branch/PR lifecycle
-- [ ] Section 1.1 (Branch Creation) clarifies: one branch per sprint
-- [ ] Section 6 (PR Creation Protocol) clarifies: PR at sprint end only
-- [ ] "1 PR = 1 primary AF" rule clarified or removed if misleading
-- [ ] FOUNDATION_MANUAL.md updated if PR rules are duplicated there
+- [x] SPRINT_MANUAL.md updated with clear branch/PR lifecycle
+- [x] Section 1.1 (Branch Creation) clarifies: one branch per sprint
+- [x] Section 6 (PR Creation Protocol) clarifies: PR at sprint end only
+- [x] "1 PR = 1 primary AF" rule clarified or removed if misleading
+- [x] FOUNDATION_MANUAL.md updated if PR rules are duplicated there
 
 ### Status convention (from AF0061)
-- [ ] All status values use CAPS in filenames (`_PROPOSED_`, `_READY_`, `_DONE_`)
-- [ ] All status values use CAPS in metadata fields inside files
-- [ ] All INDEX files use CAPS in status columns
-- [ ] ADR files include status in filename
-- [ ] Templates updated with CAPS convention
+- [x] All status values use CAPS in filenames (`_PROPOSED_`, `_READY_`, `_DONE_`)
+- [x] All status values use CAPS in metadata fields inside files
+- [x] All INDEX files use CAPS in status columns
+- [x] ADR files include status in filename
+- [x] Templates updated with CAPS convention
 
-- [ ] INDEX file updated
+- [x] INDEX file updated
 
 ---
 
@@ -130,4 +130,28 @@ PRs are created ONLY at sprint close, not during the sprint.
 - SPRINT_MANUAL.md Section 1, 5, 6
 - FOUNDATION_MANUAL.md PR rules (if any)
 - **AF0061 (Dropped)** — Status CAPS convention (absorbed into this AF)
+
+---
+
+## Completion
+
+### Summary
+Updated process documentation to clarify sprint branch/PR lifecycle and verified status CAPS convention.
+
+### Changes made
+1. **SPRINT_MANUAL.md Section 1** — Added branch lifecycle callout explaining one branch per sprint, commit to branch during sprint, PR at close only
+2. **SPRINT_MANUAL.md Section 6** — Added Section 6.0 "When to Create a PR" with explicit timing guidance
+3. **FOUNDATION_MANUAL.md Section 1.5** — Clarified "1 PR = 1 primary AF" rule (for traceability, not separate PRs per AF)
+4. **INDEX_BACKLOG.md** — Fixed naming convention from `<Status>` to `<STATUS>` for consistency
+5. **Verified** templates already use CAPS convention (BACKLOG_ITEM_TEMPLATE, BUG_REPORT_TEMPLATE, ADR_TEMPLATE)
+6. **Verified** ADR files already include status in filename (ADR001_ACCEPTED_*, etc.)
+7. **Cleaned up** 3 duplicate stale READY files
+
+### Files changed
+- `docs/dev/foundation/SPRINT_MANUAL.md`
+- `docs/dev/foundation/FOUNDATION_MANUAL.md`
+- `docs/dev/backlog/INDEX_BACKLOG.md`
+
+### Evidence (Documentation-only change)
+No runtime evidence required; changes are documentation clarifications.
 

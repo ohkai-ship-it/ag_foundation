@@ -286,6 +286,7 @@ class V0Orchestrator:
             skill_name = playbook_step.skill_name
             step_subtasks: list[Subtask] | None = None
             result: dict[str, Any] = {}
+            step_artifact_ids: list[str] = []  # AF-0057: Track artifacts per step
 
             try:
                 if skill_name:
@@ -319,6 +320,19 @@ class V0Orchestrator:
                         # AF-0065: Store result for next step
                         previous_result = result
                         step_results.append(result)
+
+                        # AF-0057: Capture skill-produced artifacts in trace
+                        if "artifact_id" in result:
+                            artifact_id = result["artifact_id"]
+                            step_artifact_ids.append(artifact_id)
+                            # Create Artifact for run-level tracking
+                            artifact = Artifact(
+                                artifact_id=artifact_id,
+                                path=result.get("artifact_path", f"{skill_name}_output"),
+                                artifact_type=result.get("artifact_type", "application/json"),
+                                size_bytes=result.get("bytes_written"),
+                            )
+                            artifacts.append(artifact)
 
                     # AF-0019: Capture subtasks from plan_subtasks skill
                     if skill_name == "plan_subtasks" and success:
@@ -368,6 +382,7 @@ class V0Orchestrator:
                 duration_ms=duration_ms,
                 error=step_error,
                 subtasks=step_subtasks,  # AF-0019: Only set for plan step
+                artifacts=step_artifact_ids,  # AF-0057: Skill-produced artifacts
             )
             steps.append(step)
 

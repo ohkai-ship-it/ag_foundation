@@ -188,6 +188,19 @@ class SQLiteRunStore:
                 runs.append(trace)
         return runs
 
+    def count(self, workspace_id: str) -> int:
+        """Count total runs in a workspace."""
+        ws = Workspace(workspace_id, self._root)
+        if not ws.exists():
+            return 0
+
+        conn = self._get_conn(workspace_id)
+        cursor = conn.execute(
+            "SELECT COUNT(*) FROM runs WHERE workspace_id = ?",
+            (workspace_id,),
+        )
+        return cursor.fetchone()[0]
+
     def delete(self, workspace_id: str, run_id: str) -> bool:
         """Delete a run."""
         ws = Workspace(workspace_id, self._root)
@@ -212,6 +225,10 @@ class SQLiteRunStore:
         for conn in self._connections.values():
             conn.close()
         self._connections.clear()
+
+    def __del__(self) -> None:
+        """Ensure connections are closed on garbage collection."""
+        self.close()
 
     def __enter__(self) -> "SQLiteRunStore":
         """Context manager entry."""
@@ -397,6 +414,10 @@ class SQLiteArtifactStore:
         for conn in self._connections.values():
             conn.close()
         self._connections.clear()
+
+    def __del__(self) -> None:
+        """Ensure connections are closed on garbage collection."""
+        self.close()
 
     def __enter__(self) -> "SQLiteArtifactStore":
         """Context manager entry."""

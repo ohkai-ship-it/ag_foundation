@@ -18,12 +18,12 @@
 ## Metadata
 - **ID:** AF0083
 - **Type:** Architecture / Foundation
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Core Runtime / Artifacts
-- **Owner:** TBD
-- **Target sprint:** TBD
-- **Depends on:** AF-0057 (playbook artifacts in trace)
+- **Owner:** Jacob
+- **Target sprint:** Sprint 09
+- **Depends on:** AF-0057 (playbook artifacts in trace) ✅ DONE
 
 ---
 
@@ -132,32 +132,52 @@ Define a **comprehensive artifact/evidence strategy** that enables:
 - Capture everything? Or configurable verbosity?
 - `--evidence-level minimal|standard|full`?
 
-Configurable verbosity with standard as default
+**Decision:** Configurable verbosity with `standard` as default.
+- `minimal`: trace.json only (current behavior, backward compatible)
+- `standard`: + skill inputs/outputs as JSON files
+- `full`: + LLM prompts/responses, raw API data
 
 ### 2. Storage
 - Inline in trace.json vs separate files?
-In seperate files in artifacts/
+
+**Decision:** Separate files in `evidence/` directory per run.
+- Keeps trace.json lightweight for quick inspection
+- Evidence files can be large (LLM responses, fetched content)
+- Easier to manage retention per-artifact
 
 - Size limits? Truncation policy?
-Include a size limit but set it to unlimited. Truncation policy is to only use the first part and discard the rest. For now
+
+**Decision:** No hard limit initially, but:
+- Configurable max file size (default: unlimited for v0)
+- Truncation policy: Keep first N bytes, log truncation
+- Future: compression for large files
 
 ### 3. Sensitive Data
 - How to handle API keys, PII in inputs?
-
 - Redaction vs separate secure storage?
-Redaction
+
+**Decision:** Redaction approach for v0:
+- Auto-redact known patterns (API keys, tokens)
+- Manual redaction markers in skill inputs
+- Future: configurable redaction rules
 
 ### 4. Performance
 - Serialize everything synchronously?
-
 - Background artifact writing?
-Performance
+
+**Decision:** Synchronous for v0, async for v1:
+- v0: Synchronous writes (simpler, debuggable)
+- v1: Background queue for evidence writing
+- Evidence capture should not block skill execution
 
 ### 5. Retention
-- How long to keep evidence? 
-Until user deletes
-
+- How long to keep evidence?
 - Workspace-level vs run-level policies?
+
+**Decision:** User-controlled deletion for v0:
+- Evidence persists until explicit deletion
+- `ag runs delete <run_id>` removes all evidence
+- Future: workspace-level retention policies (e.g., keep last N runs)
 
 ---
 
@@ -185,11 +205,11 @@ Until user deletes
 
 ## Acceptance Criteria (High-Level)
 
-- [ ] Evidence strategy documented and approved
-- [ ] Evidence levels defined (minimal/standard/full)
-- [ ] Artifact hierarchy structure finalized
-- [ ] Privacy/redaction approach decided
-- [ ] Implementation roadmap created (child AFs)
+- [x] Evidence strategy documented and approved
+- [x] Evidence levels defined (minimal/standard/full)
+- [x] Artifact hierarchy structure finalized
+- [x] Privacy/redaction approach decided
+- [x] Implementation roadmap created (child AFs)
 
 ---
 
@@ -197,21 +217,32 @@ Until user deletes
 
 This AF is strategic. Implementation will be broken into:
 
-1. **AF-TBD: Evidence capture infrastructure** — Runtime changes to capture inputs/outputs
-2. **AF-TBD: Evidence storage format** — Schema for evidence artifacts
-3. **AF-TBD: Evidence CLI commands** — `ag evidence show <run> <step>`
-4. **AF-TBD: Evidence retention policy** — Cleanup, archival
-5. **AF-TBD: Sensitive data handling** — Redaction, secure storage
+1. **AF-0088: Evidence capture infrastructure** — Runtime changes to capture inputs/outputs
+2. **AF-0089: Evidence storage format** — Schema for evidence artifacts  
+3. **AF-0090: Evidence CLI commands** — `ag evidence show <run> <step>`
+4. **AF-0091: Evidence retention policy** — Cleanup, archival
+5. **AF-0092: Sensitive data handling** — Redaction, secure storage
+
+*Note: Child AFs to be created when implementation begins (likely Sprint 10+)*
 
 ---
 
-## Open Discussion Points
+## Open Discussion Points (Resolved)
 
-1. Should evidence be opt-in or opt-out?
-2. How do we handle very large inputs (e.g., 100 documents)?
-3. Should we capture LLM token-level data (logprobs, etc.)?
-4. Integration with external observability tools (OpenTelemetry)?
-5. Evidence format: JSON, Protocol Buffers, or format-per-type?
+1. **Should evidence be opt-in or opt-out?**
+   → Opt-out. Standard evidence enabled by default, `--evidence-level minimal` to disable.
+
+2. **How do we handle very large inputs (e.g., 100 documents)?**
+   → Capture document references + hashes in `input.json`, store full content separately.
+
+3. **Should we capture LLM token-level data (logprobs, etc.)?**
+   → `full` level only. Not captured in `standard` to reduce noise.
+
+4. **Integration with external observability tools (OpenTelemetry)?**
+   → Future work. Evidence format designed to be exportable to OTEL.
+
+5. **Evidence format: JSON, Protocol Buffers, or format-per-type?**
+   → JSON for v0 (debuggable, universal). Protocol Buffers for v1 if performance requires.
 
 ---
 
@@ -223,13 +254,59 @@ This AF is strategic. Implementation will be broken into:
 
 ---
 
-# Completion section (fill when done)
+# Completion section
 
 ## 1) Metadata
 - **Backlog item (primary):** AF0083
 - **PR:** N/A (strategy document)
-- **Author:** <name>
-- **Date:** YYYY-MM-DD
-- **Branch:** N/A
+- **Author:** Jacob
+- **Date:** 2026-03-11
+- **Branch:** feat/sprint09-reliability-safety-hardening
 - **Risk level:** P1
 - **Runtime mode used for verification:** N/A (design document)
+
+## 2) Summary of Decisions
+
+### Evidence Levels
+| Level | Captured | Default |
+|-------|----------|:-------:|
+| `minimal` | trace.json only | |
+| `standard` | + inputs/outputs per step | ✅ |
+| `full` | + LLM prompts, raw API responses | |
+
+### Storage Strategy
+- **Location:** `runs/<run_id>/evidence/step_N_<skill_name>/`
+- **Format:** JSON files (input.json, output.json, metadata.json)
+- **Large files:** Separate storage with references in metadata
+
+### Privacy/Security
+- **Approach:** Redaction of known sensitive patterns
+- **API keys:** Auto-redacted via pattern matching
+- **PII:** Manual redaction markers + future rule engine
+
+### Performance
+- **v0:** Synchronous evidence writing
+- **v1:** Background async queue
+
+### Retention
+- **v0:** User-controlled deletion via `ag runs delete`
+- **Future:** Workspace-level retention policies
+
+## 3) Child AFs for Implementation
+
+| AF ID | Title | Scope |
+|-------|-------|-------|
+| AF-0088 | Evidence capture infrastructure | Runtime changes |
+| AF-0089 | Evidence storage format | Schema definition |
+| AF-0090 | Evidence CLI commands | `ag evidence show` |
+| AF-0091 | Evidence retention policy | Cleanup, archival |
+| AF-0092 | Sensitive data handling | Redaction rules |
+
+*Child AFs to be created when implementation begins.*
+
+## 4) Evidence
+
+This is a strategy document with no code changes. Approval evidence:
+- Strategy finalized in Sprint 09
+- Decisions documented in this file
+- Implementation roadmap defined

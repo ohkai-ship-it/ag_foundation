@@ -18,11 +18,11 @@
 ## Metadata
 - **ID:** AF0085
 - **Type:** Architecture / CLI
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** CLI
-- **Owner:** TBD
-- **Target sprint:** TBD
+- **Owner:** Jacob
+- **Target sprint:** Sprint 09 (completed)
 - **Depends on:** None
 
 ---
@@ -206,11 +206,11 @@ To use a different workspace: --workspace <name>
 
 ## Acceptance Criteria (High-Level)
 
-- [ ] CLI consistency standards documented
-- [ ] Verb convention finalized
-- [ ] Output format standard defined
-- [ ] Workspace scope policy decided
-- [ ] Implementation roadmap created (child AFs)
+- [x] CLI consistency standards documented
+- [x] Verb convention finalized
+- [x] Output format standard defined
+- [x] Workspace scope policy decided
+- [x] Implementation roadmap created (child AFs)
 
 ---
 
@@ -247,6 +247,66 @@ To use a different workspace: --workspace <name>
 ---
 
 # Completion section (fill when done)
+
+**Completed:** Sprint 09 (2026-03-11)
+
+## Audit Results (Sprint 09)
+
+### ✅ Consistent (No Action Needed)
+
+| Category | Finding |
+|----------|---------|
+| **Verb convention** | `list` and `show` used correctly across all commands |
+| **Output format** | Both `ag skills list` and `ag playbooks list` use table format |
+| **Workspace list** | Table format with default indicator ✓ column |
+| **Runs list** | Has `--limit`, `--status`, `--workspace` flags |
+| **Workspace validation** | Missing workspace gives clear error message |
+
+### ⚠️ Not Implemented (Known)
+
+| Command | Status | Notes |
+|---------|--------|-------|
+| `ag config list` | Stub | Shows "⚠ Stub — not implemented yet" |
+| `ag config get` | Stub | Config infrastructure not built |
+| `ag config set` | Stub | Config infrastructure not built |
+
+### ❌ Bugs Confirmed (Child AFs)
+
+| Issue | Reference | Priority |
+|-------|-----------|----------|
+| Invalid playbook silently falls back to default_v0 | **AF-0072** | P2 |
+
+### 📋 Child AFs for Future Work
+
+| ID | Description | Priority |
+|----|-------------|----------|
+| AF-0072 | Playbook validation error (already exists) | P2 |
+| AF-0088 | Config commands implementation | P3 |
+| AF-0089 | CLI pagination (`--all`, `--offset`) | P3 |
+
+### Evidence Commands
+
+```bash
+# Audit commands run 2026-03-11
+ag skills list          # ✅ Table format
+ag playbooks list       # ✅ Table format
+ag runs list --help     # ✅ Has --limit, --status, --workspace
+ag ws list              # ✅ Table with default marker
+ag config list          # ⚠️ Stub message
+ag run --playbook nonexistent_playbook "Test" --workspace test-audit
+                        # ❌ Silently uses default_v0
+```
+
+### Conclusions
+
+The CLI is more consistent than originally documented in this AF:
+- Output format issues from Sprint 07 have been fixed
+- Verb convention is already standardized
+- Workspace validation works correctly
+
+**Remaining gaps** are tracked as separate AFs:
+- AF-0072: Playbook validation (in Sprint 09 scope)
+- Config commands: Low priority, can be deferred
 
 ## 1) Metadata
 - **Backlog item (primary):** AF0085

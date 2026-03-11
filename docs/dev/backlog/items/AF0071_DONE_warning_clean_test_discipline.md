@@ -17,11 +17,11 @@
 ## Metadata
 - **ID:** AF0071
 - **Type:** Bug Fix / Testing
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Testing / Storage
 - **Owner:** TBD
-- **Target sprint:** Backlog
+- **Target sprint:** Sprint 09 (completed)
 - **Depends on:** None
 - **Related:** BUG-0012 (test workspace cleanup pollution)
 
@@ -58,10 +58,10 @@ Failures:
 
 ## Acceptance Criteria
 
-1. **`pytest -W error` passes cleanly** — Zero warnings promoted to errors
-2. **SQLite connections properly closed** — No ResourceWarning for unclosed database
-3. **No regression** — All 412+ tests continue to pass
-4. **Coverage maintained** — ≥86% coverage threshold
+1. **`pytest -W error` passes cleanly** — ✅ Zero warnings promoted to errors
+2. **SQLite connections properly closed** — ✅ No ResourceWarning for unclosed database
+3. **No regression** — ✅ All 433 tests continue to pass
+4. **Coverage maintained** — ✅ 86% coverage threshold met
 
 ---
 
@@ -91,3 +91,28 @@ Option C: **CLI command isolation**
 - BUG-0012: `/docs/dev/bugs/reports/BUG0012_OPEN_test_workspace_cleanup.md`
 - S07_REVIEW_01: `/docs/dev/sprints/documentation/Sprint07_summarize_playbook/S07_REVIEW_01.md`
 - pytest_summary: `artifacts/review_S07_01/pytest_summary.txt`
+
+---
+
+## Completion Section
+**Completed:** Sprint 09 (2026-03-09)
+
+**Solution Implemented:** Option A — Connection lifecycle fix in storage layer
+- Added `__del__` methods to `SQLiteRunStore` and `SQLiteArtifactStore`
+- Ensures connections are closed during garbage collection
+- Acts as safety net when context managers aren't used
+
+**Files Changed:**
+- `src/ag/storage/sqlite_store.py`: Added `__del__()` → `self.close()` to both store classes
+
+**Run Evidence:**
+```
+pytest -W error --tb=line -q
+433 passed, 3 deselected in 19.34s
+```
+
+**Coverage:** 86% (threshold maintained)
+
+**Follow-ups:** 
+- BUG-0012 (test workspace cleanup) remains open as separate issue
+- Consider migrating CLI commands to use context managers for explicit cleanup

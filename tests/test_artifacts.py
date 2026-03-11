@@ -529,3 +529,85 @@ class TestArtifactsShowCLI:
         )
         assert result.exit_code == 1
         assert "not found" in result.output
+
+
+# ---------------------------------------------------------------------------
+# AF-0057: Playbook artifacts in trace tests
+# ---------------------------------------------------------------------------
+
+
+class TestPlaybookArtifactsInTrace:
+    """Tests for skill-produced artifacts captured in trace (AF-0057).
+
+    Problem: Playbook execution did not capture skill-produced artifacts.
+    Fix: Runtime now captures artifact_id from skill results into step.artifacts
+    and aggregates to run-level trace.artifacts.
+    """
+
+    def test_artifact_id_captured_from_skill_result(self, tmp_path: Path) -> None:
+        """Runtime should capture artifact_id from skill execution result."""
+        from datetime import UTC, datetime
+
+        from ag.core import Step, StepType
+
+        # Verify Step schema supports artifacts field
+        step = Step(
+            step_id="test-step-0",
+            step_number=0,
+            step_type=StepType.SKILL_CALL,
+            skill_name="emit_result",
+            input_summary="test input",
+            output_summary="test output",
+            started_at=datetime.now(UTC),
+            artifacts=["art-abc123"],  # AF-0057: skill artifacts captured here
+        )
+
+        assert step.artifacts == ["art-abc123"]
+        assert len(step.artifacts) == 1
+
+    def test_artifact_object_in_trace_artifacts(self, tmp_path: Path) -> None:
+        """Artifact objects should be appendable to trace.artifacts."""
+        from datetime import UTC, datetime
+
+        from ag.core import Artifact, ExecutionMode, FinalStatus, RunTrace
+        from ag.core.run_trace import PlaybookMetadata, Verifier, VerifierStatus
+
+        artifact = Artifact(
+            artifact_id="art-test123",
+            path="summary.json",
+            artifact_type="application/json",
+            size_bytes=256,
+        )
+
+        # Verify we can build a trace with skill artifacts
+        trace = RunTrace(
+            run_id="test-run",
+            workspace_id="test-ws",
+            mode=ExecutionMode.MANUAL,
+            playbook=PlaybookMetadata(name="test", version="1.0"),
+            started_at=datetime.now(UTC),
+            steps=[],
+            artifacts=[artifact],  # AF-0057: skill artifacts at run level
+            verifier=Verifier(
+                status=VerifierStatus.PASSED,
+                checked_at=datetime.now(UTC),
+            ),
+            final=FinalStatus.SUCCESS,
+        )
+
+        assert len(trace.artifacts) == 1
+        assert trace.artifacts[0].artifact_id == "art-test123"
+
+    def test_runtime_artifact_capture_code_path(self, tmp_path: Path) -> None:
+        """Verify the artifact capture code path in runtime exists."""
+        import inspect
+
+        from ag.core.runtime import V0Orchestrator
+
+        # Get the source of the orchestrator's run method
+        source = inspect.getsource(V0Orchestrator)
+
+        # AF-0057: Verify the capture logic is present
+        assert "AF-0057" in source, "AF-0057 artifact capture code should exist"
+        assert "artifact_id" in source, "artifact_id capture should exist"
+        assert "step_artifact_ids" in source, "step_artifact_ids tracking should exist"

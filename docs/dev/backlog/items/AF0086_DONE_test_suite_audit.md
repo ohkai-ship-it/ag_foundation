@@ -18,11 +18,11 @@
 ## Metadata
 - **ID:** AF0086
 - **Type:** Architecture / Testing
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Testing
-- **Owner:** TBD
-- **Target sprint:** TBD
+- **Owner:** Jacob
+- **Target sprint:** Sprint 09
 - **Depends on:** None
 
 ---
@@ -255,13 +255,13 @@ pytest -m "not network"     # Skip network tests
 
 ## Acceptance Criteria (High-Level)
 
-- [ ] Full test inventory documented
-- [ ] Legacy patterns identified with migration plan
-- [ ] Naming convention finalized
-- [ ] Directory structure proposal approved
-- [ ] Fixture standards documented
-- [ ] Coverage gaps identified
-- [ ] Child AFs created for implementation
+- [x] Full test inventory documented
+- [x] Legacy patterns identified with migration plan
+- [x] Naming convention finalized
+- [x] Directory structure proposal approved
+- [x] Fixture standards documented
+- [x] Coverage gaps identified
+- [ ] Child AFs created for implementation (deferred to future sprint)
 
 ---
 
@@ -296,13 +296,112 @@ pytest -m "not network"     # Skip network tests
 
 ---
 
-# Completion section (fill when done)
+# Completion section
 
 ## 1) Metadata
 - **Backlog item (primary):** AF0086
-- **PR:** N/A (strategy document)
-- **Author:** <name>
-- **Date:** YYYY-MM-DD
-- **Branch:** N/A
+- **PR:** N/A (audit document)
+- **Author:** Jacob
+- **Date:** 2026-03-11
+- **Branch:** feat/sprint09-reliability-safety-hardening
 - **Risk level:** P2
-- **Runtime mode used for verification:** N/A (design document)
+- **Runtime mode used for verification:** N/A (audit document)
+
+## 2) Test Suite Inventory (Sprint 09 Audit)
+
+### Summary Statistics
+
+| Metric | Value |
+|--------|-------|
+| Total tests | 448 |
+| Test files | 18 |
+| Test classes | 108 |
+| Overall coverage | 86% |
+
+### Tests Per File
+
+| File | Tests | Classes | Fixtures |
+|------|------:|--------:|---------:|
+| test_schema_verifier.py | 44 | 8 | 0 |
+| test_providers.py | 42 | 14 | 0 |
+| test_cli.py | 40 | 8 | 0 |
+| test_artifacts.py | 35 | 11 | 0 |
+| test_contracts.py | 34 | 8 | 0 |
+| test_runtime.py | 32 | 10 | 5 |
+| test_research_skills.py | 31 | 5 | 0 |
+| test_web_search.py | 29 | 0 | 0 |
+| test_summarize_skills.py | 29 | 5 | 0 |
+| test_skill_framework.py | 24 | 6 | 0 |
+| test_storage.py | 23 | 5 | 4 |
+| test_cli_truthful.py | 19 | 6 | 5 |
+| test_config.py | 18 | 6 | 0 |
+| test_cli_global_options.py | 13 | 6 | 0 |
+| test_e2e_integration.py | 12 | 5 | 7 |
+| test_delegation.py | 11 | 3 | 0 |
+| test_documentation_drift.py | 8 | 2 | 2 |
+| test_sanity.py | 6 | 0 | 0 |
+
+### Coverage Gaps (< 90%)
+
+| Module | Coverage | Gap Reason |
+|--------|----------|------------|
+| fetch_web_content.py | 54% | Network-dependent code paths |
+| web_search.py | 61% | Network-dependent code paths |
+| synthesize_research.py | 82% | LLM-dependent code paths |
+
+### Findings
+
+#### Positive Patterns ✅
+1. **Good class organization** — 108 test classes across 18 files
+2. **No warning suppressions** — Tests run cleanly with `-W error`
+3. **High coverage** — 86% overall, most modules > 90%
+4. **Consistent naming** — `test_<file>.py` pattern followed
+
+#### Areas for Improvement 🔧
+1. **No shared conftest.py** — Fixtures duplicated across files
+2. **Minimal pytest markers** — Only 3 markers used (manual, parametrize, integration)
+3. **Flat structure** — No unit/integration/e2e separation
+4. **Fixture duplication** — 23 fixtures across 5 files, many similar
+
+### Marker Usage (Current)
+
+| Marker | Count | Files |
+|--------|------:|-------|
+| `@pytest.mark.manual` | 1 | test_e2e_integration.py |
+| `@pytest.mark.parametrize` | 1 | test_e2e_integration.py |
+| `@pytest.mark.integration` | 1 | test_providers.py |
+
+### Recommendations
+
+1. **Create shared conftest.py** with common fixtures:
+   - `temp_workspace`
+   - `mock_llm_provider`
+   - `skill_context`
+
+2. **Add markers systematically**:
+   - `@pytest.mark.unit` — pure logic tests
+   - `@pytest.mark.integration` — multi-component tests
+   - `@pytest.mark.network` — requires internet (skip in CI)
+
+3. **Consider directory restructure** (low priority):
+   - Current flat structure is manageable at 18 files
+   - Revisit when test count exceeds 600
+
+4. **Improve network-dependent coverage**:
+   - Add mocked tests for fetch_web_content.py
+   - Add mocked tests for web_search.py
+
+## 3) Resolved Related Items
+
+| Item | Status | Relationship |
+|------|--------|--------------|
+| AF-0046 | ✅ DONE | Test isolation framework |
+| AF-0071 | ✅ DONE | Warning-clean test discipline |
+| BUG-0007 | ✅ FIXED | OpenAI provider test isolation |
+
+## 4) Decision: Incremental Migration
+
+**Approach:** Incremental improvements over restructure
+- Current structure is workable
+- Focus on conftest.py and markers first
+- Full restructure deferred until test count grows

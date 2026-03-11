@@ -17,11 +17,11 @@
 ## Metadata
 - **ID:** AF0072
 - **Type:** Bug Fix / CLI
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** CLI
-- **Owner:** TBD
-- **Target sprint:** Backlog
+- **Owner:** Jacob
+- **Target sprint:** Sprint 09 (completed)
 - **Depends on:** None
 
 ---
@@ -64,10 +64,10 @@ Result: FELL BACK to default_v0 (not failed)
 
 ## Acceptance Criteria
 
-1. **Invalid playbook name fails with clear error** — Exit code 1, descriptive message
-2. **Error suggests available playbooks** — Either inline list or `ag playbooks list`
-3. **No silent fallback** — User must explicitly specify a valid playbook
-4. **Backward compatibility** — If no `--playbook` specified, default_v0 is still used (this is fine)
+1. **Invalid playbook name fails with clear error** — ✅ Exit code 1, descriptive message
+2. **Error suggests available playbooks** — ✅ Either inline list or `ag playbooks list`
+3. **No silent fallback** — ✅ User must explicitly specify a valid playbook
+4. **Backward compatibility** — ✅ If no `--playbook` specified, default_v0 is still used (this is fine)
 
 ---
 
@@ -101,3 +101,54 @@ if playbook_name:
 - S07_REVIEW_01: `/docs/dev/sprints/documentation/Sprint07_summarize_playbook/S07_REVIEW_01.md`
 - cli_outputs: `artifacts/review_S07_01/cli_outputs.txt`
 - bug_triage: `artifacts/review_S07_01/bug_triage.md`
+
+---
+
+## Completion Section
+
+**Completed:** Sprint 09 (2026-03-11)
+
+### Solution Implemented
+
+Added playbook validation in CLI's `run` command (line ~374) before runtime execution:
+
+```python
+# Validate playbook if specified (AF-0072: no silent fallback)
+if playbook:
+    from ag.playbooks import get_playbook, list_playbooks
+
+    if get_playbook(playbook) is None:
+        available = list_playbooks()
+        err_console.print(
+            f"[bold red]Error:[/bold red] Playbook '{playbook}' not found."
+        )
+        err_console.print(f"Available playbooks: {', '.join(available)}")
+        err_console.print("Run [cyan]ag playbooks list[/cyan] for details.")
+        raise typer.Exit(code=1)
+```
+
+### Files Changed
+
+- `src/ag/cli/main.py`: Added playbook validation after manual mode check
+- `tests/test_cli.py`: Updated `test_run_with_playbook_option` to use valid playbook
+- `tests/test_cli.py`: Added `test_run_with_invalid_playbook_fails` test
+
+### Test Evidence
+
+```bash
+# Invalid playbook now fails:
+$ ag run --playbook nonexistent "Test" --workspace test-audit
+Error: Playbook 'nonexistent' not found.
+Available playbooks: default_v0, delegate_v0, research_v0, summarize_v0
+Run ag playbooks list for details.
+
+# Valid playbooks still work:
+$ ag run --playbook default_v0 "Test"    # canonical name
+$ ag run --playbook summarize "Test"     # alias
+$ ag run "Test"                          # default (no --playbook)
+```
+
+### Run Evidence
+
+- pytest -W error: 434 passed, 3 deselected
+- Coverage: 86% maintained

@@ -10,7 +10,7 @@
 > See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
 
 > **Location:** `/docs/dev/backlog/INDEX_BACKLOG.md`
-> **Naming (required):** `AF####_<Status>_<three_word_description>.md` in `/docs/dev/backlog/items/`
+> **Naming (required):** `AF####_<STATUS>_<three_word_description>.md` in `/docs/dev/backlog/items/`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
 > **Linking convention:** Filename column uses clickable links: `[🔗](items/filename)`
 
@@ -24,23 +24,14 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0087 | P1 | PROPOSED | Policy hook runtime validation baseline | Core Runtime/Policy | TBD | [🔗](items/AF0087_PROPOSED_policy_hook_validation.md) |
-| AF-0086 | P2 | PROPOSED | Test suite audit | Testing | TBD | [🔗](items/AF0086_PROPOSED_test_suite_audit.md) |
-| AF-0085 | P1 | PROPOSED | CLI consistency audit | CLI | TBD | [🔗](items/AF0085_PROPOSED_cli_consistency_audit.md) |
+| AF-0090 | P1 | PROPOSED | Artifact evidence deepdive | Core Runtime/Artifacts | TBD | [🔗](items/AF0090_PROPOSED_artifact_evidence_deepdive.md) |
 | AF-0084 | P3 | PROPOSED | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_PROPOSED_index_link_emoji_fix.md) |
-| AF-0083 | P1 | PROPOSED | Artifact evidence strategy | Core Runtime | TBD | [🔗](items/AF0083_PROPOSED_artifact_evidence_strategy.md) |
 | AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
 | AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
 | AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
 | AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
-| AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | [🔗](items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
-| AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | [🔗](items/AF0072_PROPOSED_playbook_validation_error.md) |
-| AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch** | Storage | Jacob | [🔗](items/AF0015_PROPOSED_resolve_storage_db.md) |
-| AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_READY_test_isolation_framework.md) |
-| AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | [🔗](items/AF0057_PROPOSED_playbook_artifacts_in_trace.md) |
-| AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_PROPOSED_process_documentation_hardening.md) |
-| AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity** (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
-| AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | [🔗](items/AF0036_PROPOSED_remove_global_cli.md) |
+| AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_Proposed_cli_reference_surface.md) |
+| AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | [🔗](items/AF0036_Proposed_remove_global_cli.md) |
 
 ---
 
@@ -51,23 +42,25 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
 | 2 | AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
-| 3 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity** (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
+| 3 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
 | 4 | AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
 | 5 | AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
 
-### Sprint 09 Scope (active)
+### Sprint 09 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0046 | P1 | READY | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_READY_test_isolation_framework.md) |
-| 2 | AF-0071 | P1 | PROPOSED | Warning-clean test discipline (+BUG-0012) | Testing/Storage | TBD | [🔗](items/AF0071_PROPOSED_warning_clean_test_discipline.md) |
-| 3 | AF-0085 | P1 | PROPOSED | CLI consistency audit | CLI | TBD | [🔗](items/AF0085_PROPOSED_cli_consistency_audit.md) |
-| 4 | AF-0087 | P1 | PROPOSED | Policy hook runtime validation baseline | Core Runtime/Policy | TBD | [🔗](items/AF0087_PROPOSED_policy_hook_validation.md) |
-| 5 | AF-0086 | P2 | PROPOSED | Test suite audit | Testing | TBD | [🔗](items/AF0086_PROPOSED_test_suite_audit.md) |
-| 6 | AF-0072 | P2 | PROPOSED | Playbook validation error | CLI | TBD | [🔗](items/AF0072_PROPOSED_playbook_validation_error.md) |
-| 7 | AF-0015 | P2 | PROPOSED | Resolve storage DB filename mismatch** | Storage | Jacob | [🔗](items/AF0015_PROPOSED_resolve_storage_db.md) |
-| 8 | AF-0083 | P1 | PROPOSED | Artifact evidence strategy | Core Runtime | TBD | [🔗](items/AF0083_PROPOSED_artifact_evidence_strategy.md) |
-| 9 | AF-0057 | P1 | PROPOSED | Playbook artifacts in trace | Core Runtime | TBD | [🔗](items/AF0057_PROPOSED_playbook_artifacts_in_trace.md) |
-| 10 | AF-0064 | P1 | PROPOSED | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_PROPOSED_process_documentation_hardening.md) |
+| 1 | AF-0046 | P1 | DONE | Test isolation framework (+BUG-0007) | Testing | Jacob | [🔗](items/AF0046_DONE_test_isolation_framework.md) |
+| 2 | AF-0071 | P1 | DONE | Warning-clean test discipline (+BUG-0012) | Testing/Storage | Jacob | [🔗](items/AF0071_DONE_warning_clean_test_discipline.md) |
+| 3 | AF-0085 | P1 | DONE | CLI consistency audit | CLI | Jacob | [🔗](items/AF0085_DONE_cli_consistency_audit.md) |
+| 4 | AF-0087 | P1 | DONE | Policy hook runtime validation baseline | Core Runtime/Policy | Jacob | [🔗](items/AF0087_DONE_policy_hook_validation.md) |
+| 5 | AF-0086 | P2 | DONE | Test suite audit | Testing | Jacob | [🔗](items/AF0086_DONE_test_suite_audit.md) |
+| 6 | AF-0072 | P2 | DONE | Playbook validation error | CLI | Jacob | [🔗](items/AF0072_DONE_playbook_validation_error.md) |
+| 7 | AF-0015 | P2 | DONE | Resolve storage DB filename mismatch | Storage | Jacob | [🔗](items/AF0015_DONE_resolve_storage_db.md) |
+| 8 | AF-0083 | P1 | DONE | Artifact evidence strategy | Core Runtime | Jacob | [🔗](items/AF0083_DONE_artifact_evidence_strategy.md) |
+| 9 | AF-0057 | P1 | DONE | Playbook artifacts in trace | Core Runtime | Jacob | [🔗](items/AF0057_DONE_playbook_artifacts_in_trace.md) |
+| 10 | AF-0064 | P1 | DONE | Process documentation hardening | Process/Docs | Kai | [🔗](items/AF0064_DONE_process_documentation_hardening.md) |
+| 11 | AF-0088 | P2 | DONE | Runs list pagination (+BUG-0014) | CLI | Jacob | [🔗](items/AF0088_DONE_runs_list_pagination.md) |
+| 12 | AF-0089 | P1 | DONE | Report output format | Core Runtime/CLI | Jacob | [🔗](items/AF0089_DONE_report_output_format.md) |
 
 ### Sprint 08 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

@@ -1,0 +1,11 @@
+﻿# Scope links and status check
+- [OK] docs/dev/backlog/items/AF0046_DONE_test_isolation_framework.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0071_DONE_warning_clean_test_discipline.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0085_DONE_cli_consistency_audit.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0087_DONE_policy_hook_validation.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0086_DONE_test_suite_audit.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0072_DONE_playbook_validation_error.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0015_DONE_resolve_storage_db.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0083_DONE_artifact_evidence_strategy.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0057_DONE_playbook_artifacts_in_trace.md (filename=DONE, internal=DONE)
+- [OK] docs/dev/backlog/items/AF0064_DONE_process_documentation_hardening.md (filename=DONE, internal=DONE)

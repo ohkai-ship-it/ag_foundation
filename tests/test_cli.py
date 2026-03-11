@@ -220,12 +220,34 @@ class TestRunCommand:
 
         result = runner.invoke(
             app,
-            ["run", "--workspace", "test-ws", "--playbook", "custom", "Test"],
+            ["run", "--workspace", "test-ws", "--playbook", "default_v0", "Test"],
             env={"AG_WORKSPACE_DIR": str(tmp_path)},
         )
 
-        # Should not fail; option is accepted (stub doesn't use it yet)
+        # Should succeed with valid playbook
         assert result.exit_code == 0
+
+    def test_run_with_invalid_playbook_fails(self, monkeypatch, tmp_path):
+        """ag run --playbook with invalid name should fail (AF-0072)."""
+        monkeypatch.delenv(DEV_ENV_VAR, raising=False)
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        # Create workspace first
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", "test-ws", "--playbook", "nonexistent", "Test"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        # Should fail with clear error
+        assert result.exit_code == 1
+        assert "not found" in result.output
+        assert "Available playbooks" in result.output
 
 
 # ---------------------------------------------------------------------------
@@ -745,3 +767,116 @@ class TestPlaybooksListCommand:
         assert stability_map.get("delegate_v0") == "test"
         assert stability_map.get("summarize_v0") == "experimental"
         assert stability_map.get("research_v0") == "experimental"
+
+
+class TestRunsListPagination:
+    """Tests for AF-0088: runs list pagination."""
+
+    def test_runs_list_shows_pagination_info(self, monkeypatch, tmp_path):
+        """runs list shows total count and displayed count."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        # Create multiple runs
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        for _ in range(5):
+            store.save(_make_run_trace("test-ws"))
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--limit", "3"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        # Should show "showing X of Y"
+        assert "showing 3 of 5" in result.stdout
+
+    def test_runs_list_all_flag(self, monkeypatch, tmp_path):
+        """runs list --all shows all runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        for _ in range(15):
+            store.save(_make_run_trace("test-ws"))
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--all"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        # Should show total without "showing X of Y"
+        assert "15 total" in result.stdout
+
+    def test_runs_list_json_includes_counts(self, monkeypatch, tmp_path):
+        """runs list --json includes total and showing counts."""
+        import json
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        for _ in range(5):
+            store.save(_make_run_trace("test-ws"))
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--limit", "3", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["total"] == 5
+        assert data["showing"] == 3
+        assert len(data["runs"]) == 3
+
+    def test_runs_list_hint_when_truncated(self, monkeypatch, tmp_path):
+        """runs list shows hint when output is truncated."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        for _ in range(15):
+            store.save(_make_run_trace("test-ws"))
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws"],  # default limit 10
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        assert "--all" in result.stdout
+        assert "--limit" in result.stdout

@@ -17,6 +17,8 @@ from ag.core import (
     FinalStatus,
     RunTrace,
     RunTraceBuilder,
+    Step,
+    StepType,
     VerifierStatus,
 )
 from ag.storage import (
@@ -90,6 +92,18 @@ class TestWorkspace:
         assert ws.path.exists()
         assert ws.inputs_path.exists()  # AF0058: inputs/ folder for user content
         assert ws.runs_path.exists()  # AF0058: runs/ folder for run outputs
+
+    def test_db_filename_is_canonical(self, temp_root: Path) -> None:
+        """Workspace uses canonical db.sqlite filename (AF-0015)."""
+        ws = Workspace("test-ws", temp_root)
+        ws.ensure_exists()
+
+        # Verify the canonical filename constant
+        assert ws.DB_FILE == "db.sqlite"
+
+        # Verify db_path uses the canonical filename
+        assert ws.db_path.name == "db.sqlite"
+        assert ws.db_path == ws.path / "db.sqlite"
 
     def test_path_safety_rejects_traversal(self, temp_root: Path) -> None:
         """Path components with traversal are rejected."""
@@ -185,6 +199,75 @@ class TestRunStore:
 
         assert json_path.exists()
         assert trace.run_id in json_path.read_text()
+
+    def test_count_empty_workspace(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
+        """Count returns 0 for empty/nonexistent workspace."""
+        assert run_store.count("nonexistent-ws") == 0
+
+    def test_count_returns_total(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
+        """Count returns total number of runs in workspace."""
+        # Save 3 runs
+        for _ in range(3):
+            trace = _make_run_trace("ws-1")
+            run_store.save(trace)
+
+        assert run_store.count("ws-1") == 3
+
+        # Add one more
+        run_store.save(_make_run_trace("ws-1"))
+        assert run_store.count("ws-1") == 4
+
+    def test_count_per_workspace(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
+        """Count is per-workspace."""
+        run_store.save(_make_run_trace("ws-1"))
+        run_store.save(_make_run_trace("ws-1"))
+        run_store.save(_make_run_trace("ws-2"))
+
+        assert run_store.count("ws-1") == 2
+        assert run_store.count("ws-2") == 1
+
+    def test_unicode_preserved_in_trace(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
+        """BUG-0014: Unicode characters in trace are preserved through save/load."""
+        # Create workspace first
+        ws = Workspace("ws-unicode", temp_root)
+        ws.ensure_exists()
+
+        # Build trace with Unicode characters
+        builder = RunTraceBuilder("ws-unicode", ExecutionMode.MANUAL, "test", "1.0")
+        builder.verify(VerifierStatus.PASSED)
+        builder.complete(FinalStatus.SUCCESS)
+        trace = builder.build()
+
+        # Manually add a step with Unicode (since builder doesn't expose add_step simply)
+        trace.steps.append(
+            Step(
+                step_id="unicode-step",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                input_summary="Research the Düsseldorf meteorite",
+                output_summary="Found information about météorites in München",
+                started_at=trace.started_at,
+                ended_at=trace.ended_at,
+                duration_ms=100,
+            )
+        )
+
+        run_store.save(trace)
+        retrieved = run_store.get("ws-unicode", trace.run_id)
+
+        assert retrieved is not None
+        assert len(retrieved.steps) == 1
+        assert retrieved.steps[0].input_summary == "Research the Düsseldorf meteorite"
+        assert retrieved.steps[0].output_summary == "Found information about météorites in München"
+
+        # Also verify via JSON file directly
+        json_path = ws.run_path(trace.run_id)
+        content = json_path.read_text(encoding="utf-8")
+
+        # Verify Unicode chars are properly encoded in JSON
+        assert "Düsseldorf" in content
+        assert "météorites" in content
+        assert "München" in content
 
 
 # ---------------------------------------------------------------------------
