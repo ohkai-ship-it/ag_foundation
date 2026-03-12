@@ -8,7 +8,7 @@
 - **Area:** CLI
 - **Reported by:** Jacob
 - **Date:** 2026-02-24
-- **Related backlog item(s):** AF-0008
+- **Related backlog item(s):** AF-0008, AF-0012, AF-0085 (audit)
 - **Related PR(s):** —
 
 ## Summary
@@ -17,47 +17,56 @@ Several CLI subcommands documented in CLI_REFERENCE.md do not exist in the curre
 ## Expected vs Actual
 
 ### ag ws
-| Subcommand | CLI Reference | Current |
-|------------|---------------|---------|
-| `list` | ✅ | ⚠ Stub |
-| `create <name>` | ✅ | ⚠ Stub |
-| `use <id>` | ✅ | ⚠ Stub |
-| `show [<id>]` | ✅ | ⚠ Stub |
-| `config get <key>` | ✅ | ❌ Missing |
-| `config set <key> <value>` | ✅ | ❌ Missing |
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
+| `list` | ✅ | ✅ Works (table with default marker) |
+| `create <name>` | ✅ | ✅ Works |
+| `use <id>` | ✅ | ✅ Works |
+| `show [<id>]` | ✅ | ✅ Works |
+| `config get <key>` | ✅ | ⚠ Stub |
+| `config set <key> <value>` | ✅ | ⚠ Stub |
 
 ### ag artifacts
-| Subcommand | CLI Reference | Current |
-|------------|---------------|---------|
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
 | `list [--run <run_id>]` | ✅ | ✅ Works |
-| `show <artifact_id>` | ✅ | ⚠ Stub |
+| `show <artifact_id>` | ✅ | ✅ Works |
+| `export <artifact_id> --to <path>` | ✅ | ✅ Works |
 | `open <artifact_id>` | ✅ (optional) | ❌ Missing |
-| `export <artifact_id> --to <path>` | ✅ | ❌ Missing |
 
 ### ag skills
-| Subcommand | CLI Reference | Current |
-|------------|---------------|---------|
-| `list` | ✅ | ⚠ Stub |
-| `info <skill_name>` | ✅ | ⚠ Stub |
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
+| `list` | ✅ | ✅ Works (table format) |
+| `info <skill_name>` | ✅ | ✅ Works |
 | `test <skill_name>` | ✅ (dev) | ❌ Missing |
 | `enable <skill_name>` | ✅ | ❌ Missing |
 | `disable <skill_name>` | ✅ | ❌ Missing |
 
 ### ag playbooks
-| Subcommand | CLI Reference | Current |
-|------------|---------------|---------|
-| `list` | ✅ | ⚠ Stub |
-| `show <name>` | ✅ | ⚠ Stub |
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
+| `list` | ✅ | ✅ Works (table format) |
+| `show <name>` | ✅ | ✅ Works |
 | `validate <path>` | ✅ (dev) | ❌ Missing |
 | `set-default <name>` | ✅ | ❌ Missing |
 
 ### ag runs
-| Subcommand | CLI Reference | Current |
-|------------|---------------|---------|
-| `list` | ✅ | ✅ Works |
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
+| `list` | ✅ | ✅ Works (with pagination, --all flag) |
 | `show` | ✅ | ✅ Works |
 | `trace` | ✅ | ✅ Works |
 | `tail <run_id>` | ✅ (planned) | ❌ Missing |
+
+### ag config
+| Subcommand | CLI Reference | Current (Sprint 09) |
+|------------|---------------|---------------------|
+| `list` | ✅ | ⚠ Stub |
+| `get <key>` | ✅ | ⚠ Stub |
+| `set <key> <value>` | ✅ | ⚠ Stub |
+
+**Planned fix:** AF-0012 (Sprint 10 scope)
 
 ## Reproduction steps
 1. Run `ag ws config --help`

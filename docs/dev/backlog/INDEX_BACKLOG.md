@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v0.4
+# Version number: v0.7
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -24,27 +24,35 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0090 | P1 | PROPOSED | Artifact evidence deepdive | Core Runtime/Artifacts | TBD | [🔗](items/AF0090_PROPOSED_artifact_evidence_deepdive.md) |
-| AF-0084 | P3 | PROPOSED | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_PROPOSED_index_link_emoji_fix.md) |
-| AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
-| AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
-| AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
-| AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
-| AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_Proposed_cli_reference_surface.md) |
-| AF-0036 | P1 | PROPOSED | Remove global CLI flags (needs design) | CLI | Jacob | [🔗](items/AF0036_Proposed_remove_global_cli.md) |
+
+_(empty — all PROPOSED items assigned to Sprint 10)_
 
 ---
 
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 10 Scope (preliminary)
+### Sprint 10 Scope (active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0082 | P2 | PROPOSED | Human-readable result format | Core Runtime | TBD | [🔗](items/AF0082_PROPOSED_human_readable_result.md) |
-| 2 | AF-0081 | P2 | PROPOSED | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_PROPOSED_inventory_sync_discipline.md) |
-| 3 | AF-0012 | P2 | PROPOSED | CLI_REFERENCE surface parity (+playbooks list) | CLI | Jacob | [🔗](items/AF0012_PROPOSED_cli_reference_surface.md) |
-| 4 | AF-0077 | P3 | PROPOSED | Skills plugin architecture | Skills/Architecture | TBD | [🔗](items/AF0077_PROPOSED_skills_plugin_architecture.md) |
-| 5 | AF-0078 | P3 | PROPOSED | Playbooks plugin architecture | Playbooks/Architecture | TBD | [🔗](items/AF0078_PROPOSED_playbooks_plugin_architecture.md) |
+| 1 | AF-0090 | P1 | READY | Artifact truthfulness + trace enrichment | Core Runtime/Artifacts | TBD | [🔗](items/AF0090_READY_artifact_evidence_deepdive.md) |
+| 2 | AF-0091 | P1 | READY | Verifier failure-path maturity | Core Runtime/Verifier | TBD | [🔗](items/AF0091_READY_verifier_failure_path_maturity.md) |
+| 3 | AF-0093 | P2 | READY | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_READY_skills_test_coverage_hardening.md) |
+| 4 | AF-0012 | P2 | READY | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_READY_cli_reference_surface.md) |
+| 5 | AF-0081 | P2 | READY | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_READY_inventory_sync_discipline.md) |
+| 6 | AF-0082 | P2 | READY | Report polish (rescoped) | Core Runtime/CLI | TBD | [🔗](items/AF0082_READY_human_readable_result.md) |
+| 7 | AF-0084 | P3 | READY | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_READY_index_link_emoji_fix.md) |
+| 8 | AF-0077 | P3 | READY | Skills plugin architecture (Phase 1) | Skills/Architecture | TBD | [🔗](items/AF0077_READY_skills_plugin_architecture.md) |
+| 9 | AF-0078 | P3 | READY | Playbooks plugin architecture (Phase 1) | Playbooks/Architecture | TBD | [🔗](items/AF0078_READY_playbooks_plugin_architecture.md) |
+
+### Done during Sprint 10 planning
+| ID | Status | Title | Notes | Filename |
+|---:|:--|---|---|---|
+| AF-0036 | DONE | Remove global CLI flags | ADR008 accepted (hybrid approach) | [🔗](items/AF0036_DONE_remove_global_cli.md) |
+
+### Dropped (Sprint 10 planning)
+| ID | Status | Title | Drop Reason | Filename |
+|---:|:--|---|---|---|
+| AF-0092 | DROPPED | Evidence CLI commands | Separate evidence concept rejected; `ag artifacts` suffices | [🔗](items/AF0092_DROPPED_evidence_cli_commands.md) |
 
 ### Sprint 09 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

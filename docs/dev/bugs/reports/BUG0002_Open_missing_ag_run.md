@@ -8,7 +8,7 @@
 - **Area:** CLI
 - **Reported by:** Jacob
 - **Date:** 2026-02-24
-- **Related backlog item(s):** AF-0008
+- **Related backlog item(s):** AF-0008, AF-0012, AF-0085 (audit)
 - **Related PR(s):** —
 
 ## Summary
@@ -22,7 +22,7 @@ ag run --file <path>          # treat file as input prompt/content
 ag run --task <task.json>     # explicit TaskSpec payload; dev-oriented
 ag run --playbook <name>      # ✅ implemented
 ag run --reasoning <mode>     # ✅ implemented  
-ag run --allow-web            # (planned; default false)
+ag run --allow-web            # (planned; default true)
 ag run --confirm / --no-confirm  # confirmation behavior; safety hook
 ```
 
@@ -38,13 +38,18 @@ Running `ag run --help` shows:
 --verbose    -v             ✅
 ```
 
-Missing:
+**Added since Sprint 08:**
+- `--skill -s` — Run a specific skill directly (bypasses playbook) ✅
+
+Still missing:
 | Option | Purpose | Status |
 |--------|---------|--------|
 | `--file <path>` | Read prompt from file | ❌ Missing |
 | `--task <task.json>` | Explicit TaskSpec payload | ❌ Missing |
 | `--confirm / --no-confirm` | Safety confirmation hook | ❌ Missing |
 | `--allow-web` | Web access flag | ❌ Missing (noted as "planned") |
+
+**Planned fix:** AF-0012 (Sprint 10 scope)
 
 ## Reproduction steps
 1. Run `ag run --help`

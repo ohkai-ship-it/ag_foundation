@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0077
 - **Type:** Architecture / Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P3
 - **Area:** Skills / Architecture
 - **Owner:** TBD

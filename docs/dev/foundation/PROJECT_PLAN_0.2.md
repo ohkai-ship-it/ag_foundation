@@ -1,5 +1,5 @@
 # ag_foundation --- Project Plan
-# Version number: v0.5
+# Version number: v0.7
 # Updated: 2026-03-11
 
 ------------------------------------------------------------------------
@@ -133,27 +133,51 @@ Exit criteria:
 
 ------------------------------------------------------------------------
 
-## Sprint 10 --- Planner + Verifier Maturity
+## Sprint 10 --- Gate B Readiness
 
-Goal: Strengthen planning and verification behavior without breaking
-bounded autonomy.
+Goal: Achieve Gate B (Guided Autonomy) readiness through evidence
+maturity, CLI completeness, documentation hygiene, and plugin
+architecture foundation.
 
-Scope focus:
-- Playbook validation hardening
-- Artifact evidence strategy and trace linkage
-- Failure handling rigor (retry/timeout behavior validation)
-- Verifier strategy maturity for non-happy paths
+Note: Original Sprint 10 scope (AF-0072, AF-0057, AF-0083) was
+completed in Sprint 09 via aggressive mode. Sprint 10 now targets
+the remaining Gate B prerequisites.
+
+Scope focus (4 parallel tracks):
+- Artifact truthfulness, verification & test maturity (AF-0090, AF-0091, AF-0093)
+- CLI completeness (AF-0036 decision, AF-0012 surface parity + BUG-0002/0003/0011)
+- Documentation hygiene (AF-0081, AF-0082 rescoped, AF-0084)
+- Plugin architecture foundation (AF-0077 Phase 1, AF-0078 Phase 1)
 
 Planned high-priority items:
-- AF-0072 playbook validation error
-- AF-0057 playbook artifacts in trace
-- AF-0083 artifact evidence strategy
+- AF-0090 artifact truthfulness + trace enrichment (rescoped v0.3)
+- AF-0091 verifier failure-path maturity
+- AF-0093 skills test coverage hardening
+- AF-0036 global CLI flags decision (ADR)
+- AF-0012 CLI_REFERENCE surface parity
+- AF-0081 inventory sync discipline
+- AF-0082 report polish (rescoped after AF-0089)
+- AF-0084 index link emoji fix
+- AF-0077 skills plugin architecture (Phase 1)
+- AF-0078 playbooks plugin architecture (Phase 1)
+
+Dropped: AF-0092 (evidence CLI) — separate evidence concept rejected;
+existing `ag artifacts` commands suffice once metadata is truthful.
 
 Exit criteria:
-- Invalid playbook configurations fail clearly and tracefully
-- Artifact evidence is trace-linked and reviewable
-- Retry/failure behavior is testable and deterministic
-- Verifier outcomes are consistent across happy and failure paths
+- Artifact metadata in trace.json is truthful end-to-end
+- Trace enriched with full step I/O data
+- Artifact files stored in runs/<id>/artifacts/ directory
+- Verifier outcomes consistent across happy and failure paths
+- Skills test coverage: fetch_web_content ≥80%, web_search ≥80%, synthesize_research ≥90%
+- CLI surface matches CLI_REFERENCE for implemented commands
+- Global CLI flags architecture decision documented as ADR
+- Schema/contract inventories current
+- Report includes polished metadata/sources/execution details
+- Index link emoji consistency fixed
+- Skills entry points mechanism works
+- YAML playbook loading and validation works
+- Gate B conditions assessable at sprint review
 
 ------------------------------------------------------------------------
 

@@ -1,5 +1,5 @@
 # INDEX_DECISIONS
-# Version number: v0.3
+# Version number: v0.4
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -25,6 +25,7 @@
 | ADR-0005 | ACCEPTED | Orchestrator threshold | [](files/ADR005_ACCEPTED_orchestrator_threshold.md) |
 | ADR-0006 | PROPOSED | Workspace folder structure | [](files/ADR006_PROPOSED_workspace_folder_structure.md) |
 | ADR-0007 | PROPOSED | Configuration state separation | [](files/ADR007_PROPOSED_configuration_state_separation.md) |
+| ADR-0008 | ACCEPTED | CLI global flags | [](files/ADR008_ACCEPTED_cli_global_flags.md) |
 
 ---
 

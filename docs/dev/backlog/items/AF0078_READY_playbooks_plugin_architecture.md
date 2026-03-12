@@ -13,7 +13,7 @@
 ## Metadata
 - **ID:** AF0078
 - **Type:** Architecture / Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P3
 - **Area:** Playbooks / Architecture
 - **Owner:** TBD
@@ -38,7 +38,7 @@ Current playbook registration is hardcoded in `registry.py`:
 
 ## Proposed Architecture
 
-### Option A: YAML Playbooks (Recommended)
+### Option A: YAML Playbooks (Recommended) ✅ CHOSEN
 
 Allow playbooks to be defined in YAML files:
 

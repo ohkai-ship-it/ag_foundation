@@ -12,14 +12,16 @@
 > - INDEX update rule (status ↔ filename integrity)
 > - Evidence capture requirement (RunTrace ID for CLI/runtime bugs)
 
-> **File naming (required):** `BUG0012_OPEN_test_workspace_cleanup.md`
+> **File naming (required):** `BUG0012_FIXED_test_workspace_cleanup.md`
 > Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** BUG0012
-- **Status:** OPEN
+- **Status:** FIXED
+- **Fixed by:** AF-0071 (Sprint 09)
+- **Fix date:** 2026-03-11
 - **Severity:** P2
 - **Area:** Testing / Storage
 - **Reported by:** Kai

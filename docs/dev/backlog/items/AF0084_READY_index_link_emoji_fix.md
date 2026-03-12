@@ -17,7 +17,7 @@
 ## Metadata
 - **ID:** AF0084
 - **Type:** Docs / Process
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P3
 - **Area:** Docs/Process
 - **Owner:** TBD

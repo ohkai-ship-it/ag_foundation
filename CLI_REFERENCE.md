@@ -1,5 +1,5 @@
 # ag_foundation — CLI Reference
-# Version number: v0.2
+# Version number: v0.4
 
 This document defines the **CLI contract** for ag_foundation. The CLI is the primary interface in early iterations, but the core runtime is interface-agnostic and will later be callable via an internal API.
 
@@ -15,6 +15,11 @@ This document defines the **CLI contract** for ag_foundation. The CLI is the pri
 
 ### Global
 - `--workspace <id>`: select workspace (required for run; see workspace selection policy)
+
+> **Note (ADR008):** Only `--workspace` is a global flag. Output formatting options (`--json`, `--quiet`, `--verbose`) are command-level and must be specified after the subcommand.
+
+### Command-level output options
+The following options are available on most commands (specified after the subcommand):
 - `--json`: emit machine-readable JSON (where supported)
 - `--quiet`: reduce non-essential output
 - `--verbose`: include trace pointers, timing, and debug details
@@ -54,12 +59,14 @@ To list workspaces:    ag ws list
 
 ### Synopsis
 - `ag run "<prompt>"`
-- `ag run --file <path>` (treat file as input prompt/content)
-- `ag run --task <task.json>` (explicit TaskSpec payload; dev-oriented)
 - `ag run --playbook <name>` (override playbook selection)
 - `ag run --reasoning <mode>` (override default reasoning policy; applies to playbook unless overridden per role)
 - `ag run --allow-web` (planned; default false)
-- `ag run --confirm` / `--no-confirm` (confirmation behavior; safety hook)
+
+> **Deferred options (not yet implemented):**
+> - `--file <path>` — treat file as input prompt/content
+> - `--task <task.json>` — explicit TaskSpec payload (dev-oriented)
+> - `--confirm` / `--no-confirm` — confirmation behavior (safety hook)
 
 ### Output contract
 On success:

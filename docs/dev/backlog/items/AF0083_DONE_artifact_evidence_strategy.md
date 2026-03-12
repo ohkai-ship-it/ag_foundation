@@ -294,15 +294,22 @@ This AF is strategic. Implementation will be broken into:
 
 ## 3) Child AFs for Implementation
 
-| AF ID | Title | Scope |
-|-------|-------|-------|
-| AF-0088 | Evidence capture infrastructure | Runtime changes |
-| AF-0089 | Evidence storage format | Schema definition |
-| AF-0090 | Evidence CLI commands | `ag evidence show` |
-| AF-0091 | Evidence retention policy | Cleanup, archival |
-| AF-0092 | Sensitive data handling | Redaction rules |
+Original plan (Sprint 09):
+| AF ID | Original Title | Original Scope | Actual Outcome |
+|-------|---------------|----------------|----------------|
+| AF-0088 | Evidence capture infrastructure | Runtime changes | **Repurposed:** Runs list pagination (DONE, Sprint 09) |
+| AF-0089 | Evidence storage format | Schema definition | **Repurposed:** Report output format (DONE, Sprint 09) |
+| AF-0090 | Evidence CLI commands | `ag evidence show` | **Rescoped:** Artifact evidence deepdive + capture infra (Sprint 10) |
+| AF-0091 | Evidence retention policy | Cleanup, archival | **Repurposed:** Verifier failure-path maturity (Sprint 10) |
+| AF-0092 | Sensitive data handling | Redaction rules | **Replaced:** Evidence CLI commands (Sprint 10) |
 
-*Child AFs to be created when implementation begins.*
+> **Note:** IDs 0088–0091 were assigned to different Sprint 09/10 work.
+> The original evidence implementation scope was revisited in AF-0090 v0.3:
+> - **Decision:** Separate `evidence/` directory rejected as over-engineering.
+>   Artifacts and enriched trace.json cover all audit/debug needs.
+> - **AF-0090** (rescoped v0.3): Artifact metadata truthfulness + trace enrichment
+> - **AF-0092:** DROPPED — `ag evidence` CLI unnecessary; `ag artifacts` suffices
+> - Evidence retention and sensitive data handling deferred to Sprint 11+.
 
 ## 4) Evidence
 
