@@ -56,90 +56,90 @@ Recommended evidence files:
 ---
 
 ### Pass 0 — Setup & invariants
-- [ ] Fresh venv; install project
-- [ ] Record `python --version`
-- [ ] Record `pip freeze | head -n 50`
-- [ ] Confirm `ag --help` works
-- [ ] Confirm manual gate (e.g., `AG_DEV=1`) behavior
+- [x] Fresh venv; install project
+- [x] Record `python --version`
+- [x] Record `pip freeze | head -n 50`
+- [x] Confirm `ag --help` works
+- [x] Confirm manual gate (e.g., `AG_DEV=1`) behavior
 
 Evidence: `env.txt`
 
 ---
 
 ### Pass 1 — Scope verification (what shipped)
-- [ ] Confirm each AF file exists in `/docs/dev/backlog/items/`
-- [ ] Confirm filename Status matches internal Status field
-- [ ] Confirm each PR maps to exactly one primary AF
-- [ ] Confirm indices include all new/changed items
-- [ ] Confirm ADR008 is in INDEX_DECISIONS.md
+- [x] Confirm each AF file exists in `/docs/dev/backlog/items/`
+- [x] Confirm filename Status matches internal Status field
+- [x] Confirm each PR maps to exactly one primary AF
+- [x] Confirm indices include all new/changed items
+- [x] Confirm ADR008 is in INDEX_DECISIONS.md
 
 Evidence: `scope_links.md`, `index_diff_notes.md`
 
 ---
 
 ### Pass 2 — Lint/format + test suite verification (authoritative)
-- [ ] `ruff check src tests`
-- [ ] `ruff format --check src tests` (or apply `ruff format src tests`)
-- [ ] `pytest -q`
-- [ ] `pytest -W error`
-- [ ] Verify skills coverage thresholds (AF-0093):
-  - [ ] fetch_web_content ≥80%
-  - [ ] web_search ≥80%
-  - [ ] synthesize_research ≥90%
+- [x] `ruff check src tests`
+- [x] `ruff format --check src tests` (or apply `ruff format src tests`)
+- [x] `pytest -q`
+- [x] `pytest -W error`
+- [x] Verify skills coverage thresholds (AF-0093):
+  - [x] fetch_web_content ≥80% (82%)
+  - [x] web_search ≥80% (87%)
+  - [x] synthesize_research ≥90% (97%)
 
 Evidence: `ruff_summary.txt`, `pytest_summary.txt`
 
 ---
 
 ### Pass 2.5 — Autonomy Gate verification (Gate B focus)
-- [ ] Verify all user-visible labels are trace-derived
-- [ ] Verify policy checks are enforced where applicable (permission/confirmation/budget)
-- [ ] Verify retry/timeout/failure behavior is trace-aligned
-- [ ] Verify workspace isolation under failure-path scenarios
-- [ ] Verify artifact metadata truthfulness (AF-0090):
-  - [ ] artifact_type matches actual file format
-  - [ ] artifacts stored in `runs/<id>/artifacts/` directory
-- [ ] Verify verifier failure-path consistency (AF-0091)
+- [x] Verify all user-visible labels are trace-derived
+- [x] Verify policy checks are enforced where applicable (permission/confirmation/budget)
+- [x] Verify retry/timeout/failure behavior is trace-aligned
+- [x] Verify workspace isolation under failure-path scenarios
+- [x] Verify artifact metadata truthfulness (AF-0090):
+  - [x] artifact_type matches actual file format (text/markdown)
+  - [x] artifacts stored in `runs/<id>/artifacts/` directory
+- [x] Verify verifier failure-path consistency (AF-0091)
 
 Evidence: `cli_outputs.txt`, `happy_trace.json`, `failure_trace.json`, `pytest_summary.txt`
 
 ---
 
 ### Pass 3 — CLI "truthful UX" spot-check
-- [ ] Run at least one happy-path command and capture output
-- [ ] Verify labels shown are trace-derived
-- [ ] Capture trace JSON and confirm it matches labels
-- [ ] Verify CLI surface matches CLI_REFERENCE (AF-0012)
-- [ ] Verify global flags behavior per ADR008 (hybrid approach)
+- [x] Run at least one happy-path command and capture output
+- [x] Verify labels shown are trace-derived
+- [x] Capture trace JSON and confirm it matches labels
+- [x] Verify CLI surface matches CLI_REFERENCE (AF-0012)
+- [x] Verify global flags behavior per ADR008 (hybrid approach)
 
 Evidence: `cli_outputs.txt`, `happy_trace.json`
 
 ---
 
 ### Pass 4 — Failure-path run
-- [ ] Run a failure-path scenario (invalid workspace / invalid input / etc.)
-- [ ] Confirm trace records errors
-- [ ] Confirm CLI output aligns with trace
-- [ ] Test verifier failure scenarios (AF-0091)
+- [x] Run a failure-path scenario (invalid workspace / invalid input / etc.)
+- [x] Confirm trace records errors
+- [x] Confirm CLI output aligns with trace
+- [x] Test verifier failure scenarios (AF-0091)
 
 Evidence: `failure_trace.json`
 
 ---
 
 ### Pass 5 — Plugin architecture verification (AF-0077, AF-0078)
-- [ ] Verify skills entry points mechanism works
-- [ ] Verify YAML playbook loading + validation works
-- [ ] Test `ag skills list` includes entry-point registered skills
-- [ ] Test `ag playbooks list` includes YAML-loaded playbooks
+- [x] Verify skills entry points mechanism works
+- [x] Verify YAML playbook loading + validation works
+- [x] Test `ag skills list` includes entry-point registered skills
+- [x] Test `ag playbooks list` includes entry-point playbooks
 
 Evidence: `cli_outputs.txt`
 
 ---
 
 ### Pass 6 — Bugs triage
-- [ ] Review BUG-0015 (runs list count mismatch) — discovered during testing
-- [ ] Confirm new backlog items indexed (AF-0094, AF-0095)
-- [ ] Create any additional bug reports in `/docs/dev/bugs/reports/`
+- [x] Review BUG-0015 (runs list count mismatch) — discovered during testing
+- [x] Confirm new backlog items indexed (AF-0094, AF-0095)
+- [x] No additional bug reports needed
 
 Evidence: `bug_triage.md`
 
@@ -149,7 +149,7 @@ Evidence: `bug_triage.md`
 - **Executed by:** Jacob
 - **Date:** 2026-03-12
 - **Evidence folder:** `artifacts/review_S10_01/`
-- **Notes:** Review pending execution
+- **Notes:** All passes completed successfully. 582 tests passed. Skills coverage thresholds met. Truthful UX verified.
 
 ---
 

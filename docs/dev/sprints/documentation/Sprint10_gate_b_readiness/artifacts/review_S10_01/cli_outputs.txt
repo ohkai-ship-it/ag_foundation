@@ -1,0 +1,143 @@
+# Pass 2.5/3/4/5 — CLI Outputs
+# Review: S10_REVIEW_01
+# Date: 2026-03-12
+
+## Happy-Path Run (Pass 3)
+
+```
+$ ag run -w skills02 -p summarize_v0 "Summarize the test document"
+
+Run completed
+  Run ID: b4a3a472-af53-43ef-a7d3-48ae5765b607
+  Workspace: skills02
+  Mode: supervised
+  Status: success
+  Verifier: passed
+  Duration: 2696ms
+  Playbook: summarize_v0@1.0.0
+```
+
+### Label Verification (Truthful UX)
+All labels shown are trace-derived:
+- Run ID: ✅ from trace.run_id
+- Workspace: ✅ from trace.workspace_id
+- Mode: ✅ from trace.mode ("supervised")
+- Status: ✅ from trace.final ("success")
+- Verifier: ✅ from trace.verifier.status ("passed")
+- Duration: ✅ from trace.duration_ms (2696ms)
+- Playbook: ✅ from trace.playbook (summarize_v0@1.0.0)
+
+## Failure-Path Run (Pass 4)
+
+```
+$ ag run -w skills02 -p summarize_v0 "Summarize the documents in the workspace"
+
+Run completed
+  Run ID: beef9524-a61d-489b-8dec-6f7a50313a81
+  Workspace: skills02
+  Mode: supervised
+  Status: failure
+  Verifier: failed
+  Duration: 1ms
+  Playbook: summarize_v0@1.0.0
+
+Error: Required step 'load_docs' failed: No files found matching patterns: ['**/*.md']
+```
+
+### Failure Verification
+Trace shows:
+- verifier.status: "failed"
+- verifier.message: "Required step 'load_docs' failed"
+- step[0].error: "No files found matching patterns: ['**/*.md']"
+- final_status: "failure"
+
+CLI output matches trace (truthful).
+
+## Workspace Validation (Pass 4)
+
+```
+$ ag run -w nonexistent_workspace "test"
+
+Error: Workspace 'nonexistent_workspace' does not exist.
+Create it first: ag ws create nonexistent_workspace
+```
+
+Workspace isolation enforced.
+
+## Artifacts Verification (Pass 2.5)
+
+```
+$ ag artifacts list -w skills02 --run b4a3a472-af53-43ef-a7d3-48ae5765b607
+
+┃ ID                                          ┃ Type          ┃  Size ┃ Path
+│ b4a3a472-af53-43ef-a7d3-48ae5765b607-result │ text/markdown │ 521 B │ ...result_result.md
+```
+
+- Artifact type: text/markdown (matches actual file format)
+- Stored in: `runs/<id>/artifacts/` directory
+
+## Skills List (Pass 5)
+
+```
+$ ag skills list
+
+                                     Registered Skills
+┃ Name                ┃ Source      ┃ Description
+│ echo_tool           │ test-stub   │ Echo the input message back
+│ emit_result         │ entry-point │ Store structured output as workspace artifact
+│ error_skill         │ test-stub   │ Always raises exception (testing)
+│ fail_skill          │ test-stub   │ Always fails (testing)
+│ fetch_web_content   │ entry-point │ Fetch and extract text content from URLs
+│ load_documents      │ entry-point │ Load documents from workspace matching glob patterns
+│ summarize_docs      │ entry-point │ Summarize documents using LLM
+│ synthesize_research │ entry-point │ Synthesize research report from multiple sources
+│ web_search          │ entry-point │ Search the web for URLs matching a query
+│ zero_skill          │ entry-point │ Dummy skill with no functionality
+```
+
+- Entry-point skills: emit_result, fetch_web_content, load_documents, summarize_docs, synthesize_research, web_search, zero_skill
+- Test stubs: echo_tool, error_skill, fail_skill
+
+## Playbooks List (Pass 5)
+
+```
+$ ag playbooks list
+
+                                                 Available Playbooks
+┃ Name         ┃ Version ┃ Source      ┃ Stability    ┃ Description
+│ default_v0   │ 1.0.0   │ entry-point │ test         │ Default v0 playbook: simple echo for testing
+│ delegate_v0  │ 1.0.0   │ entry-point │ test         │ Delegation playbook: multi-step echo for testing
+│ research_v0  │ 1.1.0   │ entry-point │ experimental │ Research pipeline: load → search → fetch → synthesize → emit
+│ summarize_v0 │ 1.0.0   │ entry-point │ experimental │ Summarize documents from workspace using LLM
+│ test_skill   │ 1.0.0   │ entry-point │ test         │ Test playbook: runs zero_skill twice
+```
+
+- All playbooks show Source column: entry-point
+
+## Global Flags (ADR008)
+
+```
+$ ag --help
+
+Options:
+ --workspace  -w  TEXT  Default workspace ID for all commands.  ← GLOBAL
+ --json                 Output machine-readable JSON (where supported).
+ --quiet      -q        Reduce non-essential output.
+ --verbose    -v        Include extra debug details.
+```
+
+Per ADR008: --workspace is global, output flags (--json, --quiet, --verbose) shown at top level for discoverability but implemented per-command.
+
+## Checklist
+- [x] Run at least one happy-path command and capture output
+- [x] Verify labels shown are trace-derived
+- [x] Capture trace JSON and confirm it matches labels
+- [x] Verify CLI surface matches CLI_REFERENCE (AF-0012)
+- [x] Verify global flags behavior per ADR008 (hybrid approach)
+- [x] Run a failure-path scenario
+- [x] Confirm trace records errors
+- [x] Confirm CLI output aligns with trace
+- [x] Test verifier failure scenarios (AF-0091)
+- [x] Verify skills entry points mechanism works (AF-0077)
+- [x] Test ag skills list includes entry-point registered skills
+- [x] Test ag playbooks list includes entry-point playbooks

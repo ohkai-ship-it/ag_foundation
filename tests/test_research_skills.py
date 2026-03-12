@@ -665,8 +665,7 @@ class TestExtractTextFromHtml:
         from ag.skills.fetch_web_content import _extract_text_from_html
 
         html = (
-            "<html><body>Tom &amp; Jerry &lt;3 &gt; "
-            "&quot;quotes&quot; &#39;apos&#39;</body></html>"
+            "<html><body>Tom &amp; Jerry &lt;3 &gt; &quot;quotes&quot; &#39;apos&#39;</body></html>"
         )
         text, _ = _extract_text_from_html(html, 1000)
 
@@ -908,8 +907,7 @@ class TestFetchUrlSyncFunction:
         mock_response.status_code = 200
         mock_response.headers = {"content-type": "text/html; charset=utf-8"}
         mock_response.text = (
-            "<html><head><title>Page Title</title></head>"
-            "<body>Content</body></html>"
+            "<html><head><title>Page Title</title></head><body>Content</body></html>"
         )
 
         mock_client = MagicMock()
@@ -1385,9 +1383,7 @@ class TestWebSearchEngineImplementations:
         call_kwargs = mock_post.call_args[1]
         assert call_kwargs["headers"]["X-API-KEY"] == "test-serper-key"
 
-    @patch.dict(
-        "os.environ", {"GOOGLE_API_KEY": "google-key", "GOOGLE_SEARCH_ENGINE_ID": "cx-id"}
-    )
+    @patch.dict("os.environ", {"GOOGLE_API_KEY": "google-key", "GOOGLE_SEARCH_ENGINE_ID": "cx-id"})
     @patch("httpx.get")
     def test_google_implementation(self, mock_get: MagicMock) -> None:
         """Test _search_google implementation."""

@@ -1,0 +1,98 @@
+﻿{
+  "trace_version": "0.1",
+  "run_id": "b4a3a472-af53-43ef-a7d3-48ae5765b607",
+  "workspace_id": "skills02",
+  "workspace_source": "cli",
+  "mode": "supervised",
+  "llm": {
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "call_count": 0,
+    "total_tokens": null,
+    "input_tokens": null,
+    "output_tokens": null
+  },
+  "playbook": {
+    "name": "summarize_v0",
+    "version": "1.0.0"
+  },
+  "started_at": "2026-03-12T21:10:19.593147Z",
+  "ended_at": "2026-03-12T21:10:22.290059Z",
+  "duration_ms": 2696,
+  "steps": [
+    {
+      "step_id": "b4a3a472-af53-43ef-a7d3-48ae5765b607-step-0",
+      "step_number": 0,
+      "step_type": "skill_call",
+      "skill_name": "load_documents",
+      "input_summary": "prompt=Summarize the test document...",
+      "output_summary": "Loaded 1 documents (69 bytes)",
+      "started_at": "2026-03-12T21:10:19.593359Z",
+      "ended_at": "2026-03-12T21:10:19.594341Z",
+      "duration_ms": 0,
+      "tokens_used": null,
+      "error": null,
+      "artifacts": [],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null
+    },
+    {
+      "step_id": "b4a3a472-af53-43ef-a7d3-48ae5765b607-step-1",
+      "step_number": 1,
+      "step_type": "skill_call",
+      "skill_name": "summarize_docs",
+      "input_summary": "prompt=Summarize the test document...",
+      "output_summary": "Summarized 1 document(s)",
+      "started_at": "2026-03-12T21:10:19.594367Z",
+      "ended_at": "2026-03-12T21:10:22.283543Z",
+      "duration_ms": 2689,
+      "tokens_used": null,
+      "error": null,
+      "artifacts": [],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null
+    },
+    {
+      "step_id": "b4a3a472-af53-43ef-a7d3-48ae5765b607-step-2",
+      "step_number": 2,
+      "step_type": "skill_call",
+      "skill_name": "emit_result",
+      "input_summary": "prompt=Summarize the test document...",
+      "output_summary": "Artifact stored: runs\\b4a3a472-af53-43ef-a7d3-48ae5765b607\\artifacts\\summary.json (739 bytes)",
+      "started_at": "2026-03-12T21:10:22.283571Z",
+      "ended_at": "2026-03-12T21:10:22.290019Z",
+      "duration_ms": 6,
+      "tokens_used": null,
+      "error": null,
+      "artifacts": [
+        "art-18f210fa331b"
+      ],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "art-18f210fa331b",
+      "path": "runs\\b4a3a472-af53-43ef-a7d3-48ae5765b607\\artifacts\\summary.json",
+      "artifact_type": "application/json",
+      "size_bytes": 739,
+      "checksum": null,
+      "created_at": "2026-03-12T21:10:22.290005Z",
+      "metadata": {},
+      "category": null
+    }
+  ],
+  "verifier": {
+    "status": "passed",
+    "checked_at": "2026-03-12T21:10:22.290074Z",
+    "message": "All steps completed successfully",
+    "evidence": {}
+  },
+  "final": "success",
+  "error": null,
+  "metadata": {}
+}

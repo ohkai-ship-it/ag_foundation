@@ -934,9 +934,7 @@ class TestCLIStubs:
 
     def test_artifacts_open_stub(self):
         """ag artifacts open <id> exits with code 1."""
-        result = runner.invoke(
-            app, ["artifacts", "open", "--run", "r1", "artifact-id"]
-        )
+        result = runner.invoke(app, ["artifacts", "open", "--run", "r1", "artifact-id"])
         assert result.exit_code == 1
         assert "not implemented" in result.output.lower()
 

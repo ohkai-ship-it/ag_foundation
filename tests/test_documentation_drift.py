@@ -160,9 +160,7 @@ class TestSchemaInventoryDrift:
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in skills/base.py: {missing}"
 
-    def test_all_registered_skill_schemas_documented(
-        self, schema_inventory_content: str
-    ) -> None:
+    def test_all_registered_skill_schemas_documented(self, schema_inventory_content: str) -> None:
         """All Pydantic schemas from registered skills should be documented (AF0081).
 
         This test ensures that when new skills are added to the registry,
@@ -211,9 +209,7 @@ class TestContractImplementationDrift:
             pytest.skip("CONTRACT_INVENTORY.md not yet created")
         return path.read_text(encoding="utf-8")
 
-    def test_all_registered_skills_documented(
-        self, contract_inventory_content: str
-    ) -> None:
+    def test_all_registered_skills_documented(self, contract_inventory_content: str) -> None:
         """All skills in registry should be documented in CONTRACT_INVENTORY.md (AF0081).
 
         This test ensures that when new skills are registered, they are also

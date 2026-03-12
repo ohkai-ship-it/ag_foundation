@@ -279,9 +279,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             if is_markdown:
                 # Write markdown format for text/markdown
                 # AF-0082: Pass trace metadata for polished reports
-                content = self._format_markdown(
-                    input, artifact_id, ctx.run_id, ctx.trace_metadata
-                )
+                content = self._format_markdown(input, artifact_id, ctx.run_id, ctx.trace_metadata)
                 mime_type = "text/markdown"
             elif is_plain_text:
                 # Write plain text for text/plain

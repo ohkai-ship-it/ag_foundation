@@ -1,0 +1,30 @@
+# Pass 2 — Ruff Summary
+# Review: S10_REVIEW_01
+# Date: 2026-03-12
+
+## Ruff Check
+```
+$ python -m ruff check src tests
+All checks passed!
+```
+
+## Ruff Format
+```
+$ python -m ruff format --check src tests
+Would reformat: src\ag\cli\main.py
+Would reformat: src\ag\skills\emit_result.py
+Would reformat: tests\test_cli.py
+Would reformat: tests\test_documentation_drift.py
+Would reformat: tests\test_research_skills.py
+5 files would be reformatted, 52 files already formatted
+
+$ python -m ruff format src tests
+5 files reformatted, 52 files left unchanged
+```
+
+## Ruff Version
+ruff 0.15.2
+
+## Checklist
+- [x] ruff check src tests — All checks passed
+- [x] ruff format src tests — 5 files reformatted

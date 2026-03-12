@@ -980,9 +980,7 @@ def runs_stats(
 @runs_app.command("tail")
 def runs_tail(
     run_id: Annotated[str, typer.Argument(help="Run ID to stream logs from")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Stream live output from a running agent session (stub)."""
     _not_implemented("ag runs tail", json_mode=json_output)
@@ -1114,9 +1112,7 @@ def ws_config_get(
     workspace_id: Annotated[
         Optional[str], typer.Option("--workspace", "-w", help="Workspace ID (default: current)")
     ] = None,
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Get a workspace configuration value (stub)."""
     _not_implemented("ag ws config get", json_mode=json_output)
@@ -1129,9 +1125,7 @@ def ws_config_set(
     workspace_id: Annotated[
         Optional[str], typer.Option("--workspace", "-w", help="Workspace ID (default: current)")
     ] = None,
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Set a workspace configuration value (stub)."""
     _not_implemented("ag ws config set", json_mode=json_output)
@@ -1353,9 +1347,7 @@ def artifacts_open(
     workspace: Annotated[
         Optional[str], typer.Option("--workspace", "-w", help="Workspace ID")
     ] = None,
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Open artifact in system viewer (stub)."""
     _not_implemented("ag artifacts open", json_mode=json_output)
@@ -1411,9 +1403,7 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
 @skills_app.command("test")
 def skills_test(
     skill_name: Annotated[str, typer.Argument(help="Skill name to test")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Run skill unit tests (stub)."""
     _not_implemented("ag skills test", json_mode=json_output)
@@ -1422,9 +1412,7 @@ def skills_test(
 @skills_app.command("enable")
 def skills_enable(
     skill_name: Annotated[str, typer.Argument(help="Skill name to enable")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Enable a skill for agent sessions (stub)."""
     _not_implemented("ag skills enable", json_mode=json_output)
@@ -1433,9 +1421,7 @@ def skills_enable(
 @skills_app.command("disable")
 def skills_disable(
     skill_name: Annotated[str, typer.Argument(help="Skill name to disable")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Disable a skill for agent sessions (stub)."""
     _not_implemented("ag skills disable", json_mode=json_output)
@@ -1497,9 +1483,7 @@ def playbooks_list(
 @playbooks_app.command("show")
 def playbooks_show(
     name: Annotated[str, typer.Argument(help="Playbook name")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Show playbook details (stub)."""
     _not_implemented("ag playbooks show", json_mode=json_output)
@@ -1508,9 +1492,7 @@ def playbooks_show(
 @playbooks_app.command("validate")
 def playbooks_validate(
     name: Annotated[str, typer.Argument(help="Playbook name or path to validate")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Validate playbook syntax and semantics (stub)."""
     _not_implemented("ag playbooks validate", json_mode=json_output)
@@ -1519,9 +1501,7 @@ def playbooks_validate(
 @playbooks_app.command("set-default")
 def playbooks_set_default(
     name: Annotated[str, typer.Argument(help="Playbook name to set as default")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Set the default playbook for new agent sessions (stub)."""
     _not_implemented("ag playbooks set-default", json_mode=json_output)
@@ -1534,9 +1514,7 @@ def playbooks_set_default(
 
 @config_app.command("list")
 def config_list(
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """List all configuration values (stub)."""
     _not_implemented("ag config list", json_mode=json_output)
@@ -1545,9 +1523,7 @@ def config_list(
 @config_app.command("get")
 def config_get(
     key: Annotated[str, typer.Argument(help="Config key")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Get a configuration value (stub)."""
     _not_implemented("ag config get", json_mode=json_output)
@@ -1557,9 +1533,7 @@ def config_get(
 def config_set(
     key: Annotated[str, typer.Argument(help="Config key")],
     value: Annotated[str, typer.Argument(help="Config value")],
-    json_output: Annotated[
-        bool, typer.Option("--json", help="Output as JSON")
-    ] = False,
+    json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
     """Set a configuration value (stub)."""
     _not_implemented("ag config set", json_mode=json_output)

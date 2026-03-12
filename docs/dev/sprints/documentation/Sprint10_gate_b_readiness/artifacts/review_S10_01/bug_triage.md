@@ -45,3 +45,19 @@
 2. Keep BUG-0002 open (deferred ag run options noted in CLI_REFERENCE)
 3. Review BUG-0011 in Sprint 11
 4. Address BUG-0015 in Sprint 11 (storage/index sync)
+
+---
+
+## Pass 6 Verification (S10_REVIEW_01)
+Date: 2026-03-12
+
+### Checklist
+- [x] Review BUG-0015 (runs list count mismatch) — documented, OPEN
+- [x] Confirm new backlog items indexed (AF-0094, AF-0095) — verified in INDEX_BACKLOG
+- [x] No additional bug reports needed for this review
+
+### Sprint Impact
+None of the bugs or new items block sprint close:
+- BUG-0015: P2, can be addressed in future sprint
+- AF-0094: Proposed enhancement, not blocking
+- AF-0095: Proposed audit, not blocking
