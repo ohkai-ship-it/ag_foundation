@@ -34,7 +34,7 @@ _(empty — all PROPOSED items assigned to Sprint 10)_
 ### Sprint 10 Scope (active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0090 | P1 | READY | Artifact truthfulness + trace enrichment | Core Runtime/Artifacts | TBD | [🔗](items/AF0090_READY_artifact_evidence_deepdive.md) |
+| 1 | AF-0090 | P1 | IN_PROGRESS | Artifact truthfulness + trace enrichment | Core Runtime/Artifacts | Jacob | [🔗](items/AF0090_IN_PROGRESS_artifact_evidence_deepdive.md) |
 | 2 | AF-0091 | P1 | READY | Verifier failure-path maturity | Core Runtime/Verifier | TBD | [🔗](items/AF0091_READY_verifier_failure_path_maturity.md) |
 | 3 | AF-0093 | P2 | READY | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_READY_skills_test_coverage_hardening.md) |
 | 4 | AF-0012 | P2 | READY | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_READY_cli_reference_surface.md) |
