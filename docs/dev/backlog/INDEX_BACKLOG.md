@@ -40,7 +40,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 5 | AF-0081 | P2 | DONE | Inventory sync discipline | Docs/Process | Jacob | [🔗](items/AF0081_DONE_inventory_sync_discipline.md) |
 | 6 | AF-0082 | P2 | DONE | Report polish (rescoped) | Core Runtime/CLI | Jacob | [✅](items/AF0082_DONE_human_readable_result.md) |
 | 7 | AF-0084 | P3 | DONE | Index link emoji fix | Docs/Process | Jacob | [✅](items/AF0084_DONE_index_link_emoji_fix.md) |
-| 8 | AF-0077 | P3 | READY | Skills plugin architecture (Phase 1) | Skills/Architecture | TBD | [🔗](items/AF0077_READY_skills_plugin_architecture.md) |
+| 8 | AF-0077 | P3 | DONE | Skills plugin architecture (Phase 1) | Skills/Architecture | Jacob | [✅](items/AF0077_DONE_skills_plugin_architecture.md) |
 | 9 | AF-0078 | P3 | READY | Playbooks plugin architecture (Phase 1) | Playbooks/Architecture | TBD | [🔗](items/AF0078_READY_playbooks_plugin_architecture.md) |
 
 ### Done during Sprint 10 planning

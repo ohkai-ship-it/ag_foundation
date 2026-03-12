@@ -362,3 +362,179 @@ class TestRegistryV2:
 
         assert success is False
         assert "context_validation_failed" in data.get("error", "")
+
+
+# ---------------------------------------------------------------------------
+# AF0077: Entry Point Discovery Tests
+# ---------------------------------------------------------------------------
+
+
+class TestEntryPointDiscovery:
+    """Tests for skill entry point discovery (AF0077)."""
+
+    def test_source_field_exists(self) -> None:
+        """SkillInfo includes source field."""
+        registry = SkillRegistry()
+        registry.register(GreeterSkill())
+
+        info = registry.get_skill("greeter")
+
+        assert info is not None
+        assert hasattr(info, "source")
+        assert info.source == "built-in"  # default
+
+    def test_source_custom_value(self) -> None:
+        """SkillInfo source can be set to custom value."""
+        registry = SkillRegistry()
+        registry.register(GreeterSkill(), source="entry-point")
+
+        info = registry.get_skill("greeter")
+
+        assert info is not None
+        assert info.source == "entry-point"
+
+    def test_get_info_includes_source(self) -> None:
+        """get_info() dict includes source field."""
+        registry = SkillRegistry()
+        registry.register(GreeterSkill(), source="test-stub")
+
+        info = registry.get_info("greeter")
+
+        assert info is not None
+        assert info["source"] == "test-stub"
+
+    def test_discover_entrypoint_skills_mock(self, mocker) -> None:
+        """Entry point discovery registers skills from mock entry points."""
+        from ag.skills.registry import _discover_entrypoint_skills
+
+        # Mock entry_points to return a fake skill
+        mock_ep = mocker.MagicMock()
+        mock_ep.name = "test_skill"
+        mock_ep.load.return_value = GreeterSkill
+
+        mocker.patch(
+            "ag.skills.registry.entry_points",
+            return_value=[mock_ep],
+        )
+
+        registry = SkillRegistry()
+        _discover_entrypoint_skills(registry)
+
+        assert registry.has("greeter")
+        info = registry.get_skill("greeter")
+        assert info is not None
+        assert info.source == "entry-point"
+
+    def test_discover_entrypoint_skill_load_failure(self, mocker, caplog) -> None:
+        """Entry point that fails to load logs warning and doesn't crash."""
+        from ag.skills.registry import _discover_entrypoint_skills
+
+        mock_ep = mocker.MagicMock()
+        mock_ep.name = "broken_skill"
+        mock_ep.load.side_effect = ImportError("module not found")
+
+        mocker.patch(
+            "ag.skills.registry.entry_points",
+            return_value=[mock_ep],
+        )
+
+        registry = SkillRegistry()
+        # Should not raise
+        _discover_entrypoint_skills(registry)
+
+        assert not registry.has("broken_skill")
+        # Warning should be logged
+        assert "Failed to load" in caplog.text or len(registry.list()) == 0
+
+    def test_discover_entrypoint_skill_not_skill_protocol(self, mocker, caplog) -> None:
+        """Entry point that doesn't implement Skill protocol is skipped."""
+        import logging
+
+        from ag.skills.registry import _discover_entrypoint_skills
+
+        caplog.set_level(logging.WARNING)
+
+        # Return a non-Skill class
+        class NotASkill:
+            pass
+
+        mock_ep = mocker.MagicMock()
+        mock_ep.name = "not_a_skill"
+        mock_ep.load.return_value = NotASkill
+
+        mocker.patch(
+            "ag.skills.registry.entry_points",
+            return_value=[mock_ep],
+        )
+
+        registry = SkillRegistry()
+        _discover_entrypoint_skills(registry)
+
+        assert not registry.has("not_a_skill")
+        # Warning should be logged about protocol
+        assert "Skill protocol" in caplog.text
+
+    def test_discover_entrypoint_skill_name_conflict(self, mocker, caplog) -> None:
+        """Entry point with name conflict with existing skill is skipped."""
+        import logging
+
+        from ag.skills.registry import _discover_entrypoint_skills
+
+        caplog.set_level(logging.WARNING)
+
+        mock_ep = mocker.MagicMock()
+        mock_ep.name = "greeter_ep"
+        mock_ep.load.return_value = GreeterSkill
+
+        mocker.patch(
+            "ag.skills.registry.entry_points",
+            return_value=[mock_ep],
+        )
+
+        # Pre-register a skill with same name
+        registry = SkillRegistry()
+        registry.register(GreeterSkill(), source="built-in")
+
+        # Now discover entry points - should skip due to conflict
+        _discover_entrypoint_skills(registry)
+
+        # Original should still be there with built-in source
+        info = registry.get_skill("greeter")
+        assert info is not None
+        assert info.source == "built-in"  # Not overwritten
+
+        # Warning should be logged about conflict
+        assert "conflicts" in caplog.text
+
+    def test_default_registry_uses_entry_points(self) -> None:
+        """create_default_registry() discovers skills via entry points."""
+        from ag.skills.registry import create_default_registry
+
+        registry = create_default_registry()
+
+        # Built-in skills should be registered via entry points
+        emit_info = registry.get_skill("emit_result")
+        assert emit_info is not None
+        assert emit_info.source == "entry-point"
+
+        # Test stubs should be registered directly
+        echo_info = registry.get_skill("echo_tool")
+        assert echo_info is not None
+        assert echo_info.source == "test-stub"
+
+    def test_skills_list_integration(self) -> None:
+        """ag skills list shows source column (integration test)."""
+        from ag.skills.registry import create_default_registry
+
+        registry = create_default_registry()
+        skill_names = registry.list()
+
+        # Verify we have both entry-point and test-stub skills
+        sources = set()
+        for name in skill_names:
+            info = registry.get_info(name)
+            if info:
+                sources.add(info["source"])
+
+        assert "entry-point" in sources
+        assert "test-stub" in sources

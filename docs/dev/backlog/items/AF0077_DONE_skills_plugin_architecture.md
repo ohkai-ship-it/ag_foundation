@@ -18,11 +18,11 @@
 ## Metadata
 - **ID:** AF0077
 - **Type:** Architecture / Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P3
 - **Area:** Skills / Architecture
-- **Owner:** TBD
-- **Target sprint:** Sprint 10 (stretch)
+- **Owner:** Jacob
+- **Target sprint:** Sprint 10
 - **Depends on:** AF-0079 (V1 removal — DONE)
 
 ---
@@ -232,16 +232,16 @@ my_custom_skill       entry-point   No
 
 ## Acceptance criteria (Definition of Done)
 
-- [ ] `_discover_entrypoint_skills()` discovers skills from `ag.skills` entry point group
-- [ ] ag_foundation's built-in skills registered as entry points in pyproject.toml
-- [ ] `create_default_registry()` uses entry point discovery (dogfooding)
-- [ ] `SkillInfo.source` field distinguishes built-in / entry-point / test-stub
-- [ ] `ag skills list` displays source column
-- [ ] Invalid entry points log warning and don't crash
-- [ ] Name conflicts with built-in skills are rejected with warning
-- [ ] Unit tests cover: discovery, load failure, name conflict, protocol check
-- [ ] `ruff check src tests` passes
-- [ ] `pytest -W error` passes
+- [x] `_discover_entrypoint_skills()` discovers skills from `ag.skills` entry point group
+- [x] ag_foundation's built-in skills registered as entry points in pyproject.toml
+- [x] `create_default_registry()` uses entry point discovery (dogfooding)
+- [x] `SkillInfo.source` field distinguishes built-in / entry-point / test-stub
+- [x] `ag skills list` displays source column
+- [x] Invalid entry points log warning and don't crash
+- [x] Name conflicts with built-in skills are rejected with warning
+- [x] Unit tests cover: discovery, load failure, name conflict, protocol check
+- [x] `ruff check src tests` passes
+- [x] `pytest -W error` passes
 
 ---
 
@@ -261,3 +261,53 @@ my_custom_skill       entry-point   No
 - **AF-0079:** Skills framework V1 removal (prerequisite — unified Skill ABC) — DONE
 - **AF-0069:** Skills architecture documentation — DONE
 - **AF-0078:** Playbooks plugin architecture (parallel — same pattern for playbooks)
+
+---
+
+## Completion Summary
+
+**Completed:** Sprint 10
+
+### Implementation
+
+1. **Entry point discovery** (`src/ag/skills/registry.py`):
+   - Added `_discover_entrypoint_skills()` function
+   - Discovers skills from `ag.skills` entry point group
+   - Invalid entry points logged and skipped (never crash)
+   - Name conflicts with existing skills rejected with warning
+
+2. **SkillInfo.source field**:
+   - Added `source: str = "built-in"` to SkillInfo dataclass
+   - Values: `"built-in"`, `"entry-point"`, `"test-stub"`
+   - Included in `get_info()` return dict
+
+3. **Built-in skills as entry points** (`pyproject.toml`):
+   ```toml
+   [project.entry-points."ag.skills"]
+   load_documents = "ag.skills.load_documents:LoadDocumentsSkill"
+   summarize_docs = "ag.skills.summarize_docs:SummarizeDocsSkill"
+   emit_result = "ag.skills.emit_result:EmitResultSkill"
+   fetch_web_content = "ag.skills.fetch_web_content:FetchWebContentSkill"
+   synthesize_research = "ag.skills.synthesize_research:SynthesizeResearchSkill"
+   web_search = "ag.skills.web_search:WebSearchSkill"
+   ```
+
+4. **CLI updates** (`src/ag/cli/main.py`):
+   - `ag skills list` shows Source column
+   - `ag skills info` shows Source field
+
+### Tests Added
+
+9 new tests in `tests/test_skill_framework.py::TestEntryPointDiscovery`:
+- Source field tests (3)
+- Mock entry point discovery test
+- Load failure handling test
+- Non-Skill protocol rejection test
+- Name conflict handling test
+- Default registry integration test
+- Skills list integration test
+
+### Metrics
+
+- Tests: 574 passing (565 → 574)
+- Ruff: Clean

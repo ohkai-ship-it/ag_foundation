@@ -50,6 +50,15 @@ llm = [
 [project.scripts]
 ag = "ag.cli.main:app"
 
+# AF0077: Skill plugin architecture - built-in skills as entry points
+[project.entry-points."ag.skills"]
+load_documents = "ag.skills.load_documents:LoadDocumentsSkill"
+summarize_docs = "ag.skills.summarize_docs:SummarizeDocsSkill"
+emit_result = "ag.skills.emit_result:EmitResultSkill"
+fetch_web_content = "ag.skills.fetch_web_content:FetchWebContentSkill"
+synthesize_research = "ag.skills.synthesize_research:SynthesizeResearchSkill"
+web_search = "ag.skills.web_search:WebSearchSkill"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/ag"]
 

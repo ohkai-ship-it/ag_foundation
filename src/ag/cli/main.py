@@ -1378,12 +1378,14 @@ def skills_list() -> None:
 
     table = Table(title="Registered Skills")
     table.add_column("Name", style="cyan")
+    table.add_column("Source", style="dim")
     table.add_column("Description")
 
     for name in skills:
         info = registry.get_info(name)
         desc = info["description"] if info else ""
-        table.add_row(name, desc)
+        source = info["source"] if info else "unknown"
+        table.add_row(name, source, desc)
 
     console.print(table)
 
@@ -1402,6 +1404,7 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
         raise typer.Exit(code=1)
 
     console.print(f"[bold]Skill:[/bold] {info['name']}")
+    console.print(f"[bold]Source:[/bold] {info['source']}")
     console.print(f"[bold]Description:[/bold] {info['description']}")
 
 
