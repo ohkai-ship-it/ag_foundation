@@ -745,12 +745,20 @@ class TestPlaybooksListCommand:
         assert "default_v0" in names
         assert "summarize_v0" in names
 
-        # Check fields exist
+        # Check fields exist (AF0078: source field added)
         for pb in data:
             assert "name" in pb
             assert "version" in pb
             assert "stability" in pb
             assert "description" in pb
+            assert "source" in pb  # AF0078: entry-point discovery
+
+    def test_playbooks_list_shows_source_column(self):
+        """ag playbooks list shows source column (AF0078)."""
+        result = runner.invoke(app, ["playbooks", "list"])
+        assert result.exit_code == 0
+        assert "Source" in result.output
+        assert "entry-point" in result.output
 
     def test_playbooks_list_stability_values(self):
         """ag playbooks list should show correct stability values."""

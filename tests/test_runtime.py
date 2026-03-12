@@ -245,7 +245,7 @@ class TestRuntimeFailurePath:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
 
         # Create a test playbook with fail_skill as first required step
         fail_playbook = Playbook(
@@ -270,7 +270,7 @@ class TestRuntimeFailurePath:
         )
 
         # Temporarily register the playbook
-        _REGISTRY["fail_test"] = fail_playbook
+        register_playbook(fail_playbook, source="test")
 
         try:
             # Use default registry which includes fail_skill
@@ -295,7 +295,7 @@ class TestRuntimeFailurePath:
             assert trace.verifier.status == VerifierStatus.FAILED
         finally:
             # Clean up
-            del _REGISTRY["fail_test"]
+            unregister_playbook("fail_test")
 
     def test_failed_run_persisted(
         self,
@@ -350,7 +350,7 @@ class TestRuntimeFailurePath:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
 
         # Create a playbook with error_skill that raises an exception
         error_playbook = Playbook(
@@ -375,7 +375,7 @@ class TestRuntimeFailurePath:
         )
 
         # Temporarily register the playbook
-        _REGISTRY["error_test"] = error_playbook
+        register_playbook(error_playbook, source="test")
 
         try:
             # Use default registry which includes error_skill
@@ -401,7 +401,7 @@ class TestRuntimeFailurePath:
             assert "error" in error_msg or "intentional" in error_msg
         finally:
             # Clean up
-            del _REGISTRY["error_test"]
+            unregister_playbook("error_test")
 
 
 # ---------------------------------------------------------------------------
@@ -749,7 +749,7 @@ class TestPolicyTraceEvidence:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
         from ag.skills import get_default_registry
 
         # Create playbook with fail_skill
@@ -774,7 +774,7 @@ class TestPolicyTraceEvidence:
             metadata={"stability": "test"},
         )
 
-        _REGISTRY["fail_test_policy"] = fail_playbook
+        register_playbook(fail_playbook, source="test")
 
         try:
             runtime = create_runtime(
@@ -801,7 +801,7 @@ class TestPolicyTraceEvidence:
             assert trace.verifier.message is not None
 
         finally:
-            del _REGISTRY["fail_test_policy"]
+            unregister_playbook("fail_test_policy")
 
     def test_success_outcome_traceable(
         self,
@@ -1048,7 +1048,7 @@ class TestVerifierFailurePathsE2E:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
         from ag.skills import get_default_registry
 
         error_playbook = Playbook(
@@ -1071,7 +1071,7 @@ class TestVerifierFailurePathsE2E:
             ],
         )
 
-        _REGISTRY["e2e_error_test"] = error_playbook
+        register_playbook(error_playbook, source="test")
 
         try:
             runtime = create_runtime(
@@ -1098,7 +1098,7 @@ class TestVerifierFailurePathsE2E:
             assert trace.final == FinalStatus.FAILURE
 
         finally:
-            del _REGISTRY["e2e_error_test"]
+            unregister_playbook("e2e_error_test")
 
     def test_optional_step_failure_allows_success(
         self,
@@ -1113,7 +1113,7 @@ class TestVerifierFailurePathsE2E:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
         from ag.skills import get_default_registry
 
         optional_fail_playbook = Playbook(
@@ -1145,7 +1145,7 @@ class TestVerifierFailurePathsE2E:
             ],
         )
 
-        _REGISTRY["optional_fail_test"] = optional_fail_playbook
+        register_playbook(optional_fail_playbook, source="test")
 
         try:
             runtime = create_runtime(
@@ -1169,7 +1169,7 @@ class TestVerifierFailurePathsE2E:
             assert trace.verifier.status == VerifierStatus.FAILED
 
         finally:
-            del _REGISTRY["optional_fail_test"]
+            unregister_playbook("optional_fail_test")
 
     def test_missing_workspace_fails_gracefully(
         self,

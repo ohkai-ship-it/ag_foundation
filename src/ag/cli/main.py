@@ -1467,11 +1467,14 @@ def playbooks_list(
     table = Table(title="Available Playbooks")
     table.add_column("Name", style="cyan")
     table.add_column("Version", style="dim")
+    table.add_column("Source", style="dim")
     table.add_column("Stability", style="yellow")
     table.add_column("Description")
 
     for pb in playbooks:
         stability = pb.get("stability", "unknown")
+        source = pb.get("source", "unknown")
+
         # Color coding for stability
         if stability == "production":
             stability_display = f"[green]{stability}[/green]"
@@ -1483,6 +1486,7 @@ def playbooks_list(
         table.add_row(
             pb.get("name", ""),
             pb.get("version", ""),
+            source,
             stability_display,
             pb.get("description", ""),
         )
