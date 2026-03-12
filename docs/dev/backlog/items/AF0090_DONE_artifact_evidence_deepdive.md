@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0090
 - **Type:** Investigation + Implementation
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Core Runtime / Artifacts
 - **Owner:** TBD
