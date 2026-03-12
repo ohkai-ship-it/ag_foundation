@@ -1,5 +1,5 @@
 # SPRINT DESCRIPTION — Sprint10 — gate_b_readiness
-# Version number: v0.3
+# Version number: v0.4
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint10
 - **Name:** gate_b_readiness
-- **Dates:** 2026-03-12 → TBD
+- **Dates:** 2026-03-12 → 2026-03-12
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Active
+- **State:** Closed
 
 ---
 
@@ -93,10 +93,10 @@ Achieve Gate B (Guided Autonomy) readiness through four parallel tracks:
 - [x] Verify OPEN bugs triaged and linked
 
 ### Jacob (implementer)
-- [ ] Read sprint description
-- [ ] Review AF items in scope
-- [ ] Confirm scope feasibility
-- [ ] Create feature branch
+- [x] Read sprint description
+- [x] Review AF items in scope
+- [x] Confirm scope feasibility
+- [x] Create feature branch: `feat/sprint10-gate-b-readiness`
 
 ---
 
@@ -160,10 +160,41 @@ At Sprint 10 review, evaluate:
 ## 9) Report (filled at sprint close)
 
 ### What shipped
-_TBD after implementation_
+All 9 planned AFs completed plus 1 ADR:
 
-### What didn't ship
-_TBD_
+| ID | Title | Status |
+|---|---|---|
+| AF-0090 | Artifact truthfulness (Phase 1+3) | ✅ DONE |
+| AF-0091 | Verifier failure-path maturity | ✅ DONE |
+| AF-0093 | Skills test coverage hardening | ✅ DONE |
+| AF-0012 | CLI_REFERENCE surface parity | ✅ DONE |
+| AF-0036 | Remove global CLI flags | ✅ DONE (planning) |
+| AF-0081 | Inventory sync discipline | ✅ DONE |
+| AF-0082 | Report polish | ✅ DONE |
+| AF-0084 | Index link emoji fix | ✅ DONE |
+| AF-0077 | Skills plugin architecture (Phase 1) | ✅ DONE |
+| AF-0078 | Playbooks plugin architecture (Phase 1) | ✅ DONE |
+| ADR008 | CLI global flags (hybrid approach) | ✅ ACCEPTED |
+
+### What didn't ship (deferred)
+- AF-0090 Phase 2 → AF-0094 (trace full I/O enrichment)
+
+### New items discovered
+| ID | Type | Title | Status |
+|---|---|---|---|
+| AF-0094 | Backlog | Trace full I/O enrichment | PROPOSED |
+| AF-0095 | Backlog | research_v0 skill output audit | DONE |
+| BUG-0015 | Bug | Runs list count mismatch | OPEN |
 
 ### Lessons learned
-_TBD_
+- Decisions during planning (AF-0036 → ADR008) can accelerate dependent work
+- Manual testing reveals issues that automated tests miss (BUG-0015, AF-0095)
+- Plugin architecture foundation enables future extensibility
+- Registry-based drift detection is more reliable than manual checklists
+
+---
+
+## 10) PR plan
+| PR | Primary AF | Branch | Status |
+|--|--|--|--|
+| PR-01 | Sprint 10 scope | feat/sprint10-gate-b-readiness | Merged |

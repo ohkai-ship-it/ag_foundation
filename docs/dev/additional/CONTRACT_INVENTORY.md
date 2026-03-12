@@ -246,7 +246,22 @@ class Skill(ABC, Generic[InputT, OutputT]):
 | RunStore | `sqlite_store.py` | ✅ Implemented |
 | ArtifactStore | `sqlite_store.py` | ✅ Implemented |
 | LLMProvider | `openai.py`, `stubs.py` | ✅ Implemented |
-| Skill | `load_documents.py`, `summarize_docs.py`, `emit_result.py` | ✅ Implemented |
+| Skill | See skill implementations below | ✅ Implemented |
+
+### Skill Implementations
+
+| Skill | Module | Input Schema | Output Schema | Requires LLM |
+|-------|--------|--------------|---------------|--------------|
+| `load_documents` | load_documents.py | LoadDocumentsInput | LoadDocumentsOutput | No |
+| `summarize_docs` | summarize_docs.py | SummarizeDocsInput | SummarizeDocsOutput | Yes |
+| `emit_result` | emit_result.py | EmitResultInput | EmitResultOutput | No |
+| `fetch_web_content` | fetch_web_content.py | FetchWebContentInput | FetchWebContentOutput | No |
+| `synthesize_research` | synthesize_research.py | SynthesizeResearchInput | SynthesizeResearchOutput | Yes |
+| `web_search` | web_search.py | WebSearchInput | WebSearchOutput | No |
+| `zero_skill` | zero_skill.py | ZeroSkillInput | ZeroSkillOutput | No |
+| `echo_tool` | stubs.py | SkillInput | SkillOutput | No |
+| `error_skill` | stubs.py | SkillInput | SkillOutput | No |
+| `fail_skill` | stubs.py | SkillInput | SkillOutput | No |
 
 ---
 

@@ -61,6 +61,34 @@
 | `SkillOutput` | base.py | Base output schema for v2 skills (success, summary, error) | 0.1 |
 | `StubSkillOutput` | base.py | Extension of SkillOutput for stub responses (stub=True, stub_data) | 0.1 |
 
+#### load_documents
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `LoadDocumentsInput` | load_documents.py | Input for document loading (paths, include_patterns, exclude_patterns) | 0.1 |
+| `LoadDocumentsOutput` | load_documents.py | Loaded documents output (documents, loaded_count, failed_paths) | 0.1 |
+
+#### summarize_docs
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `SummarizeDocsInput` | summarize_docs.py | Input for document summarization (documents, max_tokens) | 0.1 |
+| `SummarizeDocsOutput` | summarize_docs.py | Summarized output (summary) | 0.1 |
+
+#### emit_result
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `EmitResultInput` | emit_result.py | Input for result emission (report, format) | 0.1 |
+| `EmitResultOutput` | emit_result.py | Result emission output (artifact_path, format) | 0.1 |
+
+#### echo/stub skills (test utilities)
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `EchoInput` | stubs.py | Echo skill input (message) | 0.1 |
+| `EchoOutput` | stubs.py | Echo skill output (echoed) | 0.1 |
+
 #### fetch_web_content (AF0074)
 
 | Model | Module | Purpose | Version |
@@ -76,6 +104,21 @@
 | `SourceDocument` | synthesize_research.py | Source document for synthesis (source, content, source_type) | 0.1 |
 | `SynthesizeResearchInput` | synthesize_research.py | Input for research synthesis (documents, output_format, max_tokens, include_citations) | 0.1 |
 | `SynthesizeResearchOutput` | synthesize_research.py | Synthesized report output (report, key_findings, sources_used, source_count) | 0.1 |
+
+#### zero_skill
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|--------|
+| `ZeroSkillInput` | zero_skill.py | Input for zero skill (uses base SkillInput) | 0.1 |
+| `ZeroSkillOutput` | zero_skill.py | Output for zero skill (uses base SkillOutput) | 0.1 |
+
+#### web_search (AF0080)
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|---------|
+| `SearchResult` | web_search.py | Single search result (url, title, snippet, position) | 0.1 |
+| `WebSearchInput` | web_search.py | Input for web search (query, max_results, search_engine, region, safe_search) | 0.1 |
+| `WebSearchOutput` | web_search.py | Output with search results (urls, results, search_query, search_engine, total_results) | 0.1 |
 
 ---
 

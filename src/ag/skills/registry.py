@@ -1,11 +1,11 @@
-"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067, AF0074, AF0079).
+"""Skill registry for AG Foundation runtime (AF0060, AF0065, AF0067, AF0074, AF0079, AF0077).
 
 This module provides the SkillRegistry class that manages typed skills.
 The registry is the central coordination point for skill discovery,
 registration, and execution.
 
 Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
-    SkillInfo — Metadata for registered skills (name, description, skill, schemas)
+    SkillInfo — Metadata for registered skills (name, description, skill, schemas, source)
 
 Skills use the Pydantic-based Skill[InputT, OutputT] ABC pattern:
     - Subclass of Skill ABC with typed input/output schemas
@@ -13,8 +13,18 @@ Skills use the Pydantic-based Skill[InputT, OutputT] ABC pattern:
     - Type hints, IDE support, better error messages
     - Used by: load_documents, summarize_docs, emit_result, fetch_web_content, etc.
 
+Plugin Architecture (AF0077):
+    External packages can register skills via Python entry points:
+
+    # pyproject.toml
+    [project.entry-points."ag.skills"]
+    my_skill = "my_package.skills:MySkill"
+
+    After `pip install`, `ag skills list` shows the skill automatically.
+
 How to Register Skills:
     registry.register(MySkill())
+    registry.register(MySkill(), source="entry-point")
 
 How to Execute Skills:
     # Using registry.execute
@@ -37,24 +47,27 @@ See Also:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
+from importlib.metadata import entry_points
 from typing import Any
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
-from ag.skills.emit_result import EmitResultSkill
-from ag.skills.fetch_web_content import FetchWebContentSkill
-from ag.skills.load_documents import LoadDocumentsSkill
-from ag.skills.stubs import EchoSkill, ErrorSkill, FailSkill
-from ag.skills.summarize_docs import SummarizeDocsSkill
-from ag.skills.synthesize_research import SynthesizeResearchSkill
-from ag.skills.web_search import WebSearchSkill
+
+logger = logging.getLogger(__name__)
+
+# Entry point group name for skill plugins
+SKILL_ENTRY_POINT_GROUP = "ag.skills"
 
 
 @dataclass
 class SkillInfo:
-    """Metadata about a registered skill (AF0079 simplified).
+    """Metadata about a registered skill (AF0079 simplified, AF0077 source tracking).
 
     Skills use the Skill protocol with typed Pydantic schemas.
+
+    Attributes:
+        source: Origin of the skill - "built-in", "entry-point", or "test-stub"
     """
 
     name: str
@@ -63,6 +76,7 @@ class SkillInfo:
     input_schema: type[SkillInput]
     output_schema: type[SkillOutput]
     requires_llm: bool = False
+    source: str = "built-in"
 
 
 # Backward compatibility alias (AF0079)
@@ -70,10 +84,14 @@ SkillV2Info = SkillInfo
 
 
 class SkillRegistry:
-    """Registry of available skills (AF0079 simplified).
+    """Registry of available skills (AF0079 simplified, AF0077 plugin support).
 
     All skills use the Pydantic-based Skill protocol.
     V1 legacy support has been removed.
+
+    Skills can be registered:
+    - Directly via register() method (built-in or test stubs)
+    - Via Python entry points (external packages)
 
     v0: Skills are registered at startup. No dynamic loading.
     """
@@ -81,11 +99,12 @@ class SkillRegistry:
     def __init__(self) -> None:
         self._skills: dict[str, SkillInfo] = {}
 
-    def register(self, skill: Skill[Any, Any]) -> None:
+    def register(self, skill: Skill[Any, Any], *, source: str = "built-in") -> None:
         """Register a skill.
 
         Args:
             skill: Skill instance implementing the Skill protocol
+            source: Origin of the skill - "built-in", "entry-point", or "test-stub"
         """
         self._skills[skill.name] = SkillInfo(
             name=skill.name,
@@ -94,6 +113,7 @@ class SkillRegistry:
             input_schema=skill.input_schema,
             output_schema=skill.output_schema,
             requires_llm=skill.requires_llm,
+            source=source,
         )
 
     def get_skill(self, name: str) -> SkillInfo | None:
@@ -167,7 +187,7 @@ class SkillRegistry:
     def get_info(self, name: str) -> dict[str, Any] | None:
         """Get skill info dict.
 
-        Returns dict with: name, description, requires_llm,
+        Returns dict with: name, description, requires_llm, source,
         input_schema, output_schema
         """
         if name not in self._skills:
@@ -178,6 +198,7 @@ class SkillRegistry:
             "name": info.name,
             "description": info.description,
             "requires_llm": info.requires_llm,
+            "source": info.source,
             "input_schema": info.input_schema.model_json_schema(),
             "output_schema": info.output_schema.model_json_schema(),
         }
@@ -210,35 +231,88 @@ class SkillRegistry:
 # ---------------------------------------------------------------------------
 
 
-def create_default_registry() -> SkillRegistry:
-    """Create a registry with default production skills.
+def _discover_entrypoint_skills(registry: SkillRegistry) -> None:
+    """Discover and register skills from installed Python entry points (AF0077).
 
-    Skills registered:
-    - Production: load_documents, summarize_docs, emit_result,
-                  fetch_web_content, synthesize_research (AF-0074)
-    - Test stubs: echo_tool, fail_skill, error_skill
+    Entry points allow external packages to register skills via pyproject.toml:
+
+        [project.entry-points."ag.skills"]
+        my_skill = "my_package.skills:MySkill"
+
+    After `pip install`, the skill is automatically discovered and registered.
+
+    Args:
+        registry: SkillRegistry to register discovered skills into
+
+    Notes:
+        - Invalid entry points are logged and skipped (never crash)
+        - Name conflicts with existing skills are rejected with warning
+        - Entry points that don't implement Skill protocol are skipped
+    """
+    eps = entry_points(group=SKILL_ENTRY_POINT_GROUP)
+
+    for ep in eps:
+        try:
+            skill_class = ep.load()
+            skill = skill_class()
+
+            # Validate it implements the Skill protocol
+            if not isinstance(skill, Skill):
+                logger.warning(
+                    "Entry point %r does not implement Skill protocol, skipping",
+                    ep.name,
+                )
+                continue
+
+            # Don't overwrite existing skills (e.g., test stubs registered first)
+            if registry.has(skill.name):
+                logger.warning(
+                    "Entry point skill %r conflicts with existing skill, skipping",
+                    skill.name,
+                )
+                continue
+
+            registry.register(skill, source="entry-point")
+            logger.debug("Registered entry-point skill: %s", skill.name)
+
+        except Exception:
+            logger.warning(
+                "Failed to load skill entry point %r",
+                ep.name,
+                exc_info=True,
+            )
+
+
+def create_default_registry() -> SkillRegistry:
+    """Create a registry with default production skills (AF0077 plugin architecture).
+
+    Skills are discovered and registered from two sources:
+
+    1. **Entry points** (production + external skills):
+       - Built-in skills are registered via pyproject.toml entry points
+       - External packages can add skills the same way
+       - Source: "entry-point"
+
+    2. **Direct registration** (test stubs only):
+       - Test stubs are registered directly, not via entry points
+       - This prevents them from appearing in production skill lists
+       - Source: "test-stub"
 
     Returns:
-        SkillRegistry with production skills registered
+        SkillRegistry with production and test-stub skills registered
     """
     registry = SkillRegistry()
 
-    # Production skills (AF-0065: summarize playbook)
-    registry.register(LoadDocumentsSkill())
-    registry.register(SummarizeDocsSkill())
-    registry.register(EmitResultSkill())
+    # 1. Discover and register entry-point skills (production + external)
+    _discover_entrypoint_skills(registry)
 
-    # Production skills (AF-0074: research playbook)
-    registry.register(FetchWebContentSkill())
-    registry.register(SynthesizeResearchSkill())
+    # 2. Register test stub skills directly (not via entry points)
+    # Import here to avoid circular imports and keep stubs out of entry points
+    from ag.skills.stubs import EchoSkill, ErrorSkill, FailSkill
 
-    # Production skills (AF-0080: web search)
-    registry.register(WebSearchSkill())
-
-    # Test stub skills (AF-0079: V2 stubs for testing)
-    registry.register(EchoSkill())
-    registry.register(FailSkill())
-    registry.register(ErrorSkill())
+    registry.register(EchoSkill(), source="test-stub")
+    registry.register(FailSkill(), source="test-stub")
+    registry.register(ErrorSkill(), source="test-stub")
 
     return registry
 

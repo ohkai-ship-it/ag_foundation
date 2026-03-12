@@ -231,23 +231,62 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             # Generate artifact ID
             artifact_id = f"art-{uuid.uuid4().hex[:12]}"
 
-            # Determine artifact path (in runs/<run_id>/ if available)
+            # Determine artifact path (in runs/<run_id>/artifacts/ if available)
             if ctx.run_id:
-                runs_dir = workspace_path / "runs" / ctx.run_id
+                artifacts_dir = workspace_path / "runs" / ctx.run_id / "artifacts"
             else:
-                runs_dir = workspace_path / "runs" / "artifacts"
+                artifacts_dir = workspace_path / "runs" / "artifacts"
 
-            runs_dir.mkdir(parents=True, exist_ok=True)
-            artifact_path = runs_dir / input.artifact_name
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
 
-            # Determine output format from filename extension
-            is_markdown = input.artifact_name.lower().endswith((".md", ".markdown"))
+            # AF-0090: Determine output format from artifact_type parameter
+            # For backwards compatibility, also infer from filename extension if artifact_type
+            # is the default value and filename has a recognized extension
+            default_mime = "application/json"
+            requested_mime = input.artifact_type
+            artifact_name_lower = input.artifact_name.lower()
+
+            # Backwards compatibility: infer from filename extension if using default type
+            if requested_mime == default_mime:
+                if artifact_name_lower.endswith((".md", ".markdown")):
+                    requested_mime = "text/markdown"
+                elif artifact_name_lower.endswith(".txt"):
+                    requested_mime = "text/plain"
+                # else keep default application/json
+
+            # Map MIME types to file extensions
+            mime_to_ext = {
+                "text/markdown": ".md",
+                "text/plain": ".txt",
+                "application/json": ".json",
+            }
+
+            is_markdown = requested_mime == "text/markdown"
+            is_plain_text = requested_mime == "text/plain"
+
+            # Determine correct file extension based on MIME type
+            correct_ext = mime_to_ext.get(requested_mime, ".json")
+
+            # Use artifact_name but ensure correct extension for the MIME type
+            artifact_base = input.artifact_name
+            # Strip any existing extension if it doesn't match requested type
+            if artifact_base.endswith((".md", ".markdown", ".json", ".txt")):
+                artifact_base = artifact_base.rsplit(".", 1)[0]
+            artifact_filename = artifact_base + correct_ext
+
+            artifact_path = artifacts_dir / artifact_filename
 
             if is_markdown:
-                # Write markdown format for .md files
-                content = self._format_markdown(input, artifact_id, ctx.run_id)
+                # Write markdown format for text/markdown
+                # AF-0082: Pass trace metadata for polished reports
+                content = self._format_markdown(input, artifact_id, ctx.run_id, ctx.trace_metadata)
+                mime_type = "text/markdown"
+            elif is_plain_text:
+                # Write plain text for text/plain
+                content = self._format_plain_text(input)
+                mime_type = "text/plain"
             else:
-                # Write JSON format for .json files (default)
+                # Write JSON format (default)
                 output_data = {
                     "artifact_id": artifact_id,
                     "created_at": datetime.now(UTC).isoformat(),
@@ -260,6 +299,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
                     "source_count": input.source_count,
                 }
                 content = json.dumps(output_data, indent=2, default=str)
+                mime_type = "application/json"
 
             # Write to file
             artifact_path.write_text(content, encoding="utf-8")
@@ -267,9 +307,6 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
 
             # Return relative path from workspace
             rel_path = str(artifact_path.relative_to(workspace_path))
-
-            # Determine MIME type from format
-            mime_type = "text/markdown" if is_markdown else "application/json"
 
             return EmitResultOutput(
                 success=True,
@@ -291,28 +328,67 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
         """Convert output to legacy skill return format."""
         return output.to_legacy_tuple()
 
-    def _format_markdown(self, input: EmitResultInput, artifact_id: str, run_id: str | None) -> str:
+    def _format_markdown(
+        self,
+        input: EmitResultInput,
+        artifact_id: str,
+        run_id: str | None,
+        trace_metadata: dict[str, Any] | None = None,
+    ) -> str:
         """Format result as markdown document.
 
         Args:
             input: Skill input with document_summary, key_points, sources
             artifact_id: Generated artifact ID
             run_id: Optional run ID
+            trace_metadata: Optional trace metadata (AF-0082) with:
+                - elapsed_ms: Duration so far
+                - model: LLM model name
+                - playbook_name: Playbook name
+                - playbook_version: Playbook version
+                - steps_summary: List of {skill, duration_ms, output_summary}
 
         Returns:
             Formatted markdown string
         """
         lines = []
 
-        # Title
-        lines.append("# Research Report")
+        # Title - use first 50 chars of summary if available
+        title = "Research Report"
+        if input.document_summary:
+            # Extract first sentence or first 50 chars for title
+            first_line = input.document_summary.split("\n")[0]
+            if len(first_line) > 60:
+                title = f"Research Report: {first_line[:50]}..."
+            elif first_line:
+                title = f"Research Report: {first_line}"
+
+        lines.append(f"# {title}")
         lines.append("")
 
-        # Metadata (as comment for traceability)
+        # AF-0082: Visible metadata header
+        lines.append(f"**Generated:** {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        if trace_metadata:
+            if "elapsed_ms" in trace_metadata:
+                duration_s = trace_metadata["elapsed_ms"] / 1000
+                lines.append(f"**Duration:** {duration_s:.1f} seconds")
+            if "model" in trace_metadata:
+                lines.append(f"**Model:** {trace_metadata['model']}")
+            if "playbook_name" in trace_metadata:
+                pb_name = trace_metadata["playbook_name"]
+                pb_ver = trace_metadata.get("playbook_version", "")
+                if pb_ver:
+                    lines.append(f"**Playbook:** {pb_name}@{pb_ver}")
+                else:
+                    lines.append(f"**Playbook:** {pb_name}")
+
+        # Hidden metadata for traceability
+        lines.append("")
         lines.append(f"<!-- artifact_id: {artifact_id} -->")
         if run_id:
             lines.append(f"<!-- run_id: {run_id} -->")
-        lines.append(f"<!-- generated: {datetime.now(UTC).isoformat()} -->")
+        lines.append("")
+        lines.append("---")
         lines.append("")
 
         # Summary/Report
@@ -324,16 +400,105 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
 
         # Key Points/Findings
         if input.key_points:
+            lines.append("---")
+            lines.append("")
             lines.append("## Key Findings")
             lines.append("")
             for point in input.key_points:
                 lines.append(f"- {point}")
             lines.append("")
 
-        # Sources
+        # Sources - with clickable links for URLs
         if input.sources:
+            lines.append("---")
+            lines.append("")
             lines.append("## Sources")
             lines.append("")
+            lines.append("| # | Source |")
+            lines.append("|---|--------|")
+            for i, source in enumerate(input.sources, 1):
+                # Make URLs clickable
+                if source.startswith(("http://", "https://")):
+                    # Extract domain for display
+                    try:
+                        from urllib.parse import urlparse
+
+                        parsed = urlparse(source)
+                        display = parsed.netloc + parsed.path[:30]
+                        if len(parsed.path) > 30:
+                            display += "..."
+                        lines.append(f"| {i} | [{display}]({source}) |")
+                    except Exception:
+                        lines.append(f"| {i} | [{source}]({source}) |")
+                else:
+                    lines.append(f"| {i} | {source} |")
+            lines.append("")
+
+        # AF-0082: Execution details table
+        if trace_metadata and trace_metadata.get("steps_summary"):
+            lines.append("---")
+            lines.append("")
+            lines.append("## Execution Details")
+            lines.append("")
+            lines.append("| Step | Skill | Duration | Output |")
+            lines.append("|------|-------|----------|--------|")
+
+            for idx, step_info in enumerate(trace_metadata["steps_summary"]):
+                skill = step_info.get("skill", "-")
+                duration_ms = step_info.get("duration_ms", 0)
+                output = step_info.get("output_summary", "-")[:50]
+                if len(step_info.get("output_summary", "")) > 50:
+                    output += "..."
+                # Format duration nicely
+                if duration_ms >= 1000:
+                    duration_str = f"{duration_ms / 1000:.1f}s"
+                else:
+                    duration_str = f"{duration_ms}ms"
+                lines.append(f"| {idx} | {skill} | {duration_str} | {output} |")
+
+            # Total duration
+            if "elapsed_ms" in trace_metadata:
+                total_s = trace_metadata["elapsed_ms"] / 1000
+                lines.append("")
+                lines.append(f"**Total Duration:** {total_s:.1f}s")
+
+            if run_id:
+                lines.append(f"**Run ID:** `{run_id}`")
+
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def _format_plain_text(self, input: EmitResultInput) -> str:
+        """Format result as plain text document.
+
+        Args:
+            input: Skill input with document_summary, key_points, sources
+
+        Returns:
+            Formatted plain text string
+        """
+        lines = []
+
+        # Summary/Report
+        if input.document_summary:
+            lines.append("SUMMARY")
+            lines.append("=" * 40)
+            lines.append(input.document_summary)
+            lines.append("")
+
+        # Key Points/Findings
+        if input.key_points:
+            lines.append("KEY FINDINGS")
+            lines.append("=" * 40)
+            for i, point in enumerate(input.key_points, 1):
+                lines.append(f"{i}. {point}")
+            lines.append("")
+
+        # Sources
+        if input.sources:
+            lines.append("SOURCES")
+            lines.append("=" * 40)
             for i, source in enumerate(input.sources, 1):
                 lines.append(f"{i}. {source}")
             lines.append("")

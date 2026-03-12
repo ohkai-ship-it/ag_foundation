@@ -626,3 +626,156 @@ class TestSchemaIntegration:
         assert trace.mode == spec.mode
         assert trace.playbook.name == playbook.name
         assert len(trace.steps) == 3
+
+
+# ===========================================================================
+# AF0078: Playbook Plugin Architecture Tests
+# ===========================================================================
+
+
+class TestPlaybookPluginArchitecture:
+    """Tests for playbook entry point discovery (AF0078)."""
+
+    def test_playbook_info_has_source_field(self) -> None:
+        """PlaybookInfo includes source field."""
+        from ag.playbooks.registry import PlaybookInfo
+
+        info = PlaybookInfo(
+            name="test_pb",
+            playbook=Playbook(
+                name="test_pb",
+                version="1.0.0",
+                steps=[],
+            ),
+            source="test",
+        )
+
+        assert hasattr(info, "source")
+        assert info.source == "test"
+
+    def test_get_playbook_info_includes_source(self) -> None:
+        """get_playbook_info() dict includes source field."""
+        from ag.playbooks.registry import get_playbook_info
+
+        info = get_playbook_info("default_v0")
+
+        assert info is not None
+        assert "source" in info
+        assert info["source"] == "entry-point"
+
+    def test_register_playbook_function(self) -> None:
+        """register_playbook() registers a playbook correctly."""
+        from ag.playbooks.registry import (
+            get_playbook,
+            register_playbook,
+            unregister_playbook,
+        )
+
+        test_pb = Playbook(
+            name="test_register_v0",
+            version="1.0.0",
+            description="Test playbook for registration",
+            steps=[],
+        )
+
+        register_playbook(test_pb, source="test")
+
+        try:
+            pb = get_playbook("test_register_v0")
+            assert pb is not None
+            assert pb.name == "test_register_v0"
+
+            # Also check alias works
+            pb_alias = get_playbook("test_register")
+            assert pb_alias is not None
+            assert pb_alias.name == "test_register_v0"
+        finally:
+            unregister_playbook("test_register_v0")
+
+    def test_unregister_playbook_removes_aliases(self) -> None:
+        """unregister_playbook() removes both canonical name and aliases."""
+        from ag.playbooks.registry import (
+            get_playbook,
+            register_playbook,
+            unregister_playbook,
+        )
+
+        test_pb = Playbook(
+            name="test_unregister_v0",
+            version="1.0.0",
+            steps=[],
+        )
+
+        register_playbook(test_pb, source="test")
+
+        # Verify registered
+        assert get_playbook("test_unregister_v0") is not None
+        assert get_playbook("test_unregister") is not None
+
+        # Unregister
+        result = unregister_playbook("test_unregister_v0")
+        assert result is True
+
+        # Verify both gone
+        assert get_playbook("test_unregister_v0") is None
+        assert get_playbook("test_unregister") is None
+
+    def test_default_registry_uses_entry_points(self) -> None:
+        """Built-in playbooks are registered via entry points."""
+        from ag.playbooks.registry import get_playbook_entry
+
+        # Built-in playbooks should have entry-point source
+        entry = get_playbook_entry("default_v0")
+        assert entry is not None
+        assert entry.source == "entry-point"
+
+        entry = get_playbook_entry("summarize_v0")
+        assert entry is not None
+        assert entry.source == "entry-point"
+
+    def test_list_playbooks_returns_all_registered(self) -> None:
+        """list_playbooks() returns all registered playbook names."""
+        from ag.playbooks.registry import list_playbooks
+
+        playbooks = list_playbooks()
+
+        assert "default_v0" in playbooks
+        assert "delegate_v0" in playbooks
+        assert "research_v0" in playbooks
+        assert "summarize_v0" in playbooks
+
+    def test_entry_point_discovery_mock(self, mocker) -> None:
+        """Entry point discovery registers playbooks from mock entry points."""
+        from ag.playbooks.registry import (
+            _discover_entrypoint_playbooks,
+            reset_registry,
+        )
+
+        # Reset to test discovery in isolation
+        reset_registry()
+
+        mock_pb = Playbook(
+            name="mock_playbook_v0",
+            version="1.0.0",
+            steps=[],
+        )
+
+        mock_ep = mocker.MagicMock()
+        mock_ep.name = "mock_playbook"
+        mock_ep.load.return_value = mock_pb
+
+        mocker.patch(
+            "ag.playbooks.registry.entry_points",
+            return_value=[mock_ep],
+        )
+
+        _discover_entrypoint_playbooks()
+
+        from ag.playbooks.registry import get_playbook
+
+        pb = get_playbook("mock_playbook_v0")
+        assert pb is not None
+        assert pb.name == "mock_playbook_v0"
+
+        # Clean up - re-initialize with real entry points
+        reset_registry()

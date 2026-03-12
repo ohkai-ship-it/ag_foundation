@@ -38,7 +38,7 @@ Each sprint folder:
 | Sprint 07 | Closed | [Sprint07_summarize_playbook](documentation/Sprint07_summarize_playbook/) |
 | Sprint 08 | Closed | [Sprint08_skills_playbooks_maturity](documentation/Sprint08_skills_playbooks_maturity/) |
 | Sprint 09 | Closed | [Sprint09_reliability_safety_hardening](documentation/Sprint09_reliability_safety_hardening/) |
-| Sprint 10 | Active | [Sprint10_gate_b_readiness](documentation/Sprint10_gate_b_readiness/) |
+| Sprint 10 | Closed | [Sprint10_gate_b_readiness](documentation/Sprint10_gate_b_readiness/) |
 
 ---
 

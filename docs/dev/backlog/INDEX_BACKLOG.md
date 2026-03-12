@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v0.7
+# Version number: v0.8
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -24,25 +24,30 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-
-_(empty — all PROPOSED items assigned to Sprint 10)_
+| AF-0094 | P2 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
+| AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
+| AF-0097 | P2 | PROPOSED | runs commands should use default workspace | CLI/UX | TBD | [🔗](items/AF0097_PROPOSED_runs_default_workspace.md) |
 
 ---
-
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 10 Scope (active)
+### Done after Sprint 10
+| ID | Status | Title | Notes | Filename |
+|---:|:--|---|---|---|
+| AF-0095 | DONE | research_v0 skill output audit | Audit completed, CLI fix applied | [✅](items/AF0095_DONE_research_v0_skill_output_audit.md) |
+
+### Sprint 10 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0090 | P1 | READY | Artifact truthfulness + trace enrichment | Core Runtime/Artifacts | TBD | [🔗](items/AF0090_READY_artifact_evidence_deepdive.md) |
-| 2 | AF-0091 | P1 | READY | Verifier failure-path maturity | Core Runtime/Verifier | TBD | [🔗](items/AF0091_READY_verifier_failure_path_maturity.md) |
-| 3 | AF-0093 | P2 | READY | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_READY_skills_test_coverage_hardening.md) |
-| 4 | AF-0012 | P2 | READY | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_READY_cli_reference_surface.md) |
-| 5 | AF-0081 | P2 | READY | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_READY_inventory_sync_discipline.md) |
-| 6 | AF-0082 | P2 | READY | Report polish (rescoped) | Core Runtime/CLI | TBD | [🔗](items/AF0082_READY_human_readable_result.md) |
-| 7 | AF-0084 | P3 | READY | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_READY_index_link_emoji_fix.md) |
-| 8 | AF-0077 | P3 | READY | Skills plugin architecture (Phase 1) | Skills/Architecture | TBD | [🔗](items/AF0077_READY_skills_plugin_architecture.md) |
-| 9 | AF-0078 | P3 | READY | Playbooks plugin architecture (Phase 1) | Playbooks/Architecture | TBD | [🔗](items/AF0078_READY_playbooks_plugin_architecture.md) |
+| 1 | AF-0090 | P1 | DONE | Artifact truthfulness (Phase 1+3) | Core Runtime/Artifacts | Jacob | [🔗](items/AF0090_DONE_artifact_evidence_deepdive.md) |
+| 2 | AF-0091 | P1 | DONE | Verifier failure-path maturity | Core Runtime/Verifier | Jacob | [🔗](items/AF0091_DONE_verifier_failure_path_maturity.md) |
+| 3 | AF-0093 | P2 | DONE | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_DONE_skills_test_coverage_hardening.md) |
+| 4 | AF-0012 | P2 | DONE | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_DONE_cli_reference_surface.md) |
+| 5 | AF-0081 | P2 | DONE | Inventory sync discipline | Docs/Process | Jacob | [🔗](items/AF0081_DONE_inventory_sync_discipline.md) |
+| 6 | AF-0082 | P2 | DONE | Report polish (rescoped) | Core Runtime/CLI | Jacob | [✅](items/AF0082_DONE_human_readable_result.md) |
+| 7 | AF-0084 | P3 | DONE | Index link emoji fix | Docs/Process | Jacob | [✅](items/AF0084_DONE_index_link_emoji_fix.md) |
+| 8 | AF-0077 | P3 | DONE | Skills plugin architecture (Phase 1) | Skills/Architecture | Jacob | [✅](items/AF0077_DONE_skills_plugin_architecture.md) |
+| 9 | AF-0078 | P3 | DONE | Playbooks plugin architecture (Phase 1) | Playbooks/Architecture | Jacob | [✅](items/AF0078_DONE_playbooks_plugin_architecture.md) |
 
 ### Done during Sprint 10 planning
 | ID | Status | Title | Notes | Filename |

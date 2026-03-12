@@ -303,11 +303,32 @@ class V0Orchestrator:
                         skill_params["subtasks"] = planned_subtasks
 
                     # AF-0065: Build SkillContext with workspace, provider, and run info
+                    # AF-0082: Include trace metadata for emit_result to build polished reports
+                    trace_metadata: dict[str, Any] = {
+                        "elapsed_ms": int((datetime.now(UTC) - started_at).total_seconds() * 1000),
+                        "playbook_name": playbook.name,
+                        "playbook_version": playbook.version,
+                        "steps_summary": [
+                            {
+                                "skill": s.skill_name or "no-skill",
+                                "duration_ms": s.duration_ms,
+                                "output_summary": (
+                                    s.output_summary[:100] if s.output_summary else ""
+                                ),
+                            }
+                            for s in steps
+                        ],
+                    }
+                    # Add model info if available
+                    if provider_config:
+                        trace_metadata["model"] = provider_config.model
+
                     skill_context = SkillContext(
                         provider=llm_provider,
                         workspace_path=workspace_path,
                         step_number=i,
                         run_id=run_id,
+                        trace_metadata=trace_metadata,
                     )
 
                     # Execute the skill with context

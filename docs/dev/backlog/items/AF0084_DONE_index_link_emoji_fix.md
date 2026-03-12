@@ -17,11 +17,11 @@
 ## Metadata
 - **ID:** AF0084
 - **Type:** Docs / Process
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P3
 - **Area:** Docs/Process
-- **Owner:** TBD
-- **Target sprint:** TBD
+- **Owner:** Jacob
+- **Target sprint:** Sprint 10
 - **Depends on:** None
 
 ---
@@ -80,10 +80,10 @@ INDEX_BUGS.md and INDEX_DECISIONS.md are missing the 🔗 emoji in their file li
 
 ## Acceptance criteria (Definition of Done)
 
-- [ ] INDEX_BUGS.md: All filename links use `[🔗](reports/...)` format
-- [ ] INDEX_DECISIONS.md: All filename links use `[🔗](files/...)` format
-- [ ] Templates updated (if linking convention documented there)
-- [ ] FOUNDATION_MANUAL.md linking convention section (if exists) updated
+- [x] INDEX_BUGS.md: All filename links use `[🔗](reports/...)` format
+- [x] INDEX_DECISIONS.md: All filename links use `[🔗](files/...)` format
+- [x] Templates updated (if linking convention documented there)
+- [x] FOUNDATION_MANUAL.md linking convention section (if exists) updated
 
 ---
 
@@ -117,6 +117,22 @@ With:
 ```
 
 ---
+
+## Completion Summary
+
+**Completed:** Sprint 10
+
+### Changes Made
+
+1. **INDEX_BUGS.md** — Already fixed (had 🔗 emoji in all links)
+
+2. **INDEX_DECISIONS.md**:
+   - Updated linking convention comment to `[🔗](files/filename)`
+   - Added 🔗 emoji to all 8 ADR links
+
+### Notes
+
+INDEX_BUGS.md was already compliant — likely fixed in a prior sprint. Only INDEX_DECISIONS.md required updates.
 
 ## Risks
 

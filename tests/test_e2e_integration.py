@@ -689,3 +689,211 @@ class TestE2ESchemaVerification:
 
             # Type should be MIME-like
             assert "/" in artifact.artifact_type or artifact.artifact_type in ("unknown",)
+
+
+# ---------------------------------------------------------------------------
+# Artifact Truthfulness Tests (AF-0090)
+# ---------------------------------------------------------------------------
+
+
+class TestArtifactTruthfulness:
+    """AF-0090: End-to-end tests for artifact metadata truthfulness.
+
+    These tests directly invoke skills to verify artifact metadata is correct.
+    We use the emit_result skill which doesn't require an LLM provider.
+    """
+
+    def test_markdown_artifact_has_correct_mime_type(
+        self,
+        test_workspace: Workspace,
+        workspace_root: Path,
+        monkeypatch,
+    ) -> None:
+        """AF-0090: Markdown artifact has artifact_type=text/markdown."""
+        from ag.skills.base import SkillContext
+        from ag.skills.emit_result import EmitResultInput, EmitResultSkill
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(workspace_root))
+
+        skill = EmitResultSkill()
+        run_id = "test-run-md-type"
+
+        ctx = SkillContext(
+            workspace_path=test_workspace.path,
+            run_id=run_id,
+        )
+
+        skill_input = EmitResultInput(
+            document_summary="# Test Summary\n\nThis is markdown content.",
+            key_points=["Point 1", "Point 2"],
+            sources=["doc1.md"],
+            artifact_name="test_summary",
+            artifact_type="text/markdown",  # Request markdown type
+        )
+
+        output = skill.execute(skill_input, ctx)
+
+        # Verify artifact was created with correct type
+        assert output.artifact_type == "text/markdown", (
+            f"Expected artifact_type='text/markdown', got '{output.artifact_type}'"
+        )
+        assert output.artifact_path.endswith(".md"), (
+            f"Expected .md extension, got: {output.artifact_path}"
+        )
+
+    def test_artifact_stored_in_artifacts_directory(
+        self,
+        test_workspace: Workspace,
+        workspace_root: Path,
+        monkeypatch,
+    ) -> None:
+        """AF-0090: Artifacts stored in runs/<id>/artifacts/, not run root."""
+        from ag.skills.base import SkillContext
+        from ag.skills.emit_result import EmitResultInput, EmitResultSkill
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(workspace_root))
+
+        skill = EmitResultSkill()
+        run_id = "test-run-artifact-dir"
+
+        ctx = SkillContext(
+            workspace_path=test_workspace.path,
+            run_id=run_id,
+        )
+
+        skill_input = EmitResultInput(
+            document_summary="Test content",
+            key_points=["Point 1"],
+            sources=["doc1.md"],
+            artifact_name="test_artifact",
+            artifact_type="text/markdown",
+        )
+
+        output = skill.execute(skill_input, ctx)
+
+        # Verify path contains /artifacts/ directory
+        path_normalized = output.artifact_path.replace("\\", "/")
+        assert "/artifacts/" in path_normalized, (
+            f"Artifact path should contain /artifacts/: {output.artifact_path}"
+        )
+
+        # Verify the full path structure is correct
+        assert f"runs/{run_id}/artifacts/" in path_normalized, (
+            f"Expected runs/{run_id}/artifacts/ in path: {output.artifact_path}"
+        )
+
+    def test_artifact_file_exists_on_disk(
+        self,
+        test_workspace: Workspace,
+        workspace_root: Path,
+        monkeypatch,
+    ) -> None:
+        """AF-0090: Artifact file exists on disk at recorded path."""
+        from ag.skills.base import SkillContext
+        from ag.skills.emit_result import EmitResultInput, EmitResultSkill
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(workspace_root))
+
+        skill = EmitResultSkill()
+        run_id = "test-run-file-exists"
+
+        ctx = SkillContext(
+            workspace_path=test_workspace.path,
+            run_id=run_id,
+        )
+
+        skill_input = EmitResultInput(
+            document_summary="Test content for file existence check",
+            key_points=["Point 1", "Point 2"],
+            sources=["doc1.md"],
+            artifact_name="existence_test",
+            artifact_type="text/markdown",
+        )
+
+        output = skill.execute(skill_input, ctx)
+
+        # Verify file exists on disk
+        full_path = test_workspace.path / output.artifact_path
+        assert full_path.exists(), f"Artifact file not found at: {full_path}"
+        assert full_path.stat().st_size > 0, f"Artifact file is empty: {full_path}"
+
+        # Verify content was actually written
+        content = full_path.read_text(encoding="utf-8")
+        assert "Test content for file existence check" in content
+
+    def test_json_artifact_has_correct_mime_type(
+        self,
+        test_workspace: Workspace,
+        workspace_root: Path,
+        monkeypatch,
+    ) -> None:
+        """AF-0090: JSON artifact has artifact_type=application/json."""
+        from ag.skills.base import SkillContext
+        from ag.skills.emit_result import EmitResultInput, EmitResultSkill
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(workspace_root))
+
+        skill = EmitResultSkill()
+        run_id = "test-run-json-type"
+
+        ctx = SkillContext(
+            workspace_path=test_workspace.path,
+            run_id=run_id,
+        )
+
+        skill_input = EmitResultInput(
+            document_summary='{"key": "value"}',
+            key_points=["JSON point"],
+            sources=["data.json"],
+            artifact_name="test_json",
+            artifact_type="application/json",  # Request JSON type
+        )
+
+        output = skill.execute(skill_input, ctx)
+
+        # Verify artifact was created with correct type
+        assert output.artifact_type == "application/json", (
+            f"Expected artifact_type='application/json', got '{output.artifact_type}'"
+        )
+
+    def test_artifact_type_matches_file_extension(
+        self,
+        test_workspace: Workspace,
+        workspace_root: Path,
+        monkeypatch,
+    ) -> None:
+        """AF-0090: File extension matches the artifact_type MIME type."""
+        from ag.skills.base import SkillContext
+        from ag.skills.emit_result import EmitResultInput, EmitResultSkill
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(workspace_root))
+
+        skill = EmitResultSkill()
+
+        test_cases = [
+            ("text/markdown", ".md"),
+            ("text/plain", ".txt"),
+            ("application/json", ".json"),
+        ]
+
+        for mime_type, expected_ext in test_cases:
+            run_id = f"test-run-ext-{mime_type.replace('/', '-')}"
+            ctx = SkillContext(
+                workspace_path=test_workspace.path,
+                run_id=run_id,
+            )
+
+            skill_input = EmitResultInput(
+                document_summary="Test content",
+                key_points=["Point"],
+                sources=["doc.md"],
+                artifact_name="extension_test",
+                artifact_type=mime_type,
+            )
+
+            output = skill.execute(skill_input, ctx)
+
+            assert output.artifact_path.endswith(expected_ext), (
+                f"MIME type {mime_type} should produce {expected_ext} extension, "
+                f"got: {output.artifact_path}"
+            )

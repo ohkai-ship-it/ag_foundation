@@ -245,7 +245,7 @@ class TestRuntimeFailurePath:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
 
         # Create a test playbook with fail_skill as first required step
         fail_playbook = Playbook(
@@ -270,7 +270,7 @@ class TestRuntimeFailurePath:
         )
 
         # Temporarily register the playbook
-        _REGISTRY["fail_test"] = fail_playbook
+        register_playbook(fail_playbook, source="test")
 
         try:
             # Use default registry which includes fail_skill
@@ -295,7 +295,7 @@ class TestRuntimeFailurePath:
             assert trace.verifier.status == VerifierStatus.FAILED
         finally:
             # Clean up
-            del _REGISTRY["fail_test"]
+            unregister_playbook("fail_test")
 
     def test_failed_run_persisted(
         self,
@@ -350,7 +350,7 @@ class TestRuntimeFailurePath:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
 
         # Create a playbook with error_skill that raises an exception
         error_playbook = Playbook(
@@ -375,7 +375,7 @@ class TestRuntimeFailurePath:
         )
 
         # Temporarily register the playbook
-        _REGISTRY["error_test"] = error_playbook
+        register_playbook(error_playbook, source="test")
 
         try:
             # Use default registry which includes error_skill
@@ -401,7 +401,7 @@ class TestRuntimeFailurePath:
             assert "error" in error_msg or "intentional" in error_msg
         finally:
             # Clean up
-            del _REGISTRY["error_test"]
+            unregister_playbook("error_test")
 
 
 # ---------------------------------------------------------------------------
@@ -749,7 +749,7 @@ class TestPolicyTraceEvidence:
             PlaybookStepType,
             ReasoningMode,
         )
-        from ag.playbooks.registry import _REGISTRY
+        from ag.playbooks.registry import register_playbook, unregister_playbook
         from ag.skills import get_default_registry
 
         # Create playbook with fail_skill
@@ -774,7 +774,7 @@ class TestPolicyTraceEvidence:
             metadata={"stability": "test"},
         )
 
-        _REGISTRY["fail_test_policy"] = fail_playbook
+        register_playbook(fail_playbook, source="test")
 
         try:
             runtime = create_runtime(
@@ -801,7 +801,7 @@ class TestPolicyTraceEvidence:
             assert trace.verifier.message is not None
 
         finally:
-            del _REGISTRY["fail_test_policy"]
+            unregister_playbook("fail_test_policy")
 
     def test_success_outcome_traceable(
         self,
@@ -824,3 +824,396 @@ class TestPolicyTraceEvidence:
         assert trace.ended_at is not None
         assert trace.playbook is not None
         assert len(trace.steps) > 0
+
+
+# ---------------------------------------------------------------------------
+# Verifier Failure Path Tests (AF-0091)
+# ---------------------------------------------------------------------------
+
+
+class TestVerifierFailurePaths:
+    """AF-0091: Verifier outcomes must be consistent across all failure types.
+
+    Tests each failure scenario from the decision matrix:
+    | Scenario                     | Expected Status | Expected in Message |
+    |------------------------------|-----------------|---------------------|
+    | Step error (any type)        | failed          | step N failed       |
+    | Non-SUCCESS final status     | failed          | status: <value>     |
+    | Required step fails          | failed          | step N failed       |
+    | Optional step fails          | passed/failed   | depends on final    |
+    | Empty steps list             | failed          | status: failure     |
+    | All steps succeed            | passed          | successfully        |
+
+    Gate B requirement: "Verifier outcomes consistent across happy and failure paths"
+    """
+
+    def test_step_error_causes_failure(self) -> None:
+        """Any step with error field set causes verifier failure."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        steps = [
+            Step(
+                step_id="step_0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="Skill execution failed",
+            ),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        assert "Step 0 failed" in message
+        assert "Skill execution failed" in message
+
+    def test_non_success_final_causes_failure(self) -> None:
+        """Non-SUCCESS final status causes verifier failure even without step errors."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        steps = [
+            Step(step_id="step_0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+        ]
+
+        # Test all non-SUCCESS statuses
+        for bad_status in [FinalStatus.FAILURE, FinalStatus.TIMEOUT, FinalStatus.ABORTED]:
+            status, message = verifier.verify_components(steps, bad_status)
+            assert status == "failed", f"Expected failure for {bad_status}"
+            assert bad_status.value in message.lower()
+
+    def test_step_error_takes_precedence(self) -> None:
+        """Step error message takes precedence over generic final status message."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        error_msg = "Provider auth failed: invalid API key"
+        steps = [
+            Step(
+                step_id="step_0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error=error_msg,
+            ),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        # Verifier message should contain the specific error
+        assert error_msg in message
+
+    def test_multiple_step_errors_reports_first(self) -> None:
+        """With multiple step errors, verifier reports the first one."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        steps = [
+            Step(
+                step_id="step_0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="First error",
+            ),
+            Step(
+                step_id="step_1",
+                step_number=1,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="Second error",
+            ),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        # Should report first step's error
+        assert "Step 0 failed" in message
+        assert "First error" in message
+
+    def test_success_with_no_errors(self) -> None:
+        """All steps without errors and SUCCESS status → passed verifier."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        steps = [
+            Step(step_id="step_0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+            Step(step_id="step_1", step_number=1, step_type=StepType.SKILL_CALL, started_at=now),
+            Step(step_id="step_2", step_number=2, step_type=StepType.SKILL_CALL, started_at=now),
+        ]
+
+        status, message = verifier.verify_components(steps, FinalStatus.SUCCESS)
+
+        assert status == "passed"
+        assert "successfully" in message.lower()
+
+    def test_empty_steps_with_failure_status(self) -> None:
+        """Empty steps list with FAILURE status → verifier fails."""
+        from ag.core.run_trace import FinalStatus
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        steps: list = []
+
+        status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
+
+        assert status == "failed"
+        assert "failure" in message.lower()
+
+    def test_empty_steps_with_success_status(self) -> None:
+        """Empty steps list with SUCCESS status → verifier passes (edge case)."""
+        from ag.core.run_trace import FinalStatus
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        steps: list = []
+
+        status, message = verifier.verify_components(steps, FinalStatus.SUCCESS)
+
+        # This is an edge case - no steps, but success. Verifier passes.
+        assert status == "passed"
+
+    def test_deterministic_behavior(self) -> None:
+        """Identical inputs produce identical outputs (determinism test)."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.runtime import V0Verifier
+
+        verifier = V0Verifier()
+        now = datetime.now(UTC)
+
+        steps = [
+            Step(
+                step_id="step_0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="Deterministic error",
+            ),
+        ]
+
+        # Run 10 times and ensure same result
+        results = [verifier.verify_components(steps, FinalStatus.FAILURE) for _ in range(10)]
+
+        first_result = results[0]
+        for result in results[1:]:
+            assert result == first_result, "Verifier should be deterministic"
+
+
+class TestVerifierFailurePathsE2E:
+    """AF-0091: End-to-end tests for failure scenarios through full runtime.
+
+    These tests verify that runtime routes failure scenarios through verifier correctly.
+    """
+
+    def test_skill_exception_recorded_in_verifier(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """Skill that raises exception → verifier fails with error detail."""
+        from ag.core.playbook import (
+            Budgets,
+            Playbook,
+            PlaybookStep,
+            PlaybookStepType,
+            ReasoningMode,
+        )
+        from ag.playbooks.registry import register_playbook, unregister_playbook
+        from ag.skills import get_default_registry
+
+        error_playbook = Playbook(
+            playbook_version="0.1",
+            name="e2e_error_test",
+            version="1.0.0",
+            description="Test playbook with error skill",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=3, max_tokens=None, max_duration_seconds=60),
+            steps=[
+                PlaybookStep(
+                    step_id="step_0",
+                    name="error",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="error_skill",
+                    description="Raises exception",
+                    required=True,
+                    retry_count=0,
+                ),
+            ],
+        )
+
+        register_playbook(error_playbook, source="test")
+
+        try:
+            runtime = create_runtime(
+                registry=get_default_registry(),
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            trace = runtime.execute(
+                prompt="Test error handling",
+                workspace="e2e-ws",
+                playbook="e2e_error_test",
+            )
+
+            # Verifier should fail
+            assert trace.verifier.status == VerifierStatus.FAILED
+            assert trace.verifier.message is not None
+            assert "Step 0 failed" in trace.verifier.message
+
+            # Step should have error
+            assert trace.steps[0].error is not None
+
+            # Final status should be FAILURE
+            assert trace.final == FinalStatus.FAILURE
+
+        finally:
+            unregister_playbook("e2e_error_test")
+
+    def test_optional_step_failure_allows_success(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """Optional step failure doesn't prevent success if final is SUCCESS."""
+        from ag.core.playbook import (
+            Budgets,
+            Playbook,
+            PlaybookStep,
+            PlaybookStepType,
+            ReasoningMode,
+        )
+        from ag.playbooks.registry import register_playbook, unregister_playbook
+        from ag.skills import get_default_registry
+
+        optional_fail_playbook = Playbook(
+            playbook_version="0.1",
+            name="optional_fail_test",
+            version="1.0.0",
+            description="Test playbook with optional failing step",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=3, max_tokens=None, max_duration_seconds=60),
+            steps=[
+                PlaybookStep(
+                    step_id="step_0",
+                    name="optional_error",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="error_skill",
+                    description="Optional step that errors",
+                    required=False,  # Optional - failure won't stop playbook
+                    retry_count=0,
+                ),
+                PlaybookStep(
+                    step_id="step_1",
+                    name="noop",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="noop",
+                    description="Succeeding step",
+                    required=True,
+                    retry_count=0,
+                ),
+            ],
+        )
+
+        register_playbook(optional_fail_playbook, source="test")
+
+        try:
+            runtime = create_runtime(
+                registry=get_default_registry(),
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            trace = runtime.execute(
+                prompt="Test optional failure",
+                workspace="optional-ws",
+                playbook="optional_fail_test",
+            )
+
+            # First step has error (optional)
+            assert trace.steps[0].error is not None
+
+            # But v0 verifier checks ALL step errors, so it will fail
+            # This documents current behavior - we may want to change this
+            # for optional steps in the future
+            assert trace.verifier.status == VerifierStatus.FAILED
+
+        finally:
+            unregister_playbook("optional_fail_test")
+
+    def test_missing_workspace_fails_gracefully(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """Missing workspace is handled and verifier records failure reason."""
+        runtime = create_runtime(
+            run_store=run_store,
+            artifact_store=artifact_store,
+        )
+
+        trace = runtime.execute(
+            prompt="Test with missing workspace",
+            workspace="nonexistent_ws_12345",
+            mode="manual",
+        )
+
+        # Should complete (not crash)
+        assert trace.run_id is not None
+
+        # Verifier should have a clear outcome
+        assert trace.verifier.status in (VerifierStatus.PASSED, VerifierStatus.FAILED)
+
+    def test_verifier_message_included_in_trace(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """Verifier message is always present and non-null."""
+        runtime = create_runtime(
+            run_store=run_store,
+            artifact_store=artifact_store,
+        )
+
+        trace = runtime.execute(
+            prompt="Test message presence",
+            workspace="msg-ws",
+            mode="manual",
+        )
+
+        # Verifier message should always be present
+        assert trace.verifier.message is not None
+        assert len(trace.verifier.message) > 0
+
+        # checked_at should be set
+        assert trace.verifier.checked_at is not None

@@ -18,12 +18,43 @@
 ## Metadata
 - **ID:** AF0093
 - **Type:** Quality / Testing
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Skills / Testing
 - **Owner:** TBD
 - **Target sprint:** Sprint 10
 - **Depends on:** AF-0086 (test suite audit — DONE)
+- **Completed:** 2026-03-12
+
+---
+
+## Implementation Summary
+
+Added 61 new tests (92 - 31 original) to test_research_skills.py:
+
+### Coverage Results
+
+| Module | Before | After | Target |
+|--------|--------|-------|--------|
+| `fetch_web_content` | 54% | 82% | ≥80% ✓ |
+| `web_search` | 28% | 87% | ≥80% ✓ |
+| `synthesize_research` | 82% | 97% | ≥90% ✓ |
+
+### Test Classes Added
+
+- `TestExtractTextFromHtml` (11 tests): HTML text extraction, title, script/style removal, entities
+- `TestFetchWebContentErrorPaths` (8 tests): Timeout, connection errors, HTTP errors, non-text
+- `TestFetchUrlSyncFunction` (9 tests): Direct httpx.Client mocking for _fetch_url_sync
+- `TestWebSearchEngine` (13 tests): Engine fallback, empty query, result filtering
+- `TestWebSearchEngineImplementations` (4 tests): DuckDuckGo, Serper, Google, Bing implementations
+- `TestSynthesizeResearchHelpers` (9 tests): Prompt building, finding extraction, source tracking
+- `TestSynthesizeResearchErrorPaths` (5 tests): Empty docs, fallback, LLM errors
+
+### Key Decisions
+
+- Patched external packages (`ddgs.DDGS`, `httpx.post`, `httpx.get`) directly since they're imported locally inside functions
+- Tested _fetch_url_sync function directly with mocked httpx.Client for internal coverage
+- Used proper mocking patterns to avoid real network calls
 
 ---
 

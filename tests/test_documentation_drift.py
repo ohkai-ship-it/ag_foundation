@@ -159,3 +159,70 @@ class TestSchemaInventoryDrift:
 
         missing = [m for m in models if m not in schema_inventory_content]
         assert not missing, f"Undocumented schemas in skills/base.py: {missing}"
+
+    def test_all_registered_skill_schemas_documented(self, schema_inventory_content: str) -> None:
+        """All Pydantic schemas from registered skills should be documented (AF0081).
+
+        This test ensures that when new skills are added to the registry,
+        their input/output schemas are also documented in SCHEMA_INVENTORY.md.
+        """
+        from ag.skills import get_default_registry
+
+        registry = get_default_registry()
+        missing: list[str] = []
+
+        for skill_name in registry.list():
+            info = registry.get_info(skill_name)
+            if info is None:
+                continue
+
+            # Check input schema (info returns JSON schema dict with 'title' as class name)
+            input_schema = info.get("input_schema")
+            if input_schema and isinstance(input_schema, dict):
+                input_name = input_schema.get("title", "")
+                if input_name and input_name not in schema_inventory_content:
+                    missing.append(f"{skill_name}:input:{input_name}")
+
+            # Check output schema
+            output_schema = info.get("output_schema")
+            if output_schema and isinstance(output_schema, dict):
+                output_name = output_schema.get("title", "")
+                if output_name and output_name not in schema_inventory_content:
+                    missing.append(f"{skill_name}:output:{output_name}")
+
+        assert not missing, f"Undocumented skill schemas: {missing}"
+
+
+# ---------------------------------------------------------------------------
+# Contract Implementation Drift Detection (AF0081)
+# ---------------------------------------------------------------------------
+
+
+class TestContractImplementationDrift:
+    """Ensure all registered skills are documented in CONTRACT_INVENTORY.md."""
+
+    @pytest.fixture
+    def contract_inventory_content(self) -> str:
+        """Load CONTRACT_INVENTORY.md content."""
+        path = Path("docs/dev/additional/CONTRACT_INVENTORY.md")
+        if not path.exists():
+            pytest.skip("CONTRACT_INVENTORY.md not yet created")
+        return path.read_text(encoding="utf-8")
+
+    def test_all_registered_skills_documented(self, contract_inventory_content: str) -> None:
+        """All skills in registry should be documented in CONTRACT_INVENTORY.md (AF0081).
+
+        This test ensures that when new skills are registered, they are also
+        documented in the Skill Implementations table.
+        """
+        from ag.skills import get_default_registry
+
+        registry = get_default_registry()
+        missing: list[str] = []
+
+        for skill_name in registry.list():
+            # Check if skill name appears in the contract inventory
+            if skill_name not in contract_inventory_content:
+                missing.append(skill_name)
+
+        assert not missing, f"Undocumented skills in CONTRACT_INVENTORY.md: {missing}"
