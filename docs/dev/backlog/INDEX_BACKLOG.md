@@ -37,7 +37,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 2 | AF-0091 | P1 | DONE | Verifier failure-path maturity | Core Runtime/Verifier | Jacob | [🔗](items/AF0091_DONE_verifier_failure_path_maturity.md) |
 | 3 | AF-0093 | P2 | DONE | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_DONE_skills_test_coverage_hardening.md) |
 | 4 | AF-0012 | P2 | DONE | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_DONE_cli_reference_surface.md) |
-| 5 | AF-0081 | P2 | READY | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_READY_inventory_sync_discipline.md) |
+| 5 | AF-0081 | P2 | DONE | Inventory sync discipline | Docs/Process | Jacob | [🔗](items/AF0081_DONE_inventory_sync_discipline.md) |
 | 6 | AF-0082 | P2 | READY | Report polish (rescoped) | Core Runtime/CLI | TBD | [🔗](items/AF0082_READY_human_readable_result.md) |
 | 7 | AF-0084 | P3 | READY | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_READY_index_link_emoji_fix.md) |
 | 8 | AF-0077 | P3 | READY | Skills plugin architecture (Phase 1) | Skills/Architecture | TBD | [🔗](items/AF0077_READY_skills_plugin_architecture.md) |

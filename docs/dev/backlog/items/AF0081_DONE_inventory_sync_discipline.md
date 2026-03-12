@@ -18,11 +18,11 @@
 ## Metadata
 - **ID:** AF0081
 - **Type:** Process / Docs
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Docs/Process
-- **Owner:** TBD
-- **Target sprint:** TBD
+- **Owner:** Jacob
+- **Target sprint:** Sprint 10
 - **Depends on:** None
 
 ---
@@ -66,11 +66,11 @@ Skills implementations list missing:
 
 ## Acceptance criteria (Definition of Done)
 
-- [ ] SCHEMA_INVENTORY.md updated with all current schemas
-- [ ] CONTRACT_INVENTORY.md updated with all current implementations
-- [ ] Registry-based drift test added to `test_documentation_drift.py`
-- [ ] Test passes in CI (blocks merge if schemas undocumented)
-- [ ] Remove manual checklist from SPRINT_MANUAL (trust CI instead)
+- [x] SCHEMA_INVENTORY.md updated with all current schemas
+- [x] CONTRACT_INVENTORY.md updated with all current implementations
+- [x] Registry-based drift test added to `test_documentation_drift.py`
+- [x] Test passes in CI (blocks merge if schemas undocumented)
+- [ ] Remove manual checklist from SPRINT_MANUAL (trust CI instead) — N/A: no manual checklist exists
 
 ---
 
@@ -149,11 +149,32 @@ Trust the test — if it passes, docs are in sync.
 
 # Completion section (fill when done)
 
-## 1) Metadata
-- **Backlog item (primary):** AF0081
-- **PR:** #<number>
-- **Author:** <name>
-- **Date:** YYYY-MM-DD
-- **Branch:** <chore/inventory-sync>
-- **Risk level:** P2
-- **Runtime mode used for verification:** manual
+## Summary
+
+Implemented registry-based drift detection for inventory documents. CI now
+fails if new skills or schemas are added without updating documentation.
+
+## Changes
+
+### SCHEMA_INVENTORY.md
+Added missing skill schemas:
+- `WebSearchInput`, `WebSearchOutput`, `SearchResult` (web_search.py)
+- `LoadDocumentsInput`, `LoadDocumentsOutput` (load_documents.py)
+- `SummarizeDocsInput`, `SummarizeDocsOutput` (summarize_docs.py)
+- `EmitResultInput`, `EmitResultOutput` (emit_result.py)
+- `EchoInput`, `EchoOutput` (stubs.py)
+
+### CONTRACT_INVENTORY.md
+- Expanded `Skill` implementation row into full table
+- Added all registered skills with their input/output schemas
+
+### test_documentation_drift.py
+- Added `test_all_registered_skill_schemas_documented()` — validates all
+  registered skill schemas are in SCHEMA_INVENTORY.md
+- Added `TestContractImplementationDrift` class with
+  `test_all_registered_skills_documented()` — validates all registered
+  skills are in CONTRACT_INVENTORY.md
+
+## Test Results
+- 563 tests passing (2 new drift tests)
+- Drift detection now blocks CI if documentation is out of sync
