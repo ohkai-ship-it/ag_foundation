@@ -34,7 +34,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0090 | P1 | DONE | Artifact truthfulness (Phase 1+3) | Core Runtime/Artifacts | Jacob | [🔗](items/AF0090_DONE_artifact_evidence_deepdive.md) |
-| 2 | AF-0091 | P1 | READY | Verifier failure-path maturity | Core Runtime/Verifier | TBD | [🔗](items/AF0091_READY_verifier_failure_path_maturity.md) |
+| 2 | AF-0091 | P1 | DONE | Verifier failure-path maturity | Core Runtime/Verifier | Jacob | [🔗](items/AF0091_DONE_verifier_failure_path_maturity.md) |
 | 3 | AF-0093 | P2 | READY | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_READY_skills_test_coverage_hardening.md) |
 | 4 | AF-0012 | P2 | READY | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_READY_cli_reference_surface.md) |
 | 5 | AF-0081 | P2 | READY | Inventory sync discipline | Docs/Process | TBD | [🔗](items/AF0081_READY_inventory_sync_discipline.md) |
