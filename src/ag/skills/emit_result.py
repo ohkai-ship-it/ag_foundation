@@ -231,23 +231,61 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             # Generate artifact ID
             artifact_id = f"art-{uuid.uuid4().hex[:12]}"
 
-            # Determine artifact path (in runs/<run_id>/ if available)
+            # Determine artifact path (in runs/<run_id>/artifacts/ if available)
             if ctx.run_id:
-                runs_dir = workspace_path / "runs" / ctx.run_id
+                artifacts_dir = workspace_path / "runs" / ctx.run_id / "artifacts"
             else:
-                runs_dir = workspace_path / "runs" / "artifacts"
+                artifacts_dir = workspace_path / "runs" / "artifacts"
 
-            runs_dir.mkdir(parents=True, exist_ok=True)
-            artifact_path = runs_dir / input.artifact_name
+            artifacts_dir.mkdir(parents=True, exist_ok=True)
 
-            # Determine output format from filename extension
-            is_markdown = input.artifact_name.lower().endswith((".md", ".markdown"))
+            # AF-0090: Determine output format from artifact_type parameter
+            # For backwards compatibility, also infer from filename extension if artifact_type
+            # is the default value and filename has a recognized extension
+            default_mime = "application/json"
+            requested_mime = input.artifact_type
+            artifact_name_lower = input.artifact_name.lower()
+
+            # Backwards compatibility: infer from filename extension if using default type
+            if requested_mime == default_mime:
+                if artifact_name_lower.endswith((".md", ".markdown")):
+                    requested_mime = "text/markdown"
+                elif artifact_name_lower.endswith(".txt"):
+                    requested_mime = "text/plain"
+                # else keep default application/json
+
+            # Map MIME types to file extensions
+            mime_to_ext = {
+                "text/markdown": ".md",
+                "text/plain": ".txt",
+                "application/json": ".json",
+            }
+
+            is_markdown = requested_mime == "text/markdown"
+            is_plain_text = requested_mime == "text/plain"
+
+            # Determine correct file extension based on MIME type
+            correct_ext = mime_to_ext.get(requested_mime, ".json")
+
+            # Use artifact_name but ensure correct extension for the MIME type
+            artifact_base = input.artifact_name
+            # Strip any existing extension if it doesn't match requested type
+            if artifact_base.endswith((".md", ".markdown", ".json", ".txt")):
+                artifact_base = artifact_base.rsplit(".", 1)[0]
+            artifact_filename = artifact_base + correct_ext
+
+            artifact_path = artifacts_dir / artifact_filename
 
             if is_markdown:
-                # Write markdown format for .md files
+                # Write markdown format for text/markdown
                 content = self._format_markdown(input, artifact_id, ctx.run_id)
+                mime_type = "text/markdown"
+            elif is_plain_text:
+                # Write plain text for text/plain
+                content = self._format_plain_text(input)
+                mime_type = "text/plain"
             else:
-                # Write JSON format for .json files (default)
+                # Write JSON format (default)
                 output_data = {
                     "artifact_id": artifact_id,
                     "created_at": datetime.now(UTC).isoformat(),
@@ -260,6 +298,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
                     "source_count": input.source_count,
                 }
                 content = json.dumps(output_data, indent=2, default=str)
+                mime_type = "application/json"
 
             # Write to file
             artifact_path.write_text(content, encoding="utf-8")
@@ -267,9 +306,6 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
 
             # Return relative path from workspace
             rel_path = str(artifact_path.relative_to(workspace_path))
-
-            # Determine MIME type from format
-            mime_type = "text/markdown" if is_markdown else "application/json"
 
             return EmitResultOutput(
                 success=True,
@@ -334,6 +370,42 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
         if input.sources:
             lines.append("## Sources")
             lines.append("")
+            for i, source in enumerate(input.sources, 1):
+                lines.append(f"{i}. {source}")
+            lines.append("")
+
+        return "\n".join(lines)
+
+    def _format_plain_text(self, input: EmitResultInput) -> str:
+        """Format result as plain text document.
+
+        Args:
+            input: Skill input with document_summary, key_points, sources
+
+        Returns:
+            Formatted plain text string
+        """
+        lines = []
+
+        # Summary/Report
+        if input.document_summary:
+            lines.append("SUMMARY")
+            lines.append("=" * 40)
+            lines.append(input.document_summary)
+            lines.append("")
+
+        # Key Points/Findings
+        if input.key_points:
+            lines.append("KEY FINDINGS")
+            lines.append("=" * 40)
+            for i, point in enumerate(input.key_points, 1):
+                lines.append(f"{i}. {point}")
+            lines.append("")
+
+        # Sources
+        if input.sources:
+            lines.append("SOURCES")
+            lines.append("=" * 40)
             for i, source in enumerate(input.sources, 1):
                 lines.append(f"{i}. {source}")
             lines.append("")

@@ -93,10 +93,10 @@ Achieve Gate B (Guided Autonomy) readiness through four parallel tracks:
 - [x] Verify OPEN bugs triaged and linked
 
 ### Jacob (implementer)
-- [ ] Read sprint description
-- [ ] Review AF items in scope
-- [ ] Confirm scope feasibility
-- [ ] Create feature branch
+- [x] Read sprint description
+- [x] Review AF items in scope
+- [x] Confirm scope feasibility
+- [x] Create feature branch: `feat/sprint10-gate-b-readiness`
 
 ---
 
@@ -167,3 +167,10 @@ _TBD_
 
 ### Lessons learned
 _TBD_
+
+---
+
+## 10) PR plan
+| PR | Primary AF | Branch | Status |
+|--|--|--|--|
+| PR-01 | Sprint 10 scope | feat/sprint10-gate-b-readiness | Open |
