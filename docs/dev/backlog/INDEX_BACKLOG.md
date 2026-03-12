@@ -26,6 +26,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 |---:|:--:|:--|---|---|---|---|
 | AF-0094 | P3 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
 | AF-0095 | P2 | PROPOSED | research_v0 skill output audit | Skills/Playbooks | TBD | [🔗](items/AF0095_PROPOSED_research_v0_skill_output_audit.md) |
+| AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
 
 ---
 

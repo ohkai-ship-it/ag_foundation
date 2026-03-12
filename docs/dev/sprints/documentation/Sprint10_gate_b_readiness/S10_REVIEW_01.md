@@ -157,9 +157,9 @@ Evidence: `bug_triage.md`
 
 ### Review metadata
 - **Reviewed by:** Jeff + Kai
-- **Date:** _pending_
+- **Date:** 2026-03-12
 - **Scope:** Sprint10
-- **Decision:** _pending_
+- **Decision:** ACCEPT WITH FOLLOW-UPS
 
 ---
 
@@ -226,7 +226,18 @@ Evidence: `bug_triage.md`
 ---
 
 ### Decision rationale
-_To be completed after review execution_
+All 9 planned AFs completed successfully with 582 tests passing. Gate B conditions met:
+- Artifact metadata truthfulness verified (AF-0090)
+- Verifier failure-path consistency improved (AF-0091)
+- Trace-derived labels confirmed via Pass 3 spot-checks
+- Plugin architecture foundation established (AF-0077, AF-0078)
+
+Follow-ups required but non-blocking:
+- BUG-0015 (P2): `ag runs list` count mismatch — cosmetic issue, does not affect runtime correctness
+- AF-0094 (P3): Trace full I/O enrichment — deferred Phase 2 enhancement
+- AF-0095 (P2): research_v0 skill output audit — quality improvement, not a blocker
+
+No regressions detected. Sprint advances Gate B readiness.
 
 ---
 
@@ -235,14 +246,14 @@ _To be completed after review execution_
 |------------------|--------|----------|
 | Policy enforcement present | ✅ | AF-0087 (Sprint 09) |
 | Verifier/failure rigor | ✅ | AF-0091 |
-| Trace-derived labels | _pending_ | Review pass 2.5 |
+| Trace-derived labels | ✅ | Pass 3 spot-check verified |
 | Artifact truthfulness | ✅ | AF-0090 |
 
 ---
 
 ### Next actions
-- [ ] Execute review passes (Jacob)
-- [ ] Complete Gate B assessment
-- [ ] Decision: ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT
+- [x] Execute review passes (Jacob)
+- [x] Complete Gate B assessment
+- [x] Decision: ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT
 - [ ] Close sprint (if ACCEPT/ACCEPT WITH FOLLOW-UPS)
 - [ ] Update INDEX_SPRINTS status to Closed
