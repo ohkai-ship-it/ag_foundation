@@ -1,5 +1,5 @@
 # BACKLOG ITEM — AF0095 — research_v0_skill_output_audit
-# Version number: v0.1
+# Version number: v0.2
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -18,12 +18,121 @@
 ## Metadata
 - **ID:** AF0095
 - **Type:** Investigation / Bug Fix
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Skills / Playbooks / research_v0
-- **Owner:** TBD
-- **Target sprint:** TBD
+- **Owner:** AGENT
+- **Completed:** 2026-03-12
 - **Depends on:** None
+
+---
+
+## Audit Summary
+
+**Audit completed 2026-03-12.** The research_v0 pipeline was audited by:
+1. Running each skill individually via CLI
+2. Running the full playbook end-to-end
+3. Inspecting trace data and artifact outputs
+4. Verifying schema compliance
+
+### Key Findings
+
+| Finding | Severity | Status |
+|---------|----------|--------|
+| CLI skill execution missing SkillContext.workspace_path | Bug - Fixed | ✅ Fixed |
+| Artifact JSON excludes success/summary fields | Design | Documented |
+| synthesize_research has dead fallback code | Tech Debt | Follow-up needed |
+| CLI --skill vs --playbook LLM handling differs | Design | Documented |
+
+---
+
+## Finding 1: CLI SkillContext Missing workspace_path (FIXED)
+
+**Problem:** CLI `ag run --skill` didn't pass SkillContext with workspace_path, causing fetch_web_content to fail loading URLs from inputs/urls.txt.
+
+**Root Cause:** `src/ag/cli/main.py` line 442 called `registry.execute(skill, skill_params)` without passing a context argument. The registry then created an empty SkillContext with `workspace_path=None`.
+
+**Fix Applied:**
+```python
+# AF-0095: Create proper SkillContext with workspace_path for skill execution
+skill_ctx = SkillContext(
+    workspace_path=ws.path,
+    run_id=run_id,
+)
+success, output_summary, result = registry.execute(skill, skill_params, skill_ctx)
+```
+
+**Files Changed:**
+- `src/ag/cli/main.py` (added SkillContext import and creation)
+
+---
+
+## Finding 2: Artifact JSON Excludes success/summary (DESIGN)
+
+**Observation:** Skill artifacts don't include `success` and `summary` fields.
+
+**Explanation:** This is intentional design in `SkillOutput.to_legacy_tuple()`:
+```python
+def to_legacy_tuple(self) -> tuple[bool, str, dict[str, Any]]:
+    return (
+        self.success,
+        self.summary,
+        self.model_dump(exclude={"success", "summary"}),  # Artifact data
+    )
+```
+
+The artifact stores the "data" portion; success/summary are returned separately in the tuple.
+
+**Impact:** Users inspecting artifacts cannot see success/summary without reading the trace.
+
+**Recommendation:** Document this behavior. Consider adding success/summary to artifact for completeness.
+
+---
+
+## Finding 3: synthesize_research Dead Fallback Code (TECH DEBT)
+
+**Problem:** `synthesize_research.py` has a `_fallback_synthesis()` function that's unreachable.
+
+**Root Cause:** The skill declares `requires_llm: ClassVar[bool] = True`, which causes `validate_context()` to fail before `execute()` runs. The fallback code inside `execute()` can never be reached.
+
+**Impact:** The skill cannot be run without an LLM even though fallback code exists.
+
+**Recommendation:** Either:
+1. Remove dead fallback code (if LLM is strictly required)
+2. Set `requires_llm=False` and let execute() handle fallback
+3. Override `validate_context()` to allow manual mode
+
+---
+
+## Finding 4: CLI --skill vs --playbook LLM Handling (DESIGN)
+
+**Observation:** CLI `--skill` execution doesn't create an LLM provider, but `--playbook` execution does.
+
+**Code:** Playbook runtime creates provider in `V0Orchestrator.run()`:
+```python
+if task.mode != ExecutionMode.MANUAL:
+    provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
+    llm_provider = get_provider(provider_config)
+```
+
+CLI skill execution doesn't do this—it only creates a SkillContext with workspace_path.
+
+**Impact:** Skills requiring LLM (like synthesize_research) fail with `--skill` but work with `--playbook`.
+
+**Recommendation:** Consider adding `--llm` flag to CLI skill execution, or auto-detect when skill `requires_llm=True`.
+
+---
+
+## Verified Working
+
+The following were verified as correctly implemented:
+
+✅ **web_search**: Returns proper WebSearchOutput schema with urls, results, total_results
+✅ **fetch_web_content**: Returns proper FetchWebContentOutput with documents, failed_urls
+✅ **load_documents**: Returns proper LoadDocumentsOutput with documents, file_count
+✅ **emit_result**: Returns proper EmitResultOutput with artifact_id, artifact_path
+✅ **Pipeline chaining**: Output of each step correctly flows to next step
+✅ **Artifact generation**: research_report.md properly generated with citations
 
 ---
 

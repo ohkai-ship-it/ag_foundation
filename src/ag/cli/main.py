@@ -26,7 +26,7 @@ from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
 from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
 from ag.core.task_spec import ExecutionMode  # noqa: E402
-from ag.skills import get_default_registry  # noqa: E402
+from ag.skills import SkillContext, get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
 
 # Console for rich output
@@ -439,7 +439,12 @@ def run(
                 "workspace": resolved_workspace,
                 "workspace_path": str(ws.path),  # Full path for skills that need it
             }
-            success, output_summary, result = registry.execute(skill, skill_params)
+            # AF-0095: Create proper SkillContext with workspace_path for skill execution
+            skill_ctx = SkillContext(
+                workspace_path=ws.path,
+                run_id=run_id,
+            )
+            success, output_summary, result = registry.execute(skill, skill_params, skill_ctx)
 
             ended_at = datetime.now(UTC)
             duration_ms = int((ended_at - started_at).total_seconds() * 1000)
