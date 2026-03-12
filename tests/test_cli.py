@@ -880,3 +880,133 @@ class TestRunsListPagination:
         assert result.exit_code == 0
         assert "--all" in result.stdout
         assert "--limit" in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Tests for CLI stubs (AF-0012)
+# ---------------------------------------------------------------------------
+
+
+class TestCLIStubs:
+    """Tests for not-implemented CLI commands (AF-0012).
+
+    All stubs must:
+    - Exit with code 1
+    - Show "Not implemented in v0" message
+    - Support --json flag for structured error output
+    """
+
+    def test_runs_tail_stub(self):
+        """ag runs tail <id> exits with code 1."""
+        result = runner.invoke(app, ["runs", "tail", "some-run-id"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_runs_tail_stub_json(self):
+        """ag runs tail --json returns structured error."""
+        import json
+
+        result = runner.invoke(app, ["runs", "tail", "--json", "some-run-id"])
+        assert result.exit_code == 1
+        data = json.loads(result.stdout)
+        assert data["error"] == "not_implemented"
+        assert "runs tail" in data["command"]
+
+    def test_ws_config_get_stub(self):
+        """ag ws config get <key> exits with code 1."""
+        result = runner.invoke(app, ["ws", "config", "get", "some-key"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_ws_config_set_stub(self):
+        """ag ws config set <key> <value> exits with code 1."""
+        result = runner.invoke(app, ["ws", "config", "set", "some-key", "some-value"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_artifacts_open_stub(self):
+        """ag artifacts open <id> exits with code 1."""
+        result = runner.invoke(
+            app, ["artifacts", "open", "--run", "r1", "artifact-id"]
+        )
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_skills_test_stub(self):
+        """ag skills test <name> exits with code 1."""
+        result = runner.invoke(app, ["skills", "test", "some-skill"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_skills_enable_stub(self):
+        """ag skills enable <name> exits with code 1."""
+        result = runner.invoke(app, ["skills", "enable", "some-skill"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_skills_disable_stub(self):
+        """ag skills disable <name> exits with code 1."""
+        result = runner.invoke(app, ["skills", "disable", "some-skill"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_playbooks_show_stub(self):
+        """ag playbooks show <name> exits with code 1."""
+        result = runner.invoke(app, ["playbooks", "show", "some-playbook"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_playbooks_validate_stub(self):
+        """ag playbooks validate <path> exits with code 1."""
+        result = runner.invoke(app, ["playbooks", "validate", "path/to/playbook"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_playbooks_set_default_stub(self):
+        """ag playbooks set-default <name> exits with code 1."""
+        result = runner.invoke(app, ["playbooks", "set-default", "research"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_config_list_stub(self):
+        """ag config list exits with code 1."""
+        result = runner.invoke(app, ["config", "list"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_config_get_stub(self):
+        """ag config get <key> exits with code 1."""
+        result = runner.invoke(app, ["config", "get", "some-key"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_config_set_stub(self):
+        """ag config set <key> <value> exits with code 1."""
+        result = runner.invoke(app, ["config", "set", "some-key", "some-value"])
+        assert result.exit_code == 1
+        assert "not implemented" in result.output.lower()
+
+    def test_stub_json_output_format(self):
+        """All stubs with --json return consistent error structure."""
+        import json
+
+        # Test a representative sample of stubs
+        stub_commands = [
+            ["skills", "test", "--json", "x"],
+            ["skills", "enable", "--json", "x"],
+            ["skills", "disable", "--json", "x"],
+            ["playbooks", "show", "--json", "x"],
+            ["playbooks", "validate", "--json", "x"],
+            ["playbooks", "set-default", "--json", "x"],
+            ["config", "list", "--json"],
+            ["config", "get", "--json", "x"],
+            ["config", "set", "--json", "x", "y"],
+        ]
+
+        for cmd in stub_commands:
+            result = runner.invoke(app, cmd)
+            assert result.exit_code == 1, f"Expected exit 1 for {' '.join(cmd)}"
+            data = json.loads(result.stdout)
+            assert "error" in data, f"Missing 'error' key for {' '.join(cmd)}"
+            assert data["error"] == "not_implemented"
+            assert "command" in data

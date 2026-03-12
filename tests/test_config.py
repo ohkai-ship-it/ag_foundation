@@ -235,3 +235,122 @@ class TestDoctorCommand:
         result = runner.invoke(app, ["doctor"])
 
         assert "Resolution Order" in result.stdout or "resolution" in result.stdout.lower()
+
+
+# ---------------------------------------------------------------------------
+# Tests for persisted state (AF-0012 coverage boost)
+# ---------------------------------------------------------------------------
+
+
+class TestPersistedWorkspaceState:
+    """Tests for persisted workspace default state file operations."""
+
+    def test_get_persisted_default_workspace_returns_none_when_no_state(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """get_persisted_default_workspace() returns None when no state file exists."""
+        # Use a clean temp directory for config
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path))
+
+        from ag.config import get_persisted_default_workspace
+
+        result = get_persisted_default_workspace()
+        assert result is None
+
+    def test_set_and_get_persisted_default_workspace(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """set_persisted_default_workspace() persists and get retrieves it."""
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path))
+
+        from ag.config import (
+            get_persisted_default_workspace,
+            set_persisted_default_workspace,
+        )
+
+        # Initially none
+        assert get_persisted_default_workspace() is None
+
+        # Set a default
+        set_persisted_default_workspace("my-workspace")
+        assert get_persisted_default_workspace() == "my-workspace"
+
+        # Change it
+        set_persisted_default_workspace("another-ws")
+        assert get_persisted_default_workspace() == "another-ws"
+
+    def test_clear_persisted_default_workspace(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """set_persisted_default_workspace(None) clears the default."""
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path))
+
+        from ag.config import (
+            get_persisted_default_workspace,
+            set_persisted_default_workspace,
+        )
+
+        # Set then clear
+        set_persisted_default_workspace("my-workspace")
+        assert get_persisted_default_workspace() == "my-workspace"
+
+        set_persisted_default_workspace(None)
+        assert get_persisted_default_workspace() is None
+
+    def test_state_file_is_valid_json(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """State file contains valid JSON."""
+        import json
+
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path))
+
+        from ag.config import set_persisted_default_workspace
+
+        set_persisted_default_workspace("test-ws")
+
+        state_file = tmp_path / "state.json"
+        assert state_file.exists()
+
+        data = json.loads(state_file.read_text())
+        assert data["default_workspace"] == "test-ws"
+
+    def test_load_state_handles_corrupt_json(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """_load_state() returns empty dict on corrupt JSON."""
+        monkeypatch.setenv("AG_CONFIG_DIR", str(tmp_path))
+
+        # Write corrupt JSON
+        state_file = tmp_path / "state.json"
+        tmp_path.mkdir(parents=True, exist_ok=True)
+        state_file.write_text("{ not valid json")
+
+        from ag.config import get_persisted_default_workspace
+
+        # Should not raise, returns None (empty state)
+        result = get_persisted_default_workspace()
+        assert result is None
+
+    def test_config_dir_created_on_save(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """Config directory is created if it doesn't exist when saving."""
+        # Use a nested path that doesn't exist
+        nested_config = tmp_path / "nested" / "config" / "dir"
+        monkeypatch.setenv("AG_CONFIG_DIR", str(nested_config))
+
+        from ag.config import set_persisted_default_workspace
+
+        # Should create the directory
+        set_persisted_default_workspace("new-ws")
+
+        assert nested_config.exists()
+        assert (nested_config / "state.json").exists()
+
+    def test_load_config_returns_empty_dict(self) -> None:
+        """load_config() returns empty dict (stub behavior)."""
+        from ag.config import load_config
+
+        result = load_config()
+        assert result == {}

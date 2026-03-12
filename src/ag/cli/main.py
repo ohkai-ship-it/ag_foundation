@@ -16,7 +16,7 @@ import os  # noqa: E402
 import sys  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
 from pathlib import Path  # noqa: E402
-from typing import Optional  # noqa: E402
+from typing import Annotated, Optional  # noqa: E402
 
 import typer  # noqa: E402
 from rich.console import Console  # noqa: E402
@@ -62,6 +62,37 @@ app.add_typer(config_app, name="config")
 
 DEV_ENV_VAR = "AG_DEV"
 MANUAL_MODE_BANNER = "DEV MODE: manual (LLMs disabled)"
+
+
+def _not_implemented(
+    cmd_name: str,
+    json_mode: bool = False,
+    extra_msg: str | None = None,
+) -> None:
+    """Print stub message and exit with error code.
+
+    Centralized helper for consistent "Not implemented in v0" behavior (AF-0012).
+
+    Args:
+        cmd_name: Name of the command (e.g., "ag runs tail")
+        json_mode: If True, output JSON error structure
+        extra_msg: Optional additional message (e.g., workaround)
+    """
+    if json_mode:
+        error_data = {
+            "error": "not_implemented",
+            "command": cmd_name,
+            "message": f"{cmd_name} is not implemented in v0",
+            "version": "v0",
+        }
+        if extra_msg:
+            error_data["hint"] = extra_msg
+        console.print(json.dumps(error_data, indent=2))
+    else:
+        err_console.print(f"[yellow]⚠ {cmd_name}[/yellow] is not implemented in v0")
+        if extra_msg:
+            err_console.print(f"  [dim]{extra_msg}[/dim]")
+    raise typer.Exit(code=1)
 
 
 def _check_manual_mode_gate() -> bool:
@@ -946,6 +977,17 @@ def runs_stats(
         run_store.close()
 
 
+@runs_app.command("tail")
+def runs_tail(
+    run_id: Annotated[str, typer.Argument(help="Run ID to stream logs from")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Stream live output from a running agent session (stub)."""
+    _not_implemented("ag runs tail", json_mode=json_output)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ag ws (workspace)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1059,6 +1101,40 @@ def ws_show(
         console.print(f"  Database: {runs_db}")
     else:
         console.print("  Database: [dim]not created yet[/dim]")
+
+
+# Create ws config sub-app for workspace-level configuration
+ws_config_app = typer.Typer(help="Workspace configuration commands.")
+ws_app.add_typer(ws_config_app, name="config")
+
+
+@ws_config_app.command("get")
+def ws_config_get(
+    key: Annotated[str, typer.Argument(help="Configuration key to retrieve")],
+    workspace_id: Annotated[
+        Optional[str], typer.Option("--workspace", "-w", help="Workspace ID (default: current)")
+    ] = None,
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Get a workspace configuration value (stub)."""
+    _not_implemented("ag ws config get", json_mode=json_output)
+
+
+@ws_config_app.command("set")
+def ws_config_set(
+    key: Annotated[str, typer.Argument(help="Configuration key to set")],
+    value: Annotated[str, typer.Argument(help="Value to set")],
+    workspace_id: Annotated[
+        Optional[str], typer.Option("--workspace", "-w", help="Workspace ID (default: current)")
+    ] = None,
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Set a workspace configuration value (stub)."""
+    _not_implemented("ag ws config set", json_mode=json_output)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1270,6 +1346,21 @@ def artifacts_export(
     artifact_store.close()
 
 
+@artifacts_app.command("open")
+def artifacts_open(
+    artifact_id: Annotated[str, typer.Argument(help="Artifact ID to open")],
+    run_id: Annotated[str, typer.Option("--run", "-r", help="Run ID")],
+    workspace: Annotated[
+        Optional[str], typer.Option("--workspace", "-w", help="Workspace ID")
+    ] = None,
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Open artifact in system viewer (stub)."""
+    _not_implemented("ag artifacts open", json_mode=json_output)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ag skills
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1312,6 +1403,39 @@ def skills_info(skill_name: str = typer.Argument(..., help="Skill name.")) -> No
 
     console.print(f"[bold]Skill:[/bold] {info['name']}")
     console.print(f"[bold]Description:[/bold] {info['description']}")
+
+
+@skills_app.command("test")
+def skills_test(
+    skill_name: Annotated[str, typer.Argument(help="Skill name to test")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Run skill unit tests (stub)."""
+    _not_implemented("ag skills test", json_mode=json_output)
+
+
+@skills_app.command("enable")
+def skills_enable(
+    skill_name: Annotated[str, typer.Argument(help="Skill name to enable")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Enable a skill for agent sessions (stub)."""
+    _not_implemented("ag skills enable", json_mode=json_output)
+
+
+@skills_app.command("disable")
+def skills_disable(
+    skill_name: Annotated[str, typer.Argument(help="Skill name to disable")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Disable a skill for agent sessions (stub)."""
+    _not_implemented("ag skills disable", json_mode=json_output)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1364,10 +1488,36 @@ def playbooks_list(
 
 
 @playbooks_app.command("show")
-def playbooks_show(name: str = typer.Argument(..., help="Playbook name.")) -> None:
-    """Show playbook details."""
-    console.print(f"[dim]Playbook:[/dim] {name}")
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+def playbooks_show(
+    name: Annotated[str, typer.Argument(help="Playbook name")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Show playbook details (stub)."""
+    _not_implemented("ag playbooks show", json_mode=json_output)
+
+
+@playbooks_app.command("validate")
+def playbooks_validate(
+    name: Annotated[str, typer.Argument(help="Playbook name or path to validate")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Validate playbook syntax and semantics (stub)."""
+    _not_implemented("ag playbooks validate", json_mode=json_output)
+
+
+@playbooks_app.command("set-default")
+def playbooks_set_default(
+    name: Annotated[str, typer.Argument(help="Playbook name to set as default")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Set the default playbook for new agent sessions (stub)."""
+    _not_implemented("ag playbooks set-default", json_mode=json_output)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1376,26 +1526,36 @@ def playbooks_show(name: str = typer.Argument(..., help="Playbook name.")) -> No
 
 
 @config_app.command("list")
-def config_list() -> None:
-    """List all configuration values."""
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+def config_list(
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """List all configuration values (stub)."""
+    _not_implemented("ag config list", json_mode=json_output)
 
 
 @config_app.command("get")
-def config_get(key: str = typer.Argument(..., help="Config key.")) -> None:
-    """Get a configuration value."""
-    console.print(f"[dim]Key:[/dim] {key}")
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+def config_get(
+    key: Annotated[str, typer.Argument(help="Config key")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
+) -> None:
+    """Get a configuration value (stub)."""
+    _not_implemented("ag config get", json_mode=json_output)
 
 
 @config_app.command("set")
 def config_set(
-    key: str = typer.Argument(..., help="Config key."),
-    value: str = typer.Argument(..., help="Config value."),
+    key: Annotated[str, typer.Argument(help="Config key")],
+    value: Annotated[str, typer.Argument(help="Config value")],
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Output as JSON")
+    ] = False,
 ) -> None:
-    """Set a configuration value."""
-    console.print(f"[dim]Setting:[/dim] {key} = {value}")
-    console.print("[yellow]⚠ Stub — not implemented yet[/yellow]")
+    """Set a configuration value (stub)."""
+    _not_implemented("ag config set", json_mode=json_output)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
