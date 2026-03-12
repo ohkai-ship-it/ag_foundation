@@ -24,20 +24,19 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0094 | P3 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
+| AF-0094 | P2 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
 | AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
 | AF-0097 | P2 | PROPOSED | runs commands should use default workspace | CLI/UX | TBD | [🔗](items/AF0097_PROPOSED_runs_default_workspace.md) |
+
+---
+## Sprints *IN DESCENDING ORDER*
 
 ### Done after Sprint 10
 | ID | Status | Title | Notes | Filename |
 |---:|:--|---|---|---|
 | AF-0095 | DONE | research_v0 skill output audit | Audit completed, CLI fix applied | [✅](items/AF0095_DONE_research_v0_skill_output_audit.md) |
 
----
-
-## Sprints *IN DESCENDING ORDER*
-
-### Sprint 10 Scope (active)
+### Sprint 10 Scope (closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0090 | P1 | DONE | Artifact truthfulness (Phase 1+3) | Core Runtime/Artifacts | Jacob | [🔗](items/AF0090_DONE_artifact_evidence_deepdive.md) |

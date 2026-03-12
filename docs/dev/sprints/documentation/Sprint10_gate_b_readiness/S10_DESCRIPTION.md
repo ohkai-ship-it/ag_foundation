@@ -28,7 +28,7 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Review pending
+- **State:** Closed
 
 ---
 
@@ -183,7 +183,7 @@ All 9 planned AFs completed plus 1 ADR:
 | ID | Type | Title | Status |
 |---|---|---|---|
 | AF-0094 | Backlog | Trace full I/O enrichment | PROPOSED |
-| AF-0095 | Backlog | research_v0 skill output audit | PROPOSED |
+| AF-0095 | Backlog | research_v0 skill output audit | DONE |
 | BUG-0015 | Bug | Runs list count mismatch | OPEN |
 
 ### Lessons learned

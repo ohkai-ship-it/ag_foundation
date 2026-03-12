@@ -255,5 +255,5 @@ No regressions detected. Sprint advances Gate B readiness.
 - [x] Execute review passes (Jacob)
 - [x] Complete Gate B assessment
 - [x] Decision: ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT
-- [ ] Close sprint (if ACCEPT/ACCEPT WITH FOLLOW-UPS)
-- [ ] Update INDEX_SPRINTS status to Closed
+- [x] Close sprint (if ACCEPT/ACCEPT WITH FOLLOW-UPS)
+- [x] Update INDEX_SPRINTS status to Closed
