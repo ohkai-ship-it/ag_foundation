@@ -444,8 +444,9 @@ class TestEmitResultSkill:
         assert "- First point" in content
         assert "- Second point" in content
         assert "## Sources" in content
-        assert "1. source1.txt" in content
-        assert "2. source2.txt" in content
+        # AF-0082: Sources now in table format
+        assert "| 1 | source1.txt |" in content
+        assert "| 2 | source2.txt |" in content
         # Should have artifact_id in comment for traceability
         assert f"artifact_id: {result.artifact_id}" in content
 
@@ -494,6 +495,92 @@ class TestEmitResultSkill:
 
         assert result.success is True
         assert result.artifact_type == "application/json"
+
+    def test_markdown_with_trace_metadata(self, tmp_path: Path) -> None:
+        """AF-0082: Markdown report includes trace metadata when provided."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(
+            workspace_path=tmp_path,
+            run_id="trace-md-run",
+            step_number=3,
+            trace_metadata={
+                "elapsed_ms": 5500,
+                "model": "gpt-4o-mini",
+                "playbook_name": "research_v0",
+                "playbook_version": "1.1.0",
+                "steps_summary": [
+                    {
+                        "skill": "load_documents",
+                        "duration_ms": 50,
+                        "output_summary": "Loaded 2 docs",
+                    },
+                    {
+                        "skill": "web_search",
+                        "duration_ms": 1200,
+                        "output_summary": "Found 5 URLs",
+                    },
+                    {
+                        "skill": "fetch_web_content",
+                        "duration_ms": 3500,
+                        "output_summary": "Fetched 4/5",
+                    },
+                ],
+            },
+        )
+        input_data = EmitResultInput(
+            document_summary="Test summary content.",
+            key_points=["Finding 1"],
+            sources=["https://example.com/page1", "local_file.txt"],
+            artifact_name="report.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        content = (tmp_path / result.artifact_path).read_text(encoding="utf-8")
+
+        # Check metadata header
+        assert "**Duration:** 5.5 seconds" in content
+        assert "**Model:** gpt-4o-mini" in content
+        assert "**Playbook:** research_v0@1.1.0" in content
+
+        # Check sources with clickable links for URLs
+        assert "[example.com/page1" in content  # URL should be linkified
+        assert "](https://example.com/page1)" in content
+        assert "local_file.txt" in content  # Non-URL stays plain
+
+        # Check execution details table
+        assert "## Execution Details" in content
+        assert "| Step | Skill | Duration | Output |" in content
+        assert "load_documents" in content
+        assert "web_search" in content
+        assert "fetch_web_content" in content
+        assert "**Run ID:** `trace-md-run`" in content
+
+    def test_markdown_without_trace_metadata(self, tmp_path: Path) -> None:
+        """AF-0082: Markdown report works without trace_metadata (backwards compat)."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(
+            workspace_path=tmp_path,
+            run_id="no-trace-run",
+            step_number=1,
+            # trace_metadata not provided
+        )
+        input_data = EmitResultInput(
+            document_summary="Simple summary.",
+            artifact_name="simple.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        content = (tmp_path / result.artifact_path).read_text(encoding="utf-8")
+
+        # Basic structure should still work
+        assert "# Research Report" in content
+        assert "Simple summary." in content
+        # No execution details table without trace_metadata
+        assert "## Execution Details" not in content
 
 
 # ---------------------------------------------------------------------------

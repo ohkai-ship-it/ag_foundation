@@ -166,6 +166,9 @@ class SkillContext:
         config: Additional configuration dict
         step_number: Current step number in playbook execution
         run_id: Current run ID for artifact registration
+        trace_metadata: Optional dict with run trace info (AF-0082)
+            Keys may include: elapsed_ms, model, playbook_name, playbook_version,
+            steps_summary (list of {skill, duration_ms, output_summary} dicts)
     """
 
     provider: LLMProvider | None = None
@@ -173,6 +176,7 @@ class SkillContext:
     config: dict[str, Any] = field(default_factory=dict)
     step_number: int = 0
     run_id: str | None = None
+    trace_metadata: dict[str, Any] = field(default_factory=dict)
 
     @property
     def has_provider(self) -> bool:

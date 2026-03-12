@@ -278,7 +278,10 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
 
             if is_markdown:
                 # Write markdown format for text/markdown
-                content = self._format_markdown(input, artifact_id, ctx.run_id)
+                # AF-0082: Pass trace metadata for polished reports
+                content = self._format_markdown(
+                    input, artifact_id, ctx.run_id, ctx.trace_metadata
+                )
                 mime_type = "text/markdown"
             elif is_plain_text:
                 # Write plain text for text/plain
@@ -327,28 +330,67 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
         """Convert output to legacy skill return format."""
         return output.to_legacy_tuple()
 
-    def _format_markdown(self, input: EmitResultInput, artifact_id: str, run_id: str | None) -> str:
+    def _format_markdown(
+        self,
+        input: EmitResultInput,
+        artifact_id: str,
+        run_id: str | None,
+        trace_metadata: dict[str, Any] | None = None,
+    ) -> str:
         """Format result as markdown document.
 
         Args:
             input: Skill input with document_summary, key_points, sources
             artifact_id: Generated artifact ID
             run_id: Optional run ID
+            trace_metadata: Optional trace metadata (AF-0082) with:
+                - elapsed_ms: Duration so far
+                - model: LLM model name
+                - playbook_name: Playbook name
+                - playbook_version: Playbook version
+                - steps_summary: List of {skill, duration_ms, output_summary}
 
         Returns:
             Formatted markdown string
         """
         lines = []
 
-        # Title
-        lines.append("# Research Report")
+        # Title - use first 50 chars of summary if available
+        title = "Research Report"
+        if input.document_summary:
+            # Extract first sentence or first 50 chars for title
+            first_line = input.document_summary.split("\n")[0]
+            if len(first_line) > 60:
+                title = f"Research Report: {first_line[:50]}..."
+            elif first_line:
+                title = f"Research Report: {first_line}"
+
+        lines.append(f"# {title}")
         lines.append("")
 
-        # Metadata (as comment for traceability)
+        # AF-0082: Visible metadata header
+        lines.append(f"**Generated:** {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        if trace_metadata:
+            if "elapsed_ms" in trace_metadata:
+                duration_s = trace_metadata["elapsed_ms"] / 1000
+                lines.append(f"**Duration:** {duration_s:.1f} seconds")
+            if "model" in trace_metadata:
+                lines.append(f"**Model:** {trace_metadata['model']}")
+            if "playbook_name" in trace_metadata:
+                pb_name = trace_metadata["playbook_name"]
+                pb_ver = trace_metadata.get("playbook_version", "")
+                if pb_ver:
+                    lines.append(f"**Playbook:** {pb_name}@{pb_ver}")
+                else:
+                    lines.append(f"**Playbook:** {pb_name}")
+
+        # Hidden metadata for traceability
+        lines.append("")
         lines.append(f"<!-- artifact_id: {artifact_id} -->")
         if run_id:
             lines.append(f"<!-- run_id: {run_id} -->")
-        lines.append(f"<!-- generated: {datetime.now(UTC).isoformat()} -->")
+        lines.append("")
+        lines.append("---")
         lines.append("")
 
         # Summary/Report
@@ -360,18 +402,71 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
 
         # Key Points/Findings
         if input.key_points:
+            lines.append("---")
+            lines.append("")
             lines.append("## Key Findings")
             lines.append("")
             for point in input.key_points:
                 lines.append(f"- {point}")
             lines.append("")
 
-        # Sources
+        # Sources - with clickable links for URLs
         if input.sources:
+            lines.append("---")
+            lines.append("")
             lines.append("## Sources")
             lines.append("")
+            lines.append("| # | Source |")
+            lines.append("|---|--------|")
             for i, source in enumerate(input.sources, 1):
-                lines.append(f"{i}. {source}")
+                # Make URLs clickable
+                if source.startswith(("http://", "https://")):
+                    # Extract domain for display
+                    try:
+                        from urllib.parse import urlparse
+
+                        parsed = urlparse(source)
+                        display = parsed.netloc + parsed.path[:30]
+                        if len(parsed.path) > 30:
+                            display += "..."
+                        lines.append(f"| {i} | [{display}]({source}) |")
+                    except Exception:
+                        lines.append(f"| {i} | [{source}]({source}) |")
+                else:
+                    lines.append(f"| {i} | {source} |")
+            lines.append("")
+
+        # AF-0082: Execution details table
+        if trace_metadata and trace_metadata.get("steps_summary"):
+            lines.append("---")
+            lines.append("")
+            lines.append("## Execution Details")
+            lines.append("")
+            lines.append("| Step | Skill | Duration | Output |")
+            lines.append("|------|-------|----------|--------|")
+
+            for idx, step_info in enumerate(trace_metadata["steps_summary"]):
+                skill = step_info.get("skill", "-")
+                duration_ms = step_info.get("duration_ms", 0)
+                output = step_info.get("output_summary", "-")[:50]
+                if len(step_info.get("output_summary", "")) > 50:
+                    output += "..."
+                # Format duration nicely
+                if duration_ms >= 1000:
+                    duration_str = f"{duration_ms / 1000:.1f}s"
+                else:
+                    duration_str = f"{duration_ms}ms"
+                lines.append(f"| {idx} | {skill} | {duration_str} | {output} |")
+
+            # Total duration
+            if "elapsed_ms" in trace_metadata:
+                total_s = trace_metadata["elapsed_ms"] / 1000
+                lines.append("")
+                lines.append(f"**Total Duration:** {total_s:.1f}s")
+
+            if run_id:
+                lines.append(f"**Run ID:** `{run_id}`")
+
             lines.append("")
 
         return "\n".join(lines)

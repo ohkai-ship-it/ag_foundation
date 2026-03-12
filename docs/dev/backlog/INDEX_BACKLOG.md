@@ -38,7 +38,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 3 | AF-0093 | P2 | DONE | Skills test coverage hardening | Skills/Testing | TBD | [🔗](items/AF0093_DONE_skills_test_coverage_hardening.md) |
 | 4 | AF-0012 | P2 | DONE | CLI_REFERENCE surface parity (+BUG-0003) | CLI | Jacob | [🔗](items/AF0012_DONE_cli_reference_surface.md) |
 | 5 | AF-0081 | P2 | DONE | Inventory sync discipline | Docs/Process | Jacob | [🔗](items/AF0081_DONE_inventory_sync_discipline.md) |
-| 6 | AF-0082 | P2 | READY | Report polish (rescoped) | Core Runtime/CLI | TBD | [🔗](items/AF0082_READY_human_readable_result.md) |
+| 6 | AF-0082 | P2 | DONE | Report polish (rescoped) | Core Runtime/CLI | Jacob | [✅](items/AF0082_DONE_human_readable_result.md) |
 | 7 | AF-0084 | P3 | READY | Index link emoji fix | Docs/Process | TBD | [🔗](items/AF0084_READY_index_link_emoji_fix.md) |
 | 8 | AF-0077 | P3 | READY | Skills plugin architecture (Phase 1) | Skills/Architecture | TBD | [🔗](items/AF0077_READY_skills_plugin_architecture.md) |
 | 9 | AF-0078 | P3 | READY | Playbooks plugin architecture (Phase 1) | Playbooks/Architecture | TBD | [🔗](items/AF0078_READY_playbooks_plugin_architecture.md) |

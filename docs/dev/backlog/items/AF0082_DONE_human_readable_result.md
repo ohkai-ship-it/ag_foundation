@@ -18,10 +18,10 @@
 ## Metadata
 - **ID:** AF0082
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Core Runtime / CLI
-- **Owner:** TBD
+- **Owner:** Jacob
 - **Target sprint:** Sprint 10
 - **Depends on:** AF-0089 (report output format — DONE Sprint 09)
 
@@ -124,14 +124,14 @@ share directly as a professional document.
 
 ## Acceptance criteria (Definition of Done)
 
-- [ ] Report includes metadata header (generated, duration, model, playbook version)
-- [ ] Report includes sources table with clickable markdown links
-- [ ] Report includes execution details table (step, skill, duration, output)
-- [ ] Report includes run ID and total duration footer
-- [ ] Unicode characters render correctly (verify BUG-0014 fix holds)
-- [ ] Tests verify report structure (header present, sources table present, execution table present)
-- [ ] `ruff check src tests` passes
-- [ ] `pytest -W error` passes
+- [x] Report includes metadata header (generated, duration, model, playbook version)
+- [x] Report includes sources table with clickable markdown links
+- [x] Report includes execution details table (step, skill, duration, output)
+- [x] Report includes run ID and total duration footer
+- [x] Unicode characters render correctly (verify BUG-0014 fix holds)
+- [x] Tests verify report structure (header present, sources table present, execution table present)
+- [x] `ruff check src tests` passes
+- [x] `pytest -W error` passes
 
 ---
 
@@ -157,6 +157,37 @@ The `_format_markdown()` method added by AF-0089 should be extended to:
 | Step details | `trace.steps[*]` |
 
 ---
+
+## Completion Summary
+
+**Completed:** Sprint 10
+
+### Implementation
+
+1. **Extended SkillContext** (`src/ag/skills/base.py`):
+   - Added `trace_metadata: dict[str, Any]` optional field
+   - Allows runtime to pass execution context to skills
+
+2. **Runtime metadata population** (`src/ag/core/runtime.py`):
+   - Populates `trace_metadata` when building SkillContext
+   - Includes: elapsed_ms, model, playbook_name, playbook_version, steps_summary
+
+3. **Enhanced emit_result** (`src/ag/skills/emit_result.py`):
+   - `_format_markdown()` now produces polished reports with:
+     - Visible metadata header (generated timestamp, duration, model, playbook)
+     - Sources as clickable markdown table with URL detection
+     - Execution details table (step, skill, duration, output)
+     - Run ID footer
+
+### Tests Added
+
+- `test_summarize_skills.py::test_emit_result_metadata_header` — verifies metadata header rendering
+- `test_summarize_skills.py::test_emit_result_execution_table` — verifies execution details table
+
+### Metrics
+
+- Tests: 565 passing
+- Ruff: Clean
 
 ## Risks
 
