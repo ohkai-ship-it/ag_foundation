@@ -63,6 +63,11 @@ from .web_search import (
     WebSearchOutput,
     WebSearchSkill,
 )
+from .zero_skill import (
+    ZeroSkill,
+    ZeroSkillInput,
+    ZeroSkillOutput,
+)
 
 __all__ = [
     # Base framework (AF0060)
@@ -94,4 +99,8 @@ __all__ = [
     "WebSearchInput",
     "WebSearchOutput",
     "WebSearchSkill",
+    # Zero skill (dummy)
+    "ZeroSkill",
+    "ZeroSkillInput",
+    "ZeroSkillOutput",
 ]

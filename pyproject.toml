@@ -58,6 +58,7 @@ emit_result = "ag.skills.emit_result:EmitResultSkill"
 fetch_web_content = "ag.skills.fetch_web_content:FetchWebContentSkill"
 synthesize_research = "ag.skills.synthesize_research:SynthesizeResearchSkill"
 web_search = "ag.skills.web_search:WebSearchSkill"
+zero_skill = "ag.skills.zero_skill:ZeroSkill"
 
 # AF0078: Playbook plugin architecture - built-in playbooks as entry points
 [project.entry-points."ag.playbooks"]
@@ -65,6 +66,7 @@ default_v0 = "ag.playbooks.default_v0:DEFAULT_V0"
 delegate_v0 = "ag.playbooks.delegate_v0:DELEGATE_V0"
 research_v0 = "ag.playbooks.research_v0:RESEARCH_V0"
 summarize_v0 = "ag.playbooks.summarize_v0:SUMMARIZE_V0"
+test_skill = "ag.playbooks.test_skill:TEST_SKILL"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ag"]

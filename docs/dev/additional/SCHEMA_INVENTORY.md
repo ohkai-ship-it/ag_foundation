@@ -105,6 +105,13 @@
 | `SynthesizeResearchInput` | synthesize_research.py | Input for research synthesis (documents, output_format, max_tokens, include_citations) | 0.1 |
 | `SynthesizeResearchOutput` | synthesize_research.py | Synthesized report output (report, key_findings, sources_used, source_count) | 0.1 |
 
+#### zero_skill
+
+| Model | Module | Purpose | Version |
+|-------|--------|---------|--------|
+| `ZeroSkillInput` | zero_skill.py | Input for zero skill (uses base SkillInput) | 0.1 |
+| `ZeroSkillOutput` | zero_skill.py | Output for zero skill (uses base SkillOutput) | 0.1 |
+
 #### web_search (AF0080)
 
 | Model | Module | Purpose | Version |

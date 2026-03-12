@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v0.7
+# Version number: v0.8
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -25,6 +25,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
 | AF-0094 | P3 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
+| AF-0095 | P2 | PROPOSED | research_v0 skill output audit | Skills/Playbooks | TBD | [🔗](items/AF0095_PROPOSED_research_v0_skill_output_audit.md) |
 
 ---
 
