@@ -124,6 +124,48 @@ def _get_artifact_store(workspaces_root: Path | None = None) -> SQLiteArtifactSt
     return SQLiteArtifactStore(workspaces_root or get_workspace_dir())
 
 
+def _resolve_workspace_with_default(resolved_workspace: str | None, command_name: str) -> str:
+    """Resolve workspace using default if not provided (AF-0097).
+
+    Args:
+        resolved_workspace: Workspace from --workspace flag or CLI context
+        command_name: Name of the command (for error message)
+
+    Returns:
+        Resolved workspace ID
+
+    Raises:
+        typer.Exit: If no workspace could be resolved
+    """
+    if resolved_workspace:
+        return resolved_workspace
+
+    # Try persisted default workspace
+    from ag.config import get_persisted_default_workspace
+
+    persisted_default = get_persisted_default_workspace()
+    if persisted_default:
+        return persisted_default
+
+    # Try AG_WORKSPACE env var
+    import os
+
+    env_workspace = os.environ.get("AG_WORKSPACE")
+    if env_workspace:
+        return env_workspace
+
+    # No workspace found - error with guidance
+    err_console.print(
+        f"[bold red]Error:[/bold red] No workspace specified for {command_name}"
+    )
+    err_console.print()
+    err_console.print("Specify a workspace using one of:")
+    err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
+    err_console.print("  2. [cyan]ag ws use <name>[/cyan] to set a default")
+    err_console.print("  3. [cyan]AG_WORKSPACE[/cyan] environment variable")
+    raise typer.Exit(code=1)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Label extraction helpers (truthful UX)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -882,9 +924,8 @@ def runs_list(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs list")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs list")
 
     run_store = _get_run_store()
 
@@ -973,9 +1014,8 @@ def runs_show(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs show")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs show")
 
     run_store = _get_run_store()
 
@@ -1069,9 +1109,8 @@ def runs_stats(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs stats")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs stats")
 
     run_store = _get_run_store()
 
