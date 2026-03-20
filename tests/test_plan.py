@@ -723,3 +723,300 @@ class TestPlanCLIWithMockedPlanner:
             assert list_result.exit_code == 0
             assert plan_id in list_result.output
             assert "pending" in list_result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# Plan Execution Tests (AF-0099)
+# ---------------------------------------------------------------------------
+
+
+class TestPlanExecution:
+    """Tests for ag run --plan execution (AF-0099)."""
+
+    @pytest.fixture
+    def temp_workspaces(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+        """Create temp workspaces directory and patch config."""
+        ws_root = tmp_path / "workspaces"
+        ws_root.mkdir()
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(ws_root))
+        return ws_root
+
+    @pytest.fixture
+    def test_workspace(self, temp_workspaces: Path) -> str:
+        """Create a test workspace."""
+        ws = Workspace("test-ws", temp_workspaces)
+        ws.ensure_exists()
+        return "test-ws"
+
+    def test_run_plan_not_found(self, temp_workspaces: Path, test_workspace: str) -> None:
+        """ag run --plan with invalid plan ID fails."""
+        result = runner.invoke(
+            app,
+            ["run", "--plan", "nonexistent_plan", "--workspace", test_workspace],
+        )
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+
+    def test_run_plan_mutually_exclusive_with_prompt(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan cannot be combined with a prompt."""
+        result = runner.invoke(
+            app,
+            ["run", "--plan", "plan_123", "--workspace", test_workspace, "Some prompt"],
+        )
+        assert result.exit_code == 1
+        assert "cannot be combined" in result.output.lower()
+
+    def test_run_plan_mutually_exclusive_with_playbook(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan cannot be combined with --playbook."""
+        result = runner.invoke(
+            app,
+            [
+                "run", "--plan", "plan_123",
+                "--playbook", "research",
+                "--workspace", test_workspace,
+            ],
+        )
+        assert result.exit_code == 1
+        assert "cannot be combined" in result.output.lower()
+
+    def test_run_plan_mutually_exclusive_with_skill(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan cannot be combined with --skill."""
+        result = runner.invoke(
+            app,
+            [
+                "run", "--plan", "plan_123",
+                "--skill", "emit_result",
+                "--workspace", test_workspace,
+            ],
+        )
+        assert result.exit_code == 1
+        assert "cannot be combined" in result.output.lower()
+
+    def test_run_requires_prompt_or_plan(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run requires either a prompt or --plan."""
+        result = runner.invoke(
+            app,
+            ["run", "--workspace", test_workspace],
+        )
+        assert result.exit_code == 1
+        assert "required" in result.output.lower()
+
+    def test_run_plan_expired(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan with expired plan fails."""
+        # Create an expired plan directly
+        plan_store = FilePlanStore(temp_workspaces)
+
+        expired_plan = ExecutionPlan(
+            plan_id="expired_plan",
+            workspace_id=test_workspace,
+            task_prompt="Test task",
+            expires_at=datetime.now(timezone.utc) - timedelta(hours=1),  # Already expired
+            playbook=Playbook(name="test", version="1.0"),
+        )
+        plan_store.save(expired_plan)
+
+        result = runner.invoke(
+            app,
+            ["run", "--plan", "expired_plan", "--workspace", test_workspace],
+        )
+        assert result.exit_code == 1
+        assert "expired" in result.output.lower()
+
+    def test_run_plan_workspace_mismatch(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan with workspace mismatch fails."""
+        plan_store = FilePlanStore(temp_workspaces)
+
+        # Create plan for different workspace
+        plan = ExecutionPlan(
+            plan_id="mismatch_plan",
+            workspace_id="different_workspace",  # Different workspace
+            task_prompt="Test task",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+            playbook=Playbook(name="test", version="1.0"),
+        )
+        plan_store.save(plan)
+
+        result = runner.invoke(
+            app,
+            ["run", "--plan", "mismatch_plan", "--workspace", test_workspace],
+        )
+        assert result.exit_code == 1
+        assert "mismatch" in result.output.lower()
+
+
+class TestPlanExecutionWithMockedRuntime:
+    """Tests for plan execution with mocked runtime."""
+
+    @pytest.fixture
+    def temp_workspaces(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+        """Create temp workspaces directory and patch config."""
+        ws_root = tmp_path / "workspaces"
+        ws_root.mkdir()
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(ws_root))
+        return ws_root
+
+    @pytest.fixture
+    def test_workspace(self, temp_workspaces: Path) -> str:
+        """Create a test workspace."""
+        ws = Workspace("test-ws", temp_workspaces)
+        ws.ensure_exists()
+        return "test-ws"
+
+    def test_run_plan_executes_successfully(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan executes plan and updates status."""
+        from ag.core.run_trace import (
+            ExecutionMode,
+            FinalStatus,
+            PlaybookMetadata,
+            RunTrace,
+            Verifier,
+            VerifierStatus,
+        )
+
+        # Create a valid plan
+        plan_store = FilePlanStore(temp_workspaces)
+
+        playbook = Playbook(
+            name="test_playbook",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    skill_name="emit_result",
+                ),
+            ],
+        )
+        plan = ExecutionPlan(
+            plan_id="exec_plan",
+            workspace_id=test_workspace,
+            task_prompt="Execute this test task",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+            playbook=playbook,
+            planned_steps=[
+                PlannedStep(step_number=1, skill_name="emit_result", description="Test"),
+            ],
+        )
+        plan_store.save(plan)
+
+        # Mock the runtime execution
+        mock_trace = RunTrace(
+            run_id="mock_run_123",
+            workspace_id=test_workspace,
+            mode=ExecutionMode.SUPERVISED,
+            playbook=PlaybookMetadata(name="test_playbook", version="1.0"),
+            started_at=datetime.now(timezone.utc),
+            ended_at=datetime.now(timezone.utc),
+            duration_ms=100,
+            verifier=Verifier(
+                status=VerifierStatus.PASSED,
+                checked_at=datetime.now(timezone.utc),
+            ),
+            final=FinalStatus.SUCCESS,
+        )
+
+        with patch("ag.cli.main.create_runtime") as mock_create_runtime, \
+             patch("ag.cli.main._get_run_store") as mock_run_store, \
+             patch("ag.cli.main._get_artifact_store") as mock_artifact_store:
+
+            mock_runtime = MagicMock()
+            mock_runtime.execute.return_value = mock_trace
+            mock_create_runtime.return_value = mock_runtime
+
+            mock_store = MagicMock()
+            mock_run_store.return_value = mock_store
+            mock_artifact_store.return_value = MagicMock()
+
+            result = runner.invoke(
+                app,
+                ["run", "--plan", "exec_plan", "--workspace", test_workspace],
+            )
+
+            assert result.exit_code == 0
+            assert "Plan executed" in result.output
+            assert "exec_plan" in result.output
+
+            # Verify runtime was called with plan's task prompt and playbook
+            mock_runtime.execute.assert_called_once()
+            call_kwargs = mock_runtime.execute.call_args.kwargs
+            assert call_kwargs["prompt"] == "Execute this test task"
+            assert call_kwargs["playbook"] == "test_playbook"
+
+        # Verify plan status was updated
+        updated_plan = plan_store.get(test_workspace, "exec_plan")
+        assert updated_plan is not None
+        assert updated_plan.status == PlanStatus.EXECUTED
+        assert updated_plan.run_id == "mock_run_123"
+        assert updated_plan.executed_at is not None
+
+    def test_run_plan_json_output(
+        self, temp_workspaces: Path, test_workspace: str
+    ) -> None:
+        """ag run --plan --json returns proper JSON output."""
+        from ag.core.run_trace import (
+            ExecutionMode,
+            FinalStatus,
+            PlaybookMetadata,
+            RunTrace,
+            Verifier,
+            VerifierStatus,
+        )
+
+        plan_store = FilePlanStore(temp_workspaces)
+
+        plan = ExecutionPlan(
+            plan_id="json_plan",
+            workspace_id=test_workspace,
+            task_prompt="JSON test",
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=1),
+            playbook=Playbook(name="test", version="1.0"),
+        )
+        plan_store.save(plan)
+
+        mock_trace = RunTrace(
+            run_id="json_run_123",
+            workspace_id=test_workspace,
+            mode=ExecutionMode.SUPERVISED,
+            playbook=PlaybookMetadata(name="test", version="1.0"),
+            started_at=datetime.now(timezone.utc),
+            ended_at=datetime.now(timezone.utc),
+            duration_ms=50,
+            verifier=Verifier(
+                status=VerifierStatus.PASSED,
+                checked_at=datetime.now(timezone.utc),
+            ),
+            final=FinalStatus.SUCCESS,
+        )
+
+        with patch("ag.cli.main.create_runtime") as mock_create_runtime, \
+             patch("ag.cli.main._get_run_store"), \
+             patch("ag.cli.main._get_artifact_store"):
+
+            mock_runtime = MagicMock()
+            mock_runtime.execute.return_value = mock_trace
+            mock_create_runtime.return_value = mock_runtime
+
+            result = runner.invoke(
+                app,
+                ["run", "--plan", "json_plan", "--workspace", test_workspace, "--json"],
+            )
+
+            assert result.exit_code == 0
+            output = json.loads(result.output)
+            assert output["plan_id"] == "json_plan"
+            assert output["plan_executed"] is True
+            assert output["run_id"] == "json_run_123"

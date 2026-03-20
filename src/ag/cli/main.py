@@ -291,7 +291,9 @@ def main(
 @app.command()
 def run(
     ctx: typer.Context,
-    prompt: str = typer.Argument(..., help="The prompt or task to execute."),
+    prompt: Optional[str] = typer.Argument(
+        None, help="The prompt or task to execute (required unless --plan specified)."
+    ),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace ID (uses AG_WORKSPACE env if not specified)."
     ),
@@ -303,6 +305,9 @@ def run(
     ),
     skill: Optional[str] = typer.Option(
         None, "--skill", "-s", help="Run a specific skill directly (bypasses playbook)."
+    ),
+    plan_id: Optional[str] = typer.Option(
+        None, "--plan", help="Execute a previously generated plan by ID (AF-0099)."
     ),
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
@@ -319,12 +324,35 @@ def run(
     Example:
         ag run "Draft a project plan"
         ag run --mode manual "Test the pipeline"
+        ag run --plan plan_abc123  # Execute a saved plan (AF-0099)
     """
     # Resolve global options with precedence: local > global > default
     cli_ctx = get_cli_ctx(ctx)
     resolved_json = json_output or cli_ctx.json_output
     resolved_quiet = quiet or cli_ctx.quiet
     resolved_verbose = verbose or cli_ctx.verbose
+
+    # AF-0099: Validate mutual exclusivity of --plan with other options
+    if plan_id:
+        if prompt:
+            err_console.print(
+                "[bold red]Error:[/bold red] --plan cannot be combined with a prompt argument"
+            )
+            raise typer.Exit(code=1)
+        if playbook:
+            err_console.print(
+                "[bold red]Error:[/bold red] --plan cannot be combined with --playbook"
+            )
+            raise typer.Exit(code=1)
+        if skill:
+            err_console.print(
+                "[bold red]Error:[/bold red] --plan cannot be combined with --skill"
+            )
+            raise typer.Exit(code=1)
+    elif not prompt:
+        err_console.print("[bold red]Error:[/bold red] prompt argument is required")
+        err_console.print("Usage: ag run <prompt> or ag run --plan <plan_id>")
+        raise typer.Exit(code=1)
 
     # AF-0027: Workspace selection policy with new precedence
     # 1. --workspace flag (highest priority)
@@ -641,6 +669,132 @@ def run(
         except Exception as e:
             err_console.print(f"[bold red]Error executing skill:[/bold red] {e}")
             raise typer.Exit(code=1)
+
+    # AF-0099: Plan execution mode
+    if plan_id:
+        from datetime import UTC, datetime
+
+        from ag.core.execution_plan import PlanStatus
+
+        plan_store = _get_plan_store()
+
+        # Load plan - need workspace to find it
+        loaded_plan = plan_store.get(resolved_workspace, plan_id)
+        if loaded_plan is None:
+            err_console.print(f"[bold red]Error:[/bold red] Plan '{plan_id}' not found")
+            raise typer.Exit(code=1)
+
+        # Validate plan state
+        if loaded_plan.is_expired():
+            err_console.print(f"[bold red]Error:[/bold red] Plan '{plan_id}' has expired")
+            err_console.print(
+                f"  Expiration: {loaded_plan.expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            err_console.print("Generate a new plan with: ag plan generate --task '...'")
+            raise typer.Exit(code=1)
+
+        if loaded_plan.status != PlanStatus.PENDING:
+            err_console.print(
+                f"[bold red]Error:[/bold red] Plan '{plan_id}' is not in pending status"
+            )
+            err_console.print(f"  Current status: {loaded_plan.status.value}")
+            raise typer.Exit(code=1)
+
+        # Validate workspace matches
+        if loaded_plan.workspace_id != resolved_workspace:
+            err_console.print(
+                "[bold red]Error:[/bold red] Plan workspace mismatch"
+            )
+            err_console.print(f"  Plan workspace: {loaded_plan.workspace_id}")
+            err_console.print(f"  Current workspace: {resolved_workspace}")
+            raise typer.Exit(code=1)
+
+        if not resolved_quiet and not resolved_json:
+            console.print(f"[dim]Executing plan:[/dim] {plan_id}")
+            console.print(f"[dim]Task:[/dim] {loaded_plan.task_prompt[:80]}...")
+            console.print(f"[dim]Steps:[/dim] {len(loaded_plan.planned_steps)}")
+
+        # Update plan status to EXECUTING (not in spec, but useful)
+        # We'll update to EXECUTED or back to PENDING on failure
+
+        run_store = _get_run_store()
+        artifact_store = _get_artifact_store()
+
+        try:
+            runtime = create_runtime(
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            # Execute using plan's playbook and task prompt
+            trace = runtime.execute(
+                prompt=loaded_plan.task_prompt,
+                workspace=resolved_workspace,
+                mode=mode,
+                playbook=loaded_plan.playbook.name,
+                workspace_source=workspace_source,
+            )
+
+            # AF-0099: Link plan and trace
+            # Update trace with plan_id (need to re-save)
+            trace.plan_id = plan_id
+            run_store.save(trace)
+
+            # Update plan with execution results
+            loaded_plan.status = PlanStatus.EXECUTED
+            loaded_plan.executed_at = datetime.now(UTC)
+            loaded_plan.run_id = trace.run_id
+            plan_store.save(loaded_plan)
+
+            # Output results
+            if resolved_json:
+                output = json.loads(trace.to_json())
+                output["plan_id"] = plan_id
+                output["plan_executed"] = True
+                print(json.dumps(output, indent=2))
+            else:
+                labels = extract_labels(trace)
+
+                if not resolved_quiet:
+                    console.print()
+                    console.print("[bold]Plan executed[/bold]")
+                    console.print(f"  Plan ID: {plan_id}")
+                    console.print(f"  Run ID: {labels['run_id']}")
+                    console.print(f"  Workspace: {labels['workspace_id']}")
+                    console.print(f"  Status: {format_status(trace.final)}")
+                    console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                    console.print(f"  Duration: {labels['duration']}")
+                    console.print(f"  Playbook: {labels['playbook']}")
+
+                    if resolved_verbose:
+                        console.print()
+                        console.print(f"  Steps: {len(trace.steps)}")
+                        for step in trace.steps:
+                            status_mark = (
+                                "[green]✓[/green]" if not step.error else "[red]✗[/red]"
+                            )
+                            skill_name = step.skill_name or "reasoning"
+                            console.print(f"    {status_mark} {step.step_number}: {skill_name}")
+
+                    if trace.error:
+                        console.print()
+                        console.print(f"[red]Error: {trace.error}[/red]")
+
+            # Exit with error code if run failed
+            if trace.final != FinalStatus.SUCCESS:
+                raise typer.Exit(code=1)
+
+        except typer.Exit:
+            raise
+        except Exception as e:
+            # On failure, preserve plan for retry (per spec)
+            err_console.print(f"[bold red]Error executing plan:[/bold red] {e}")
+            raise typer.Exit(code=1)
+        finally:
+            run_store.close()
+            artifact_store.close()
+
+        return
 
     # Create and execute runtime
     run_store = _get_run_store()

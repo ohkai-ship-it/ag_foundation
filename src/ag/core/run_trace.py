@@ -322,6 +322,10 @@ class RunTrace(BaseModel):
     verifier: Verifier = Field(..., description="Verification result")
     final: FinalStatus = Field(..., description="Final run outcome")
     error: str | None = Field(default=None, description="Error message if failed")
+    # AF-0099: Plan execution linkage
+    plan_id: str | None = Field(
+        default=None, description="Plan ID if run executed from approved plan"
+    )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 
     model_config = {"extra": "forbid"}
