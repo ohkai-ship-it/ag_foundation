@@ -55,6 +55,14 @@ from .planner import (
     PlannerError,
     V1Planner,
 )
+from .execution_plan import (
+    DEFAULT_PLAN_TTL_SECONDS,
+    ExecutionPlan,
+    PlannedStep,
+    PlanStatus,
+    PolicyFlag,
+    create_execution_plan,
+)
 from .schema_verifier import (
     DEFAULT_MAX_VALIDATION_ATTEMPTS,
     MAX_VALIDATION_ATTEMPTS_CEILING,
@@ -126,6 +134,13 @@ __all__ = [
     # planner (AF-0102)
     "V1Planner",
     "PlannerError",
+    # execution_plan (AF-0098)
+    "ExecutionPlan",
+    "PlannedStep",
+    "PlanStatus",
+    "PolicyFlag",
+    "create_execution_plan",
+    "DEFAULT_PLAN_TTL_SECONDS",
     # schema_verifier (AF-0050)
     "SchemaValidator",
     "ValidationAttempt",

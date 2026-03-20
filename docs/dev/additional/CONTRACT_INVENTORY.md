@@ -131,8 +131,7 @@ class Recorder(Protocol):
 | Protocol | Purpose | Methods |
 |----------|---------|---------|
 | `RunStore` | Run storage operations | `save`, `get`, `list`, `delete` |
-| `ArtifactStore` | Artifact storage operations | `save`, `get`, `list` |
-
+| `ArtifactStore` | Artifact storage operations | `save`, `get`, `list` || `PlanStore` | Execution plan storage | `save`, `get`, `list`, `delete`, `update_status` |
 #### RunStore
 ```python
 class RunStore(Protocol):
@@ -164,6 +163,25 @@ class ArtifactStore(Protocol):
         
     def list(self, workspace_id: str, run_id: str) -> list[Artifact]:
         """List artifacts for a run."""
+```
+
+#### PlanStore
+```python
+class PlanStore(Protocol):
+    def save(self, plan: ExecutionPlan) -> None:
+        """Persist an execution plan."""
+        
+    def get(self, workspace_id: str, plan_id: str) -> ExecutionPlan | None:
+        """Retrieve a plan by ID."""
+        
+    def list(self, workspace_id: str, include_expired: bool = False) -> list[ExecutionPlan]:
+        """List plans in a workspace."""
+        
+    def delete(self, workspace_id: str, plan_id: str) -> bool:
+        """Delete a plan. Returns True if deleted."""
+        
+    def update_status(self, workspace_id: str, plan_id: str, status: PlanStatus) -> bool:
+        """Update plan status. Returns True if updated."""
 ```
 
 ---
@@ -245,6 +263,7 @@ class Skill(ABC, Generic[InputT, OutputT]):
 | Recorder | `runtime.py` (inline) | ✅ Implemented |
 | RunStore | `sqlite_store.py` | ✅ Implemented |
 | ArtifactStore | `sqlite_store.py` | ✅ Implemented |
+| PlanStore | `plan_store.py` | ✅ Implemented |
 | LLMProvider | `openai.py`, `stubs.py` | ✅ Implemented |
 | Skill | See skill implementations below | ✅ Implemented |
 
