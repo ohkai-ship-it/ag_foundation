@@ -40,6 +40,8 @@ from .playbook import (
 from .run_trace import (
     Artifact,
     ArtifactCategory,
+    AutonomyMetadata,
+    AutonomyMode,
     EvidenceRef,
     FinalStatus,
     LLMExecution,
@@ -94,6 +96,8 @@ __all__ = [
     "RunTraceBuilder",
     "Artifact",
     "ArtifactCategory",
+    "AutonomyMetadata",
+    "AutonomyMode",
     "EvidenceRef",
     "LLMExecution",
     "Step",

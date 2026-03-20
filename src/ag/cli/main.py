@@ -24,7 +24,14 @@ from rich.table import Table  # noqa: E402
 
 from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
-from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.core import (  # noqa: E402
+    AutonomyMetadata,
+    AutonomyMode,
+    FinalStatus,
+    RunTrace,
+    VerifierStatus,
+    create_runtime,
+)
 from ag.core.task_spec import ExecutionMode  # noqa: E402
 from ag.skills import SkillContext, get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
@@ -784,6 +791,13 @@ def run(
             # AF-0099: Link plan and trace
             # Update trace with plan_id (need to re-save)
             trace.plan_id = plan_id
+            # AF-0101: Set autonomy metadata (guided mode for plan execution)
+            trace.autonomy = AutonomyMetadata(
+                mode=AutonomyMode.GUIDED,
+                plan_id=plan_id,
+                confirmation_enabled=not yes,
+                confirmation_flags=[],  # Could be populated from plan
+            )
             run_store.save(trace)
 
             # Update plan with execution results
@@ -807,6 +821,7 @@ def run(
                     console.print(f"  Plan ID: {plan_id}")
                     console.print(f"  Run ID: {labels['run_id']}")
                     console.print(f"  Workspace: {labels['workspace_id']}")
+                    console.print("  Mode: [yellow]guided[/yellow] (pre-approved plan)")
                     console.print(f"  Status: {format_status(trace.final)}")
                     console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
                     console.print(f"  Duration: {labels['duration']}")
@@ -860,6 +875,16 @@ def run(
             workspace_source=workspace_source,
         )
 
+        # AF-0101: Set autonomy metadata (playbook mode for direct execution)
+        trace.autonomy = AutonomyMetadata(
+            mode=AutonomyMode.PLAYBOOK,
+            plan_id=None,
+            confirmation_enabled=not yes,
+            confirmation_flags=[],
+        )
+        # Re-save trace with autonomy metadata
+        run_store.save(trace)
+
         # Output results
         if resolved_json:
             console.print(trace.to_json())
@@ -872,6 +897,11 @@ def run(
                 console.print(f"  Run ID: {labels['run_id']}")
                 console.print(f"  Workspace: {labels['workspace_id']}")
                 console.print(f"  Mode: {labels['mode']}")
+                # AF-0101: Show autonomy mode
+                if trace.autonomy:
+                    is_playbook = trace.autonomy.mode == AutonomyMode.PLAYBOOK
+                    a_color = "[blue]" if is_playbook else "[yellow]"
+                    console.print(f"  Autonomy: {a_color}{trace.autonomy.mode.value}[/]")
                 console.print(f"  Status: {format_status(trace.final)}")
                 console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
                 console.print(f"  Duration: {labels['duration']}")
@@ -1051,6 +1081,11 @@ def runs_show(
                 console.print(f"  LLM: {trace.llm.provider}/{trace.llm.model}")
             else:
                 console.print("  LLM: manual (no LLM)")
+            # AF-0101: Show autonomy mode
+            if trace.autonomy:
+                mode_str = trace.autonomy.mode.value
+                mode_color = "blue" if trace.autonomy.mode.value == "playbook" else "yellow"
+                console.print(f"  Autonomy: [{mode_color}]{mode_str}[/{mode_color}]")
             console.print(f"  Started: {trace.started_at.isoformat()}")
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()

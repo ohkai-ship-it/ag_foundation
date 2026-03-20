@@ -14,6 +14,8 @@ from uuid import uuid4
 from ag.core.playbook import Playbook
 from ag.core.run_trace import (
     Artifact,
+    AutonomyMetadata,
+    AutonomyMode,
     FinalStatus,
     LLMExecution,
     PlaybookMetadata,

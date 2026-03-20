@@ -318,6 +318,42 @@ class LLMExecution(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0101: Autonomy mode tracking
+class AutonomyMode(str, Enum):
+    """Mode of execution autonomy (AF-0101).
+
+    Tracks how the execution was controlled:
+    - playbook: Executing predefined playbook steps
+    - guided: Executing a pre-approved plan
+    - direct: Immediate execution without pre-approval
+    """
+
+    PLAYBOOK = "playbook"  # Predefined workflow
+    GUIDED = "guided"  # Pre-approved plan (--plan flag)
+    DIRECT = "direct"  # No plan, immediate execution
+
+
+class AutonomyMetadata(BaseModel):
+    """Autonomy settings for a run (AF-0101).
+
+    Records the autonomy mode and related policy information
+    for truthful UX - users should know HOW the system operated.
+    """
+
+    mode: AutonomyMode = Field(..., description="Execution autonomy mode")
+    plan_id: str | None = Field(
+        default=None, description="Plan ID if mode is guided"
+    )
+    confirmation_enabled: bool = Field(
+        default=False, description="Whether step confirmation was enabled"
+    )
+    confirmation_flags: list[str] = Field(
+        default_factory=list, description="Policy flags requiring confirmation"
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 class RunTrace(BaseModel):
     """v0.1 RunTrace — the evidence log for a single run.
 
@@ -356,6 +392,10 @@ class RunTrace(BaseModel):
     # AF-0099: Plan execution linkage
     plan_id: str | None = Field(
         default=None, description="Plan ID if run executed from approved plan"
+    )
+    # AF-0101: Autonomy mode tracking (additive field)
+    autonomy: AutonomyMetadata | None = Field(
+        default=None, description="Autonomy mode and policy info (AF-0101)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 
