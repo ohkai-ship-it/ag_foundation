@@ -10,7 +10,7 @@
 > - Truthful UX (trace-derived labels)
 > - Workspace isolation
 > - CI discipline (ruff + pytest -W error + coverage)
-> - 1 PR = 1 primary AF
+> - 1 PR = 1 sprint
 > - INDEX update rule (status ↔ filename integrity)
 
 > **Folder naming (required):** `/docs/dev/sprints/documentation/Sprint11_guided_autonomy_enablement/`
@@ -24,11 +24,12 @@
 ## 1) Metadata
 - **Sprint:** Sprint11
 - **Name:** guided_autonomy_enablement
-- **Dates:** 2026-03-13 → TBD
+- **Dates:** 2026-03-20 → TBD
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Planning
+- **State:** Active
+- **Branch:** `feat/sprint11-guided-autonomy`
 
 ---
 
@@ -57,21 +58,21 @@ Key capabilities:
 ### Track 1: Planner Suggestion Mode (P1 — core autonomy)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 1 | AF-0098 | P1 | PROPOSED | Plan preview command | TBD |
-| 2 | AF-0099 | P1 | PROPOSED | Plan approval workflow | TBD |
-| 3 | AF-0100 | P1 | PROPOSED | Step confirmation hooks | TBD |
+| 1 | AF-0098 | P1 | READY | Plan preview command | TBD |
+| 2 | AF-0099 | P1 | READY | Plan approval workflow | TBD |
+| 3 | AF-0100 | P1 | READY | Step confirmation hooks | TBD |
 
 ### Track 2: Observability for Autonomy (P2 — audit support)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 4 | AF-0094 | P2 | PROPOSED | Trace full I/O enrichment | TBD |
+| 4 | AF-0094 | P2 | READY | Trace full I/O enrichment | TBD |
 | 5 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | TBD |
 
 ### Track 3: UX Polish (P3 — quality of life)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 6 | AF-0097 | P3 | PROPOSED | runs commands default workspace | TBD |
-| 7 | AF-0101 | P3 | PROPOSED | Autonomy level display | TBD |
+| 6 | AF-0097 | P3 | READY | runs commands default workspace | TBD |
+| 7 | AF-0101 | P3 | READY | Autonomy level display | TBD |
 
 ### Bundled bug fixes
 | Bug | Addressed by |
@@ -84,16 +85,16 @@ Key capabilities:
 
 ### Kai (PM)
 - [x] Create sprint description file
-- [ ] Update INDEX_SPRINTS to Active
+- [x] Update INDEX_SPRINTS to Active
 - [x] Update INDEX_BACKLOG with Sprint 11 scope table
-- [ ] Verify OPEN bugs triaged and linked
-- [ ] Mark all AFs as READY before proceeding
+- [x] Verify OPEN bugs triaged and linked
+- [x] Mark all AFs as READY before proceeding
 
 ### Jacob (implementer)
-- [ ] Read sprint description
-- [ ] Review AF items in scope
-- [ ] Confirm scope feasibility
-- [ ] Create feature branch: `feat/sprint11-guided-autonomy`
+- [x] Read sprint description
+- [x] Review AF items in scope
+- [x] Confirm scope feasibility
+- [x] Create feature branch: `feat/sprint11-guided-autonomy`
 
 ---
 

@@ -1,7 +1,7 @@
 # AF-0097 — runs commands should use default workspace
 # Version number: v0.1
 # Created: 2026-03-12
-# Status: PROPOSED
+# Status: READY
 # Priority: P2
 # Area: CLI/UX
 

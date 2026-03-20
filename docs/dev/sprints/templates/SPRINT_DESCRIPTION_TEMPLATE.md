@@ -10,7 +10,7 @@
 > - Truthful UX (trace-derived labels)
 > - Workspace isolation
 > - CI discipline (ruff + pytest -W error + coverage)
-> - 1 PR = 1 primary AF
+> - 1 PR = 1 sprint
 > - INDEX update rule (status ↔ filename integrity)
 
 > **Folder naming (required):** `/docs/dev/sprints/documentation/Sprint##_three_word_description/`

@@ -29,16 +29,16 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 11 Scope (planning)
+### Sprint 11 Scope (Active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0098 | P1 | PROPOSED | Plan preview command | CLI/Planner | TBD | [🔗](items/AF0098_PROPOSED_plan_preview_command.md) |
-| 2 | AF-0099 | P1 | PROPOSED | Plan approval workflow | CLI/Runtime | TBD | [🔗](items/AF0099_PROPOSED_plan_approval_workflow.md) |
-| 3 | AF-0100 | P1 | PROPOSED | Step confirmation hooks | Runtime/Policy | TBD | [🔗](items/AF0100_PROPOSED_step_confirmation_hooks.md) |
-| 4 | AF-0094 | P2 | PROPOSED | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_PROPOSED_trace_full_io_enrichment.md) |
+| 1 | AF-0098 | P1 | READY | Plan preview command | CLI/Planner | TBD | [🔗](items/AF0098_READY_plan_preview_command.md) |
+| 2 | AF-0099 | P1 | READY | Plan approval workflow | CLI/Runtime | TBD | [🔗](items/AF0099_READY_plan_approval_workflow.md) |
+| 3 | AF-0100 | P1 | READY | Step confirmation hooks | Runtime/Policy | TBD | [🔗](items/AF0100_READY_step_confirmation_hooks.md) |
+| 4 | AF-0094 | P2 | READY | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_READY_trace_full_io_enrichment.md) |
 | 5 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | Storage/CLI | TBD | — |
-| 6 | AF-0097 | P3 | PROPOSED | runs commands default workspace | CLI/UX | TBD | [🔗](items/AF0097_PROPOSED_runs_default_workspace.md) |
-| 7 | AF-0101 | P3 | PROPOSED | Autonomy level display | CLI/Trace | TBD | [🔗](items/AF0101_PROPOSED_autonomy_level_display.md) |
+| 6 | AF-0097 | P3 | READY | runs commands default workspace | CLI/UX | TBD | [🔗](items/AF0097_READY_runs_default_workspace.md) |
+| 7 | AF-0101 | P3 | READY | Autonomy level display | CLI/Trace | TBD | [🔗](items/AF0101_READY_autonomy_level_display.md) |
 
 ### Done after Sprint 10
 | ID | Status | Title | Notes | Filename |

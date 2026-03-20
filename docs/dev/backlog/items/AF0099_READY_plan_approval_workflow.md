@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0099
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** CLI / Core Runtime
 - **Owner:** TBD
