@@ -1,6 +1,6 @@
 # ag_foundation --- Project Plan
-# Version number: v0.7
-# Updated: 2026-03-11
+# Version number: v0.8
+# Updated: 2026-03-13
 
 ------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ depends on enforcement, resilience, and governance quality gates.
 
 ------------------------------------------------------------------------
 
-# Current State Summary (after Sprint 08)
+# Current State Summary (after Sprint 10)
 
 The system has:
 
@@ -27,9 +27,10 @@ The system has:
 -  CI discipline (ruff + pytest -W error + coverage)
 -  Skill framework v2 and working playbooks (`summarize_v0`, `research_v0`)
 -  Architecture and inventory documentation synchronized (schemas/contracts)
--  Policy hooks exist but enforcement depth is still maturing
--  Reliability debt remains (warning-clean tests, isolation hardening)
--  Autonomy remains playbook-driven; dynamic composition is future work
+-  Policy hooks with enforcement (AF-0087)
+-  Plugin architecture foundation (skills entry points, YAML playbooks)
+-  Gate A (Reliability) PASSED
+-  Gate B (Guided Autonomy) PASSED
 
 Canonical governance documents:
 
@@ -37,27 +38,27 @@ Canonical governance documents:
 - `/docs/dev/foundation/SPRINT_MANUAL.md`
 
 Key shift:
-The highest risk is no longer missing skills; it is scaling autonomy
-without sufficiently hardened reliability and policy enforcement.
+Ready to implement guided autonomy capabilities. Sprint 11 enables plan
+preview, approval workflows, and step-level confirmation.
 
 ------------------------------------------------------------------------
 
-# Strategic Focus (Post-Sprint 08)
+# Strategic Focus (Post-Sprint 10)
 
 We are transitioning from:
 
-> Skill architecture establishment
+> Gate B readiness (reliability + safety hardening)
 
 to:
 
-> Reliability + safety hardening for bounded autonomy
+> Guided autonomy implementation (plan preview + approval + confirmation)
 
 Key rule going forward:
 
-- Reliability and policy enforcement before deeper autonomy
+- Guided autonomy must prove reliable before goals-only mode
 - Keep truthful UX and workspace isolation non-negotiable
 - Preserve bounded autonomy: humans define WHAT, agents decide HOW
-- Expand planner autonomy only behind explicit quality gates
+- Expand planner autonomy incrementally with user control
 
 ------------------------------------------------------------------------
 
@@ -109,79 +110,77 @@ resilience, and deterministic review gates.
 
 ------------------------------------------------------------------------
 
-## Sprint 09 --- Reliability + Safety Hardening
+## Sprint 09 --- Reliability + Safety Hardening (Closed)
 
 Goal: Eliminate known reliability blockers before autonomy expansion.
 
-Scope focus:
-- Test isolation framework and warning-clean discipline
-- CLI consistency audit and reference parity follow-ups
-- Policy hook enforcement baseline in runtime paths
-- Failure-path coverage and deterministic cleanup behavior
-
-Planned high-priority items (from current backlog state):
-- AF-0046 (READY) test isolation framework
-- AF-0071 warning-clean test discipline
-- AF-0085 CLI consistency audit
-- AF-0086 test suite audit
-
-Exit criteria:
-- `pytest -W error` passes without known warning exceptions
-- Isolation regressions addressed (workspace/provider cleanup)
-- CLI behavior and docs parity gaps triaged and scheduled
-- Policy checks explicitly validated on touched behavior
+Exit status:
+ Test isolation framework implemented (AF-0046)
+ Warning-clean test discipline enforced (AF-0071)
+ CLI consistency audit completed (AF-0085)
+ Policy hook enforcement baseline established (AF-0087)
+ Failure-path coverage hardened
 
 ------------------------------------------------------------------------
 
-## Sprint 10 --- Gate B Readiness
+## Sprint 10 --- Gate B Readiness (Closed)
 
 Goal: Achieve Gate B (Guided Autonomy) readiness through evidence
 maturity, CLI completeness, documentation hygiene, and plugin
 architecture foundation.
 
-Note: Original Sprint 10 scope (AF-0072, AF-0057, AF-0083) was
-completed in Sprint 09 via aggressive mode. Sprint 10 now targets
-the remaining Gate B prerequisites.
-
-Scope focus (4 parallel tracks):
-- Artifact truthfulness, verification & test maturity (AF-0090, AF-0091, AF-0093)
-- CLI completeness (AF-0036 decision, AF-0012 surface parity + BUG-0002/0003/0011)
-- Documentation hygiene (AF-0081, AF-0082 rescoped, AF-0084)
-- Plugin architecture foundation (AF-0077 Phase 1, AF-0078 Phase 1)
-
-Planned high-priority items:
-- AF-0090 artifact truthfulness + trace enrichment (rescoped v0.3)
-- AF-0091 verifier failure-path maturity
-- AF-0093 skills test coverage hardening
-- AF-0036 global CLI flags decision (ADR)
-- AF-0012 CLI_REFERENCE surface parity
-- AF-0081 inventory sync discipline
-- AF-0082 report polish (rescoped after AF-0089)
-- AF-0084 index link emoji fix
-- AF-0077 skills plugin architecture (Phase 1)
-- AF-0078 playbooks plugin architecture (Phase 1)
-
-Dropped: AF-0092 (evidence CLI) — separate evidence concept rejected;
-existing `ag artifacts` commands suffice once metadata is truthful.
-
-Exit criteria:
-- Artifact metadata in trace.json is truthful end-to-end
-- Trace enriched with full step I/O data
-- Artifact files stored in runs/<id>/artifacts/ directory
-- Verifier outcomes consistent across happy and failure paths
-- Skills test coverage: fetch_web_content ≥80%, web_search ≥80%, synthesize_research ≥90%
-- CLI surface matches CLI_REFERENCE for implemented commands
-- Global CLI flags architecture decision documented as ADR
-- Schema/contract inventories current
-- Report includes polished metadata/sources/execution details
-- Index link emoji consistency fixed
-- Skills entry points mechanism works
-- YAML playbook loading and validation works
-- Gate B conditions assessable at sprint review
+Exit status:
+ Gate B achieved (2026-03-12)
+ Artifact metadata truthful end-to-end (AF-0090)
+ Verifier failure-path consistency (AF-0091)
+ Skills test coverage thresholds met (AF-0093)
+ CLI surface parity with CLI_REFERENCE (AF-0012)
+ Global CLI flags ADR accepted (ADR008)
+ Plugin architecture foundation (AF-0077, AF-0078)
+ Documentation hygiene enforced (AF-0081, AF-0084)
 
 ------------------------------------------------------------------------
 
-## Sprint 11 --- Controlled Autonomy Enablement
+## Sprint 11 --- Guided Autonomy Enablement (Current)
+
+Goal: Enable guided autonomy mode where users can preview, approve, and
+control agent execution plans before they run.
+
+This sprint transitions from Gate B readiness to operating IN guided
+autonomy mode:
+
+```
+Playbook → [Guided Agent] → Goals Only → Full Agent
+           ^^^^^^^^^^^^^^
+           THIS SPRINT
+```
+
+Scope focus (3 parallel tracks):
+
+**Track 1: Planner Suggestion Mode (P1 — core autonomy)**
+- AF-0098 Plan preview command (`ag plan --task "..."`)
+- AF-0099 Plan approval workflow (`ag run --plan <id>`)
+- AF-0100 Step confirmation hooks for high-impact actions
+
+**Track 2: Observability for Autonomy (P2 — audit support)**
+- AF-0094 Trace full I/O enrichment (LLM tokens, step data)
+- BUG-0015 Runs list count mismatch fix (truthful UX)
+
+**Track 3: UX Polish (P3 — quality of life)**
+- AF-0097 runs commands default workspace
+- AF-0101 Autonomy level display in CLI and trace
+
+Exit criteria:
+- `ag plan --task "..."` generates reviewable execution plan
+- `ag run --plan <id>` executes approved plan
+- Step confirmation policy configurable per workspace
+- Trace records full step I/O and LLM usage
+- Autonomy mode visible in CLI and trace
+- Truthful UX maintained (BUG-0015)
+
+------------------------------------------------------------------------
+
+## Sprint 12 --- Autonomy Boundaries (Future)
 
 Goal: Prepare the system for Guided Agent evolution behind explicit gates.
 
@@ -204,20 +203,21 @@ Exit criteria:
 
 # Autonomy Phase Gates (Required)
 
-| Gate | Purpose | Required Conditions |
-|------|---------|---------------------|
-| Gate A: Reliability | Move from foundation to autonomy-ready execution | warning-clean tests, isolation stability, failure-path coverage, deterministic cleanup |
-| Gate B: Guided Autonomy | Enable guided planning behavior | policy enforcement present, verifier/failure rigor, trace-derived labels for all new behavior |
-| Gate C: Goals-Only Preparation | Prepare for dynamic composition | mature policy engine, stronger evidence model, controlled playbook/skill extensibility |
+| Gate | Purpose | Required Conditions | Status |
+|------|---------|---------------------|--------|
+| Gate A: Reliability | Move from foundation to autonomy-ready execution | warning-clean tests, isolation stability, failure-path coverage, deterministic cleanup | ✅ Passed (Sprint 09) |
+| Gate B: Guided Autonomy | Enable guided planning behavior | policy enforcement present, verifier/failure rigor, trace-derived labels for all new behavior | ✅ Passed (Sprint 10) |
+| Gate C: Goals-Only Preparation | Prepare for dynamic composition | mature policy engine, stronger evidence model, controlled playbook/skill extensibility | Future |
 
 Gate rule:
 No sprint may claim autonomy progression while a P0 gate condition is unmet.
 
 ------------------------------------------------------------------------
 
-# Phase 3 --- Capability Expansion (Deferred Until Gate B)
+# Phase 3 --- Capability Expansion (Deferred Until Gate C)
 
-These areas remain deferred until autonomy readiness gates are satisfied.
+These areas remain deferred until guided autonomy proves reliable and
+Gate C prerequisites are met.
 
 ## Retrieval Interface Layer (RAG)
 - Retriever interface definition
@@ -253,12 +253,13 @@ RIGID                                                    AUTONOMOUS
 ```
 
 Current operational mode:
-Playbook-driven bounded autonomy.
+Transitioning from playbook-driven to guided autonomy (Sprint 11).
 
-Future progression:
-- Guided Agent: planner suggestions with human approval
-- Goals Only: constrained autonomous composition
-- Full Agent: long-term and policy-engine dependent
+Progression status:
+- ✅ Playbook: established and validated
+- 🔄 Guided Agent: Sprint 11 in progress
+- ⏳ Goals Only: future (requires Gate C)
+- ⏳ Full Agent: long-term (policy-engine dependent)
 
 Core principle:
 Humans define WHAT, agents decide HOW.
@@ -267,18 +268,23 @@ Humans define WHAT, agents decide HOW.
 
 # Current Strategic Position
 
-The runtime and skill foundations are now strong enough to shift focus to
-reliability and safety enforcement for autonomy scaling.
+**Gate A (Reliability) and Gate B (Guided Autonomy) are now PASSED.**
+
+Sprint 11 implements the guided autonomy capabilities:
+- Plan preview before execution (`ag plan`)
+- Plan approval workflow (`ag run --plan`)
+- Step-level confirmation for high-impact actions
+- Autonomy mode visibility in CLI and trace
 
 The next failure mode is:
 
-> Expanding planner autonomy without hardened policy and reliability gates.
+> Rushing to goals-only autonomy without sufficient guided autonomy experience.
 
-Near-term focus from Sprint 09 onward must be:
+Near-term focus for Sprint 11:
+- Plan generation and approval workflow
+- Confirmation policy enforcement
+- Full trace observability for autonomous decisions
+- Clear autonomy mode boundaries
 
-- Reliability and warning-clean test discipline
-- Policy enforcement in runtime behavior
-- Failure-path and verifier maturity
-- Explicit autonomy gates in sprint planning and review
-
-That is the path to trustworthy bounded agentic autonomy.
+The path forward is incremental autonomy expansion with explicit gates.
+Guided autonomy must prove reliable before advancing to goals-only mode.
