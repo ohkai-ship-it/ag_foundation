@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v0.9
+# Version number: v1.0
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -25,6 +25,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
 | AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
+| AF-0103 | P2 | PROPOSED | LLM Planner V2 (skills+playbooks) | Core Runtime/Planner | TBD | [🔗](items/AF0103_PROPOSED_llm_planner_v2_playbooks.md) |
+| AF-0104 | P2 | PROPOSED | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_PROPOSED_llm_planner_v3_feasibility.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
@@ -32,13 +34,14 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 11 Scope (Active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0098 | P1 | READY | Plan preview command | CLI/Planner | TBD | [🔗](items/AF0098_READY_plan_preview_command.md) |
-| 2 | AF-0099 | P1 | READY | Plan approval workflow | CLI/Runtime | TBD | [🔗](items/AF0099_READY_plan_approval_workflow.md) |
-| 3 | AF-0100 | P1 | READY | Step confirmation hooks | Runtime/Policy | TBD | [🔗](items/AF0100_READY_step_confirmation_hooks.md) |
-| 4 | AF-0094 | P2 | READY | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_READY_trace_full_io_enrichment.md) |
-| 5 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | Storage/CLI | TBD | — |
-| 6 | AF-0097 | P3 | READY | runs commands default workspace | CLI/UX | TBD | [🔗](items/AF0097_READY_runs_default_workspace.md) |
-| 7 | AF-0101 | P3 | READY | Autonomy level display | CLI/Trace | TBD | [🔗](items/AF0101_READY_autonomy_level_display.md) |
+| 1 | AF-0102 | P1 | IN_PROGRESS | LLM Planner V1 (skills) | Core Runtime/Planner | TBD | [🔗](items/AF0102_IN_PROGRESS_llm_planner_v1_skills.md) |
+| 2 | AF-0098 | P1 | READY | Plan preview command | CLI/Planner | TBD | [🔗](items/AF0098_READY_plan_preview_command.md) |
+| 3 | AF-0099 | P1 | READY | Plan approval workflow | CLI/Runtime | TBD | [🔗](items/AF0099_READY_plan_approval_workflow.md) |
+| 4 | AF-0100 | P1 | READY | Step confirmation hooks | Runtime/Policy | TBD | [🔗](items/AF0100_READY_step_confirmation_hooks.md) |
+| 5 | AF-0094 | P2 | READY | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_READY_trace_full_io_enrichment.md) |
+| 6 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | Storage/CLI | TBD | — |
+| 7 | AF-0097 | P3 | READY | runs commands default workspace | CLI/UX | TBD | [🔗](items/AF0097_READY_runs_default_workspace.md) |
+| 8 | AF-0101 | P3 | READY | Autonomy level display | CLI/Trace | TBD | [🔗](items/AF0101_READY_autonomy_level_display.md) |
 
 ### Done after Sprint 10
 | ID | Status | Title | Notes | Filename |

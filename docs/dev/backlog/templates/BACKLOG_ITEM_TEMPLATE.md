@@ -9,7 +9,7 @@
 > - Truthful UX (trace-derived labels)
 > - Workspace isolation
 > - CI discipline (ruff + pytest -W error + coverage)
-> - 1 PR = 1 primary AF
+> - 1 PR = 1 sprint
 > - INDEX update rule (status ↔ filename integrity)
 
 > **File naming (required):** `AF####_<STATUS>_<three_word_description>.md`

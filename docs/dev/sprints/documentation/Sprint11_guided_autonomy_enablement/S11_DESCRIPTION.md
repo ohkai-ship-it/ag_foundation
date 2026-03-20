@@ -1,5 +1,5 @@
 # SPRINT DESCRIPTION — Sprint11 — guided_autonomy_enablement
-# Version number: v0.1
+# Version number: v0.2
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -46,33 +46,35 @@ Playbook → [Guided Agent] → Goals Only → Full Agent
 ```
 
 Key capabilities:
-1. Plan preview before execution (`ag plan`)
-2. Plan approval workflow (`ag run --plan`)
-3. Step-level confirmation for high-impact actions
-4. Autonomy mode visibility in CLI and trace
+1. **LLM-based planner** that composes execution plans from available skills
+2. Plan preview before execution (`ag plan`)
+3. Plan approval workflow (`ag run --plan`)
+4. Step-level confirmation for high-impact actions
+5. Autonomy mode visibility in CLI and trace
 
 ---
 
 ## 3) Scope (what we intend to ship)
 
-### Track 1: Planner Suggestion Mode (P1 — core autonomy)
+### Track 1: LLM Planner + Plan Workflow (P1 — core autonomy)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 1 | AF-0098 | P1 | READY | Plan preview command | TBD |
-| 2 | AF-0099 | P1 | READY | Plan approval workflow | TBD |
-| 3 | AF-0100 | P1 | READY | Step confirmation hooks | TBD |
+| 1 | AF-0102 | P1 | PROPOSED | LLM Planner V1 (skills) | TBD |
+| 2 | AF-0098 | P1 | READY | Plan preview command | TBD |
+| 3 | AF-0099 | P1 | READY | Plan approval workflow | TBD |
+| 4 | AF-0100 | P1 | READY | Step confirmation hooks | TBD |
 
 ### Track 2: Observability for Autonomy (P2 — audit support)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 4 | AF-0094 | P2 | READY | Trace full I/O enrichment | TBD |
-| 5 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | TBD |
+| 5 | AF-0094 | P2 | READY | Trace full I/O enrichment | TBD |
+| 6 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | TBD |
 
 ### Track 3: UX Polish (P3 — quality of life)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 6 | AF-0097 | P3 | READY | runs commands default workspace | TBD |
-| 7 | AF-0101 | P3 | READY | Autonomy level display | TBD |
+| 7 | AF-0097 | P3 | READY | runs commands default workspace | TBD |
+| 8 | AF-0101 | P3 | READY | Autonomy level display | TBD |
 
 ### Bundled bug fixes
 | Bug | Addressed by |
@@ -101,17 +103,20 @@ Key capabilities:
 ## 5) Dependencies and ordering
 
 ```
-AF-0098 (plan preview) ────────> AF-0099 (plan approval)
-                                        │
-                         ───────────────┘
-                        │
-AF-0100 (confirmation) ─┴─> AF-0101 (autonomy display)
+AF-0102 (V1 Planner) ────> AF-0098 (plan preview) ────> AF-0099 (plan approval)
+        │                                                       │
+        │                                ───────────────────────┘
+        │                               │
+        └───────────────> AF-0100 (confirmation) ───> AF-0101 (autonomy display)
 
 Track 2 (AF-0094, BUG-0015) ─── parallel with Track 1
 Track 3 (AF-0097) ─── parallel with all
 ```
 
+- **AF-0102 is the core**: V1Planner uses LLM to compose skill sequences
+- AF-0098 depends on AF-0102 (plan preview needs a planner to generate plans)
 - AF-0099 depends on AF-0098 (can't approve plans without generating them)
+- AF-0100 uses planner output to identify policy-flagged steps
 - AF-0101 depends on AF-0098/0099/0100 concepts but not implementation
 - Tracks 2 and 3 are fully independent
 

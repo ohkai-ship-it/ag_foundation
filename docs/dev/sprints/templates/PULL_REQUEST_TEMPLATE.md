@@ -7,7 +7,7 @@
 > `/docs/dev/foundation/SPRINT_MANUAL.md` — Section 6: PR Creation Protocol
 >
 > Critical invariants:
-> - 1 PR = 1 primary AF (exactly)
+> - 1 PR = 1 sprint
 > - CI discipline (ruff + pytest -W error + coverage)
 > - Evidence required for behavior changes (RunTrace ID)
 > - INDEX update required if statuses change

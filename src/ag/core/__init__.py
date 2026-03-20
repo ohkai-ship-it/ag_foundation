@@ -51,6 +51,10 @@ from .runtime import (
     V0Verifier,
     create_runtime,
 )
+from .planner import (
+    PlannerError,
+    V1Planner,
+)
 from .schema_verifier import (
     DEFAULT_MAX_VALIDATION_ATTEMPTS,
     MAX_VALIDATION_ATTEMPTS_CEILING,
@@ -119,6 +123,9 @@ __all__ = [
     "V0Verifier",
     "V0Recorder",
     "create_runtime",
+    # planner (AF-0102)
+    "V1Planner",
+    "PlannerError",
     # schema_verifier (AF-0050)
     "SchemaValidator",
     "ValidationAttempt",

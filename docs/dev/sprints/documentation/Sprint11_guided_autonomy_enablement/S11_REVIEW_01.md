@@ -1,5 +1,5 @@
 # SPRINT REVIEW — S11_REVIEW_01 — guided_autonomy_enablement
-# Version number: v0.1
+# Version number: v0.2
 
 > **Purpose:** This file contains (A) the review tasks Jacob must execute and (B) the final review entry Jeff+Kai use to decide: **ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT**.
 > **Location:** `/docs/dev/sprints/documentation/Sprint11_guided_autonomy_enablement/S11_REVIEW_01.md`
@@ -19,6 +19,7 @@
 ### Inputs (links)
 - Sprint description: `S11_DESCRIPTION.md`
 - AF items in scope:
+  - `/docs/dev/backlog/items/AF0102_*_llm_planner_v1_skills.md`
   - `/docs/dev/backlog/items/AF0098_*_plan_preview_command.md`
   - `/docs/dev/backlog/items/AF0099_*_plan_approval_workflow.md`
   - `/docs/dev/backlog/items/AF0100_*_step_confirmation_hooks.md`
@@ -62,6 +63,20 @@ Evidence: `scope_links.md`
 - [ ] `pytest -W error`
 
 Evidence: `ruff_summary.txt`, `pytest_summary.txt`
+
+---
+
+### Pass 2.5 — V1 Planner (AF-0102)
+- [ ] V1Planner class exists in runtime module
+- [ ] Planner extracts skill catalog from registry
+- [ ] LLM prompt includes task + skill descriptions + I/O schemas
+- [ ] Planner returns structured ExecutionPlan (JSON validated)
+- [ ] Plan includes: steps[], estimated_tokens, confidence
+- [ ] Each step includes: skill name, params, rationale
+- [ ] Invalid skill names rejected
+- [ ] Unit tests with mocked LLM pass
+
+Evidence: `planner_v1_test.txt`
 
 ---
 
