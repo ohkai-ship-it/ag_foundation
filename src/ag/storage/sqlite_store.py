@@ -189,17 +189,29 @@ class SQLiteRunStore:
         return runs
 
     def count(self, workspace_id: str) -> int:
-        """Count total runs in a workspace."""
+        """Count total runs in a workspace (BUG-0015: count actual files).
+
+        Counts runs that have both a database entry AND an existing trace.json file.
+        This ensures the count matches what list() returns.
+        """
         ws = Workspace(workspace_id, self._root)
         if not ws.exists():
             return 0
 
-        conn = self._get_conn(workspace_id)
-        cursor = conn.execute(
-            "SELECT COUNT(*) FROM runs WHERE workspace_id = ?",
-            (workspace_id,),
-        )
-        return cursor.fetchone()[0]
+        # BUG-0015: Count actual trace files, not just DB entries
+        # This ensures count matches what list() returns
+        runs_dir = ws.path / "runs"
+        if not runs_dir.exists():
+            return 0
+
+        # Count directories that have a trace.json file
+        count = 0
+        for run_dir in runs_dir.iterdir():
+            if run_dir.is_dir():
+                trace_file = run_dir / "trace.json"
+                if trace_file.exists():
+                    count += 1
+        return count
 
     def delete(self, workspace_id: str, run_id: str) -> bool:
         """Delete a run."""

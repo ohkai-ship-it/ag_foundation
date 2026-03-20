@@ -226,6 +226,38 @@ class TestRunStore:
         assert run_store.count("ws-1") == 2
         assert run_store.count("ws-2") == 1
 
+    def test_count_matches_list_with_orphaned_entries(
+        self, run_store: SQLiteRunStore, temp_root: Path
+    ) -> None:
+        """BUG-0015: Count matches list when DB has orphaned entries (missing trace files).
+
+        When trace.json files are deleted but DB entries remain, count should
+        return the number of actual trace files, not the DB entry count.
+        """
+        ws = Workspace("ws-orphan", temp_root)
+        ws.ensure_exists()
+
+        # Save 3 runs
+        traces = []
+        for _ in range(3):
+            trace = _make_run_trace("ws-orphan")
+            run_store.save(trace)
+            traces.append(trace)
+
+        # Verify initial state: 3 in both count and list
+        assert run_store.count("ws-orphan") == 3
+        assert len(run_store.list("ws-orphan")) == 3
+
+        # Simulate orphaned entry: delete trace.json but leave DB entry
+        # (This simulates the scenario from BUG-0015)
+        orphan_path = ws.run_path(traces[0].run_id)
+        orphan_path.unlink()
+
+        # Count should now be 2 (matches actual files)
+        assert run_store.count("ws-orphan") == 2
+        # List should also be 2
+        assert len(run_store.list("ws-orphan")) == 2
+
     def test_unicode_preserved_in_trace(self, run_store: SQLiteRunStore, temp_root: Path) -> None:
         """BUG-0014: Unicode characters in trace are preserved through save/load."""
         # Create workspace first
