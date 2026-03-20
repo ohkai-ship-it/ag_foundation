@@ -28,6 +28,7 @@
 |-------|--------|---------|---------|
 | `RunTrace` | run_trace.py | Complete execution record — run_id, task, steps, artifacts, timing | 0.1 |
 | `Step` | run_trace.py | Single reasoning/action step in execution | 0.1 |
+| `StepConfirmation` | run_trace.py | Confirmation status for steps requiring approval (AF-0100) | 0.1 |
 | `Artifact` | run_trace.py | Output file metadata (id, path, type, hash) | 0.1 |
 | `Subtask` | run_trace.py | Delegated subtask reference | 0.1 |
 | `EvidenceRef` | run_trace.py | Reference to evidence supporting a step | 0.1 |

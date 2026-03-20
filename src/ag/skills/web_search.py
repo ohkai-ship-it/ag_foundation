@@ -459,6 +459,7 @@ class WebSearchSkill(Skill[WebSearchInput, WebSearchOutput]):
     input_schema: ClassVar[type[WebSearchInput]] = WebSearchInput
     output_schema: ClassVar[type[WebSearchOutput]] = WebSearchOutput
     requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = ["external_api", "network"]  # AF-0100
 
     def execute(self, input: WebSearchInput, ctx: SkillContext) -> WebSearchOutput:
         """Execute web search and return URLs.

@@ -48,7 +48,7 @@ See Also:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from importlib.metadata import entry_points
 from typing import Any
 
@@ -68,6 +68,7 @@ class SkillInfo:
 
     Attributes:
         source: Origin of the skill - "built-in", "entry-point", or "test-stub"
+        policy_flags: Policy flags for confirmation hooks (AF-0100)
     """
 
     name: str
@@ -77,6 +78,7 @@ class SkillInfo:
     output_schema: type[SkillOutput]
     requires_llm: bool = False
     source: str = "built-in"
+    policy_flags: list[str] = field(default_factory=list)  # AF-0100
 
 
 # Backward compatibility alias (AF0079)
@@ -114,6 +116,7 @@ class SkillRegistry:
             output_schema=skill.output_schema,
             requires_llm=skill.requires_llm,
             source=source,
+            policy_flags=getattr(skill, "policy_flags", []),  # AF-0100
         )
 
     def get_skill(self, name: str) -> SkillInfo | None:
@@ -188,7 +191,7 @@ class SkillRegistry:
         """Get skill info dict.
 
         Returns dict with: name, description, requires_llm, source,
-        input_schema, output_schema
+        input_schema, output_schema, policy_flags (AF-0100)
         """
         if name not in self._skills:
             return None
@@ -199,6 +202,7 @@ class SkillRegistry:
             "description": info.description,
             "requires_llm": info.requires_llm,
             "source": info.source,
+            "policy_flags": info.policy_flags,  # AF-0100
             "input_schema": info.input_schema.model_json_schema(),
             "output_schema": info.output_schema.model_json_schema(),
         }

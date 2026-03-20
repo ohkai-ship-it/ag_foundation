@@ -196,6 +196,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
     input_schema: ClassVar[type[SkillInput]] = EmitResultInput
     output_schema: ClassVar[type[SkillOutput]] = EmitResultOutput
     requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = ["file_write"]  # AF-0100
 
     def execute(
         self,

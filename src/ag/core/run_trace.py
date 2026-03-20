@@ -214,6 +214,26 @@ class EvidenceRef(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0100: Step confirmation for guided autonomy
+class StepConfirmation(BaseModel):
+    """Confirmation status for a step requiring user approval (AF-0100)."""
+
+    required: bool = Field(default=False, description="Was confirmation required?")
+    policy_flags: list[str] = Field(
+        default_factory=list, description="Policy flags triggering confirmation"
+    )
+    decision: str | None = Field(
+        default=None, description="Confirmation decision: approved, denied, skipped"
+    )
+    decided_at: datetime | None = Field(default=None, description="When decision was made")
+    decided_by: str | None = Field(
+        default=None,
+        description="Who/what made decision: user_interactive, user_yes_flag, policy_allow, etc.",
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 class Step(BaseModel):
     """A single step in the run trace."""
 
@@ -242,6 +262,10 @@ class Step(BaseModel):
     # AF-0062: Model used for this step (additive field)
     model_used: str | None = Field(
         default=None, description="LLM model used for this step (AF-0062)"
+    )
+    # AF-0100: Confirmation status for guided autonomy (additive field)
+    confirmation: StepConfirmation | None = Field(
+        default=None, description="Confirmation details if step required approval (AF-0100)"
     )
 
     model_config = {"extra": "forbid"}

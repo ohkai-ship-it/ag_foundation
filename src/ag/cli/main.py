@@ -312,6 +312,9 @@ def run(
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
+    yes: bool = typer.Option(
+        False, "--yes", "-y", help="Skip all confirmation prompts (AF-0100)."
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Reduce output."),
     verbose: bool = typer.Option(
@@ -325,6 +328,7 @@ def run(
         ag run "Draft a project plan"
         ag run --mode manual "Test the pipeline"
         ag run --plan plan_abc123  # Execute a saved plan (AF-0099)
+        ag run --plan plan_abc123 --yes  # Skip confirmations (AF-0100)
     """
     # Resolve global options with precedence: local > global > default
     cli_ctx = get_cli_ctx(ctx)

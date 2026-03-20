@@ -138,6 +138,7 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
     output_schema: ClassVar[type[SkillOutput]] = SummarizeDocsOutput
     # LLM is preferred but skill falls back to simple extraction without it
     requires_llm: ClassVar[bool] = True
+    policy_flags: ClassVar[list[str]] = ["llm_call"]  # AF-0100
 
     def execute(
         self,

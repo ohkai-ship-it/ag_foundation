@@ -213,6 +213,7 @@ class Skill(ABC, Generic[InputT, OutputT]):
             description = "Does something useful"
             input_schema = MyInput
             output_schema = MyOutput
+            policy_flags = ["external_api"]  # AF-0100: confirmation hooks
 
             def execute(self, input: MyInput, ctx: SkillContext) -> MyOutput:
                 # ... implementation ...
@@ -227,6 +228,10 @@ class Skill(ABC, Generic[InputT, OutputT]):
 
     # Optional: whether this skill requires LLM access
     requires_llm: ClassVar[bool] = False
+
+    # AF-0100: Policy flags for confirmation hooks
+    # Valid flags: external_api, file_write, file_read, llm_call, network, sensitive
+    policy_flags: ClassVar[list[str]] = []
 
     @abstractmethod
     def execute(self, input: InputT, ctx: SkillContext) -> OutputT:
