@@ -90,6 +90,9 @@ class ChatResponse:
     model: str
     provider: str
     tokens_used: int | None = None
+    # AF-0094: Separate input/output token tracking
+    input_tokens: int | None = None
+    output_tokens: int | None = None
     finish_reason: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     raw_response: dict[str, Any] | None = None
@@ -101,6 +104,8 @@ class ChatResponse:
             "model": self.model,
             "provider": self.provider,
             "tokens_used": self.tokens_used,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
             "finish_reason": self.finish_reason,
             "created_at": self.created_at.isoformat(),
         }

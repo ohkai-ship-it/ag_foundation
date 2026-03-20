@@ -9,7 +9,6 @@ Tests:
 
 from datetime import datetime, timezone
 
-import pytest
 from typer.testing import CliRunner
 
 from ag.cli.main import app

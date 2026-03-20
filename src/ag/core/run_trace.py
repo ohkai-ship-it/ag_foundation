@@ -267,6 +267,13 @@ class Step(BaseModel):
     confirmation: StepConfirmation | None = Field(
         default=None, description="Confirmation details if step required approval (AF-0100)"
     )
+    # AF-0094: Full step I/O for trace enrichment (additive fields)
+    input_data: dict[str, Any] | None = Field(
+        default=None, description="Full input data passed to the skill (AF-0094)"
+    )
+    output_data: dict[str, Any] | None = Field(
+        default=None, description="Full output data returned by the skill (AF-0094)"
+    )
 
     model_config = {"extra": "forbid"}
 

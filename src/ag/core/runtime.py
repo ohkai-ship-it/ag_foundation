@@ -5,6 +5,7 @@ Implements the core runtime loop: Normalizer -> Planner -> Orchestrator -> Recor
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -28,7 +29,7 @@ from ag.core.run_trace import (
 )
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.playbooks import DEFAULT_V0, get_playbook
-from ag.providers.base import LLMProvider, ProviderConfig
+from ag.providers.base import ChatMessage, ChatResponse, LLMProvider, ProviderConfig
 from ag.providers.registry import get_provider
 from ag.skills import SkillContext, SkillRegistry, get_default_registry
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore, Workspace
@@ -38,6 +39,65 @@ class RuntimeError(Exception):
     """Runtime execution error."""
 
     pass
+
+
+# ---------------------------------------------------------------------------
+# AF-0094: LLM Usage Tracking Wrapper
+# ---------------------------------------------------------------------------
+
+
+class TrackingLLMProvider:
+    """Wrapper around LLMProvider that tracks token usage (AF-0094).
+
+    This wraps an underlying provider and accumulates usage statistics
+    from each chat() call for later inclusion in the RunTrace.
+    """
+
+    def __init__(self, provider: LLMProvider) -> None:
+        self._provider = provider
+        self.call_count: int = 0
+        self.total_tokens: int = 0
+        self.input_tokens: int = 0
+        self.output_tokens: int = 0
+
+    @property
+    def name(self) -> str:
+        """Delegate to underlying provider."""
+        return self._provider.name
+
+    @property
+    def is_stub(self) -> bool:
+        """Delegate to underlying provider."""
+        return self._provider.is_stub
+
+    def chat(
+        self,
+        messages: list[ChatMessage] | list[dict[str, str]],
+        model: str | None = None,
+        **kwargs: Any,
+    ) -> ChatResponse:
+        """Forward chat request and track usage."""
+        response = self._provider.chat(messages, model, **kwargs)
+
+        # Track usage from response
+        self.call_count += 1
+        if response.tokens_used is not None:
+            self.total_tokens += response.tokens_used
+        if response.input_tokens is not None:
+            self.input_tokens += response.input_tokens
+        if response.output_tokens is not None:
+            self.output_tokens += response.output_tokens
+
+        return response
+
+    def get_usage(self) -> dict[str, int | None]:
+        """Get accumulated usage statistics."""
+        return {
+            "call_count": self.call_count,
+            "total_tokens": self.total_tokens if self.total_tokens > 0 else None,
+            "input_tokens": self.input_tokens if self.input_tokens > 0 else None,
+            "output_tokens": self.output_tokens if self.output_tokens > 0 else None,
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +324,9 @@ class V0Orchestrator:
 
         # AF-0065: Create LLM provider for non-manual modes
         # AF-0062: Track provider configuration for LLMExecution in trace
+        # AF-0094: Wrap provider with tracking for token usage
         llm_provider: LLMProvider | None = None
+        tracking_provider: TrackingLLMProvider | None = None
         provider_config: ProviderConfig | None = None
         if task.mode != ExecutionMode.MANUAL:
             try:
@@ -273,10 +335,17 @@ class V0Orchestrator:
                     provider="openai",
                     model="gpt-4o-mini",  # Default model
                 )
-                llm_provider = get_provider(provider_config)
+                raw_provider = get_provider(provider_config)
+                # AF-0094: Wrap with tracking
+                tracking_provider = TrackingLLMProvider(raw_provider)
+                llm_provider = tracking_provider  # Use tracker as the provider
             except Exception:
                 # Provider creation failed - will use fallback mode in skills
                 pass  # Skills handle missing provider gracefully
+
+        # AF-0094: Track pending artifacts to register after trace is built
+        # Each entry is (artifact_id, path, content_bytes, artifact_type)
+        pending_artifacts: list[tuple[str, str, bytes, str]] = []
 
         # Execute each step in sequence
         for i, playbook_step in enumerate(playbook.steps):
@@ -355,6 +424,28 @@ class V0Orchestrator:
                             )
                             artifacts.append(artifact)
 
+                        # AF-0094: Save step output as artifact for full trace enrichment
+                        if result:
+                            step_output_artifact_id = f"{run_id}-step-{i}-{skill_name}_output"
+                            step_output_path = f"{i}_{skill_name}_output.json"
+                            step_output_content = json.dumps(result, indent=2).encode("utf-8")
+                            step_artifact_ids.append(step_output_artifact_id)
+                            # Create Artifact metadata
+                            step_output_artifact = Artifact(
+                                artifact_id=step_output_artifact_id,
+                                path=step_output_path,
+                                artifact_type="application/json",
+                                size_bytes=len(step_output_content),
+                            )
+                            artifacts.append(step_output_artifact)
+                            # Queue for registration after trace is built
+                            pending_artifacts.append((
+                                step_output_artifact_id,
+                                step_output_path,
+                                step_output_content,
+                                "application/json",
+                            ))
+
                     # AF-0019: Capture subtasks from plan_subtasks skill
                     if skill_name == "plan_subtasks" and success:
                         raw_subtasks = result.get("subtasks", [])
@@ -390,6 +481,10 @@ class V0Orchestrator:
             else:
                 step_type = StepType.REASONING
 
+            # AF-0094: Prepare input_data and output_data for trace
+            step_input_data: dict[str, Any] | None = skill_params if skill_name else None
+            step_output_data: dict[str, Any] | None = result if skill_name and result else None
+
             # Record the step
             step = Step(
                 step_id=f"{run_id}-step-{i}",
@@ -404,6 +499,9 @@ class V0Orchestrator:
                 error=step_error,
                 subtasks=step_subtasks,  # AF-0019: Only set for plan step
                 artifacts=step_artifact_ids,  # AF-0057: Skill-produced artifacts
+                # AF-0094: Full step I/O for trace enrichment
+                input_data=step_input_data,
+                output_data=step_output_data,
             )
             steps.append(step)
 
@@ -428,15 +526,18 @@ class V0Orchestrator:
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
 
         # AF-0062: Build LLMExecution for trace (None for manual mode)
+        # AF-0094: Include tracked token usage
         llm_execution: LLMExecution | None = None
         if provider_config is not None:
+            # Get usage from tracking provider if available
+            usage = tracking_provider.get_usage() if tracking_provider else {}
             llm_execution = LLMExecution(
                 provider=provider_config.provider,
                 model=provider_config.model,
-                call_count=0,  # v0: Not tracking individual calls yet
-                total_tokens=None,  # v0: Token tracking not implemented
-                input_tokens=None,
-                output_tokens=None,
+                call_count=usage.get("call_count", 0),  # AF-0094: Tracked call count
+                total_tokens=usage.get("total_tokens"),  # AF-0094: Tracked tokens
+                input_tokens=usage.get("input_tokens"),
+                output_tokens=usage.get("output_tokens"),
             )
 
         # Build trace with verification result included
@@ -463,6 +564,16 @@ class V0Orchestrator:
 
         # Persist the trace
         self._recorder.record(trace)
+
+        # AF-0094: Register pending step output artifacts
+        for artifact_id, path, content, artifact_type in pending_artifacts:
+            self._recorder.register_artifact(
+                trace=trace,
+                artifact_id=artifact_id,
+                path=path,
+                content=content,
+                artifact_type=artifact_type,
+            )
 
         # AF-0009: Create result artifact with step summaries
         if steps:

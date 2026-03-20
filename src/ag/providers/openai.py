@@ -139,6 +139,9 @@ class OpenAIProvider:
                 model=response.model,
                 provider="openai",
                 tokens_used=usage.total_tokens if usage else None,
+                # AF-0094: Capture separate input/output token counts
+                input_tokens=usage.prompt_tokens if usage else None,
+                output_tokens=usage.completion_tokens if usage else None,
                 finish_reason=choice.finish_reason,
                 raw_response=None,  # Don't store raw response in trace
             )

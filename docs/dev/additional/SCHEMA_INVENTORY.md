@@ -27,14 +27,14 @@
 | Model | Module | Purpose | Version |
 |-------|--------|---------|---------|
 | `RunTrace` | run_trace.py | Complete execution record — run_id, task, steps, artifacts, timing | 0.1 |
-| `Step` | run_trace.py | Single reasoning/action step in execution | 0.1 |
+| `Step` | run_trace.py | Single reasoning/action step in execution (input_data, output_data added AF-0094) | 0.1 |
 | `StepConfirmation` | run_trace.py | Confirmation status for steps requiring approval (AF-0100) | 0.1 |
 | `Artifact` | run_trace.py | Output file metadata (id, path, type, hash) | 0.1 |
 | `Subtask` | run_trace.py | Delegated subtask reference | 0.1 |
 | `EvidenceRef` | run_trace.py | Reference to evidence supporting a step | 0.1 |
 | `PlaybookMetadata` | run_trace.py | Playbook info captured in trace (name, version) | 0.1 |
 | `Verifier` | run_trace.py | Verification result stored in trace (status, message) | 0.1 |
-| `LLMExecution` | run_trace.py | LLM provider/model info for the run (AF-0062) | 0.1 |
+| `LLMExecution` | run_trace.py | LLM provider/model info with token tracking (AF-0062, AF-0094) | 0.1 |
 
 #### Playbook
 
@@ -128,7 +128,7 @@
 | Model | Module | Purpose | Version |
 |-------|--------|---------|---------|
 | `ChatMessage` | base.py | Single message in chat conversation (role, content) | 0.1 |
-| `ChatResponse` | base.py | LLM response with content, usage, model info | 0.1 |
+| `ChatResponse` | base.py | LLM response with content, token counts, model info (AF-0094) | 0.1 |
 | `ProviderConfig` | base.py | Provider configuration (model, base_url, timeout) | 0.1 |
 
 ---
