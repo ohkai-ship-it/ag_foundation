@@ -1,5 +1,5 @@
 # INDEX_BUGS
-# Version number: v0.3
+# Version number: v0.4
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -28,6 +28,8 @@
 ## FIXED bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0016c | P1 | FIXED | Accumulated chaining loss (multi-emit data lost) | Core Runtime | [🔗](reports/BUG0016c_FIXED_accumulated_chaining_loss.md) |
+| BUG-0016b | P1 | FIXED | Alias placeholder override (emit_result) | Skills | [🔗](reports/BUG0016b_FIXED_alias_placeholder_override.md) |
 | BUG-0016 | P1 | FIXED | Plan steps not executed (--plan ignores planned_steps) | Core Runtime | [🔗](reports/BUG0016_FIXED_plan_steps_not_executed.md) |
 | BUG-0015 | P2 | FIXED | Runs list count mismatch (orphaned index) | Storage/CLI | [🔗](reports/BUG0015_FIXED_runs_list_count_mismatch.md) |
 | BUG-0012 | P2 | FIXED | Test workspace cleanup pollution | Testing/Storage | [🔗](reports/BUG0012_FIXED_test_workspace_cleanup.md) |

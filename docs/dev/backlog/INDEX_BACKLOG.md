@@ -26,12 +26,13 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 |---:|:--:|:--|---|---|---|---|
 | AF-0103 | P2 | PROPOSED | LLM Planner V2 (skills+playbooks) | Core Runtime/Planner | TBD | [🔗](items/AF0103_PROPOSED_llm_planner_v2_playbooks.md) |
 | AF-0104 | P2 | PROPOSED | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_PROPOSED_llm_planner_v3_feasibility.md) |
+| AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
 
 
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 12 Scope (Active)
+### Sprint 12 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0110 | P1 | DONE | Run layout and plan artifacts refactor | Runtime/Storage/CLI | Jacob | [✅](items/AF0110_DONE_run_layout_plan_artifacts.md) |
@@ -40,8 +41,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 4 | AF-0107 | P1 | DONE | load_documents MD inputs reliability | Skills/Storage | Jacob | [✅](items/AF0107_DONE_load_documents_md_inputs.md) |
 | 5 | AF-0105 | P2 | DONE | CLI defaults fix | CLI/QA | Jacob | [✅](items/AF0105_DONE_cli_defaults_fix.md) |
 | 6 | AF-0106 | P2 | DONE | V1Planner file pattern defaults | Planner/Skills | Jacob | [✅](items/AF0106_DONE_planner_file_pattern_defaults.md) |
-| 7 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
-| 8 | AF-0111 | P1 | DONE | --workspace flag must never create | CLI/Storage | Jacob | [✅](items/AF0111_DONE_workspace_flag_no_create.md) |
+| 7 | AF-0111 | P1 | DONE | --workspace flag must never create | CLI/Storage | Jacob | [✅](items/AF0111_DONE_workspace_flag_no_create.md) |
 
 ### Sprint 11 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
