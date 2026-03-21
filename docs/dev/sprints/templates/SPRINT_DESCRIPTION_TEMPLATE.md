@@ -76,11 +76,14 @@ One sentence, outcome-focused.
 
 ---
 
-## 5) PR plan (expected slices)
-> Rule: **1 PR = 1 primary AF item.**
+## 5) PR plan
+> Rule: **1 commit per AF, 1 PR per sprint.**
+> All AFs are committed separately to the sprint branch. The branch is merged to main via one PR at sprint close.
 
-- PR1: AF#### — <title> — branch `chore/...` / `feat/...` / `fix/...`
-- PR2: AF#### — <title> — branch `...`
+- Branch: `feat/sprint##-<description>`
+- Commit plan:
+  - AF#### — <title>
+  - AF#### — <title>
 
 ---
 

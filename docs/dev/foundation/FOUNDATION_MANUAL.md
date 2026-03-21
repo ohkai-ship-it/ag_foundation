@@ -40,10 +40,11 @@ These rules are absolute. No PR may violate them. No exception exists without ex
 - Planner/Orchestrator/Executor/Verifier/Recorder must remain independently replaceable.
 - Prefer small, composable modules.
 
-### 1.5 Small PR Discipline
+### 1.5 Commit & PR Discipline
+- 1 commit per AF (each AF is committed separately to the sprint branch).
+- 1 PR per sprint (the sprint branch is merged to main via a single PR at sprint close).
 - Every PR must be reviewable in ~15–30 minutes.
-- If larger, split into multiple PRs.
-- 1 PR = 1 primary AF item (for traceability — the PR references one primary work item, but may include multiple items from the same sprint).
+- If larger, split plan required.
 
 ### 1.6 CI Discipline
 - Ruff linting must pass.
@@ -183,7 +184,7 @@ Required format:
 
 ### 4.3 PR Requirements (Minimum)
 Every PR must include:
-1. **Primary AF reference:** exactly one `AF-####`
+1. **Sprint reference:** sprint ID + all AF items completed in the sprint
 2. **Summary:** clear description + non-goals
 3. **Files changed:** list of important paths touched
 4. **Evidence:**
@@ -195,7 +196,7 @@ Every PR must include:
 ### 4.4 PR Size Rule
 - Must be reviewable in ~15–30 minutes
 - If larger: split plan required
-- No "multi-AF" PRs (exception: explicitly scoped chore PRs)
+- Each AF is a separate commit on the sprint branch for traceability
 
 ### 4.5 Evidence Requirements by PR Type
 | PR Type | Tests Required | RunTrace Required |

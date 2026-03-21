@@ -139,17 +139,49 @@ class TestLoadDocumentsSkill:
         assert result.error == "workspace_not_found"
 
     def test_fails_with_no_matching_files(self, tmp_path: Path) -> None:
-        """Fails gracefully when no files match pattern."""
-        (tmp_path / "doc.txt").write_text("text file", encoding="utf-8")
+        """Fails gracefully when no files match pattern or fallback."""
+        # Create a binary-like file that won't match any text patterns
+        (tmp_path / "data.bin").write_bytes(b"\x00\x01\x02")
 
         skill = LoadDocumentsSkill()
         ctx = SkillContext(workspace_path=tmp_path)
-        input_data = LoadDocumentsInput(patterns=["**/*.md"])
+        # Use the fallback patterns themselves so no retry is triggered
+        input_data = LoadDocumentsInput(patterns=["**/*.md", "**/*.txt"])
 
         result = skill.execute(input_data, ctx)
 
         assert result.success is False
         assert result.error == "no_files_found"
+
+    def test_fallback_patterns_when_primary_finds_nothing(self, tmp_path: Path) -> None:
+        """Falls back to default patterns when user patterns find nothing (AF-0107)."""
+        # Only .md files exist, but planner asks for *.pdf
+        (tmp_path / "readme.md").write_text("# Hello", encoding="utf-8")
+
+        skill = LoadDocumentsSkill()
+        ctx = SkillContext(workspace_path=tmp_path)
+        input_data = LoadDocumentsInput(patterns=["**/*.pdf"])
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.file_count == 1
+        assert result.documents[0].path == "readme.md"
+
+    def test_no_fallback_when_primary_patterns_match(self, tmp_path: Path) -> None:
+        """Fallback is not used when primary patterns find files."""
+        (tmp_path / "readme.md").write_text("# Hello", encoding="utf-8")
+        (tmp_path / "notes.txt").write_text("notes", encoding="utf-8")
+
+        skill = LoadDocumentsSkill()
+        ctx = SkillContext(workspace_path=tmp_path)
+        input_data = LoadDocumentsInput(patterns=["**/*.txt"])
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.file_count == 1
+        assert result.documents[0].path == "notes.txt"
 
     def test_document_schema(self, tmp_path: Path) -> None:
         """Documents have correct schema."""

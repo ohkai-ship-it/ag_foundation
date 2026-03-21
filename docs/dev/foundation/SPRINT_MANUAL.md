@@ -36,12 +36,11 @@ Read these documents completely before starting:
 
 > **Branch lifecycle (CRITICAL):**
 > - Create ONE branch per sprint at sprint start
-> - Commit all sprint work (multiple AFs) to this branch
+> - Each AF gets its own commit on the branch (1 commit = 1 AF)
 > - Merge to main via ONE PR at sprint close only
 >
 > PRs are NOT created continuously during the sprint.
-> The "1 PR = 1 primary AF" rule refers to the PR description referencing
-> a primary work item for traceability — not creating separate PRs per AF.
+> The PR lists ALL AFs completed in the sprint for traceability.
 
 ### 1.1 Create Branch
 Execute:
@@ -268,8 +267,8 @@ This is the intended workflow:
 
 ### 6.1 PR Template Sections (All Required)
 
-**Primary work item:**
-- Exactly one AF#### reference (designate the primary focus for traceability)
+**Sprint work items:**
+- List ALL AF items completed in this sprint
 
 **Summary:**
 - What changed (2–5 bullets)
@@ -294,7 +293,8 @@ This is the intended workflow:
 - [ ] If larger, split plan documented
 
 ### 6.3 Checklist Before Submitting
-- [ ] Primary AF reference included
+- [ ] All sprint AF items listed in PR
+- [ ] Each AF has its own commit on the branch
 - [ ] All CI commands pass locally
 - [ ] Evidence captured and documented
 - [ ] AF completion section filled

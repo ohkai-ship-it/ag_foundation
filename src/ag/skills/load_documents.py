@@ -133,6 +133,9 @@ class LoadDocumentsSkill(Skill[LoadDocumentsInput, LoadDocumentsOutput]):
     requires_llm: ClassVar[bool] = False
     policy_flags: ClassVar[list[str]] = ["file_read"]  # AF-0100
 
+    # Default fallback patterns used when user-specified patterns find nothing
+    _FALLBACK_PATTERNS: ClassVar[list[str]] = ["**/*.md", "**/*.txt"]
+
     def execute(
         self,
         input: LoadDocumentsInput,
@@ -170,6 +173,12 @@ class LoadDocumentsSkill(Skill[LoadDocumentsInput, LoadDocumentsOutput]):
 
         try:
             documents = self._load_files(inputs_path, input.patterns, input.max_files)
+
+            # AF-0107: fallback when user/planner patterns find nothing
+            if not documents and input.patterns != self._FALLBACK_PATTERNS:
+                documents = self._load_files(
+                    inputs_path, self._FALLBACK_PATTERNS, input.max_files
+                )
 
             if not documents:
                 return LoadDocumentsOutput(

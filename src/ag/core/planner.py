@@ -218,6 +218,7 @@ Rules:
 3. The runtime automatically chains step outputs (no placeholder syntax needed)
 4. Minimize steps while ensuring task completion
 5. Provide clear rationale for each step
+6. For load_documents: prefer the default patterns (["**/*.md"]) unless the task explicitly requires other file types. Do not invent patterns like *.docx or *.pdf unless the user asks for those formats
 
 Respond with valid JSON matching this schema:
 {

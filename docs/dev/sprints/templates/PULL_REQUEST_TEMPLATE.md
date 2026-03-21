@@ -12,9 +12,9 @@
 > - Evidence required for behavior changes (RunTrace ID)
 > - INDEX update required if statuses change
 
-## Primary work item
-- **Backlog (primary):** AF####
-- **Related (secondary):** AF#### (optional)
+## Sprint work items
+- **Sprint:** Sprint##
+- **Backlog items:** AF####, AF####, ...
 - **Bugs:** BUG#### (optional)
 - **ADRs:** ADR### (optional)
 
@@ -66,7 +66,7 @@ List important files/folders touched (especially under `/docs/dev`).
 - Notes:
 
 ## Checklist (must be true to request review)
-- [ ] This PR references exactly one primary AF item
+- [ ] This PR lists all AF items completed in the sprint
 - [ ] PR is reviewable in ~15–30 minutes (or split plan exists)
 - [ ] Truthful UX preserved (labels trace-derived)
 - [ ] Tests run and results included
