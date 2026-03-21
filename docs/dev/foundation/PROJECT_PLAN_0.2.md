@@ -1,6 +1,6 @@
 # ag_foundation --- Project Plan
-# Version number: v0.8
-# Updated: 2026-03-13
+# Version number: v0.9
+# Updated: 2026-03-20
 
 ------------------------------------------------------------------------
 
@@ -157,7 +157,8 @@ Playbook → [Guided Agent] → Goals Only → Full Agent
 
 Scope focus (3 parallel tracks):
 
-**Track 1: Planner Suggestion Mode (P1 — core autonomy)**
+**Track 1: LLM Planner + Plan Workflow (P1 — core autonomy)**
+- AF-0102 V1Planner — LLM composes plans from skill catalog
 - AF-0098 Plan preview command (`ag plan --task "..."`)
 - AF-0099 Plan approval workflow (`ag run --plan <id>`)
 - AF-0100 Step confirmation hooks for high-impact actions
@@ -171,6 +172,7 @@ Scope focus (3 parallel tracks):
 - AF-0101 Autonomy level display in CLI and trace
 
 Exit criteria:
+- V1Planner composes skill sequences from LLM analysis
 - `ag plan --task "..."` generates reviewable execution plan
 - `ag run --plan <id>` executes approved plan
 - Step confirmation policy configurable per workspace

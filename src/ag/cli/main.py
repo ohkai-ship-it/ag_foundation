@@ -16,7 +16,7 @@ import os  # noqa: E402
 import sys  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
 from pathlib import Path  # noqa: E402
-from typing import Annotated, Optional  # noqa: E402
+from typing import TYPE_CHECKING, Annotated, Optional  # noqa: E402
 
 import typer  # noqa: E402
 from rich.console import Console  # noqa: E402
@@ -24,10 +24,21 @@ from rich.table import Table  # noqa: E402
 
 from ag import __version__  # noqa: E402
 from ag.config import get_workspace_dir  # noqa: E402
-from ag.core import FinalStatus, RunTrace, VerifierStatus, create_runtime  # noqa: E402
+from ag.core import (  # noqa: E402
+    AutonomyMetadata,
+    AutonomyMode,
+    FinalStatus,
+    RunTrace,
+    VerifierStatus,
+    create_runtime,
+)
 from ag.core.task_spec import ExecutionMode  # noqa: E402
 from ag.skills import SkillContext, get_default_registry  # noqa: E402
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore  # noqa: E402
+
+if TYPE_CHECKING:
+    from ag.core import ExecutionPlan
+    from ag.storage import FilePlanStore
 
 # Console for rich output
 console = Console()
@@ -47,6 +58,7 @@ artifacts_app = typer.Typer(help="Artifact registry operations.")
 skills_app = typer.Typer(help="Skills and plugins.")
 playbooks_app = typer.Typer(help="Orchestration playbooks.")
 config_app = typer.Typer(help="Global configuration.")
+plan_app = typer.Typer(help="Generate and manage execution plans.")
 
 app.add_typer(runs_app, name="runs")
 app.add_typer(ws_app, name="ws")
@@ -54,6 +66,7 @@ app.add_typer(artifacts_app, name="artifacts")
 app.add_typer(skills_app, name="skills")
 app.add_typer(playbooks_app, name="playbooks")
 app.add_typer(config_app, name="config")
+app.add_typer(plan_app, name="plan")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -116,6 +129,46 @@ def _get_run_store(workspaces_root: Path | None = None) -> SQLiteRunStore:
 def _get_artifact_store(workspaces_root: Path | None = None) -> SQLiteArtifactStore:
     """Get an artifact store instance."""
     return SQLiteArtifactStore(workspaces_root or get_workspace_dir())
+
+
+def _resolve_workspace_with_default(resolved_workspace: str | None, command_name: str) -> str:
+    """Resolve workspace using default if not provided (AF-0097).
+
+    Args:
+        resolved_workspace: Workspace from --workspace flag or CLI context
+        command_name: Name of the command (for error message)
+
+    Returns:
+        Resolved workspace ID
+
+    Raises:
+        typer.Exit: If no workspace could be resolved
+    """
+    if resolved_workspace:
+        return resolved_workspace
+
+    # Try persisted default workspace
+    from ag.config import get_persisted_default_workspace
+
+    persisted_default = get_persisted_default_workspace()
+    if persisted_default:
+        return persisted_default
+
+    # Try AG_WORKSPACE env var
+    import os
+
+    env_workspace = os.environ.get("AG_WORKSPACE")
+    if env_workspace:
+        return env_workspace
+
+    # No workspace found - error with guidance
+    err_console.print(f"[bold red]Error:[/bold red] No workspace specified for {command_name}")
+    err_console.print()
+    err_console.print("Specify a workspace using one of:")
+    err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
+    err_console.print("  2. [cyan]ag ws use <name>[/cyan] to set a default")
+    err_console.print("  3. [cyan]AG_WORKSPACE[/cyan] environment variable")
+    raise typer.Exit(code=1)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -285,7 +338,9 @@ def main(
 @app.command()
 def run(
     ctx: typer.Context,
-    prompt: str = typer.Argument(..., help="The prompt or task to execute."),
+    prompt: Optional[str] = typer.Argument(
+        None, help="The prompt or task to execute (required unless --plan specified)."
+    ),
     workspace: Optional[str] = typer.Option(
         None, "--workspace", "-w", help="Workspace ID (uses AG_WORKSPACE env if not specified)."
     ),
@@ -298,9 +353,13 @@ def run(
     skill: Optional[str] = typer.Option(
         None, "--skill", "-s", help="Run a specific skill directly (bypasses playbook)."
     ),
+    plan_id: Optional[str] = typer.Option(
+        None, "--plan", help="Execute a previously generated plan by ID (AF-0099)."
+    ),
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip all confirmation prompts (AF-0100)."),
     json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Reduce output."),
     verbose: bool = typer.Option(
@@ -313,12 +372,34 @@ def run(
     Example:
         ag run "Draft a project plan"
         ag run --mode manual "Test the pipeline"
+        ag run --plan plan_abc123  # Execute a saved plan (AF-0099)
+        ag run --plan plan_abc123 --yes  # Skip confirmations (AF-0100)
     """
     # Resolve global options with precedence: local > global > default
     cli_ctx = get_cli_ctx(ctx)
     resolved_json = json_output or cli_ctx.json_output
     resolved_quiet = quiet or cli_ctx.quiet
     resolved_verbose = verbose or cli_ctx.verbose
+
+    # AF-0099: Validate mutual exclusivity of --plan with other options
+    if plan_id:
+        if prompt:
+            err_console.print(
+                "[bold red]Error:[/bold red] --plan cannot be combined with a prompt argument"
+            )
+            raise typer.Exit(code=1)
+        if playbook:
+            err_console.print(
+                "[bold red]Error:[/bold red] --plan cannot be combined with --playbook"
+            )
+            raise typer.Exit(code=1)
+        if skill:
+            err_console.print("[bold red]Error:[/bold red] --plan cannot be combined with --skill")
+            raise typer.Exit(code=1)
+    elif not prompt:
+        err_console.print("[bold red]Error:[/bold red] prompt argument is required")
+        err_console.print("Usage: ag run <prompt> or ag run --plan <plan_id>")
+        raise typer.Exit(code=1)
 
     # AF-0027: Workspace selection policy with new precedence
     # 1. --workspace flag (highest priority)
@@ -636,6 +717,137 @@ def run(
             err_console.print(f"[bold red]Error executing skill:[/bold red] {e}")
             raise typer.Exit(code=1)
 
+    # AF-0099: Plan execution mode
+    if plan_id:
+        from datetime import UTC, datetime
+
+        from ag.core.execution_plan import PlanStatus
+
+        plan_store = _get_plan_store()
+
+        # Load plan - need workspace to find it
+        loaded_plan = plan_store.get(resolved_workspace, plan_id)
+        if loaded_plan is None:
+            err_console.print(f"[bold red]Error:[/bold red] Plan '{plan_id}' not found")
+            raise typer.Exit(code=1)
+
+        # Validate plan state
+        if loaded_plan.is_expired():
+            err_console.print(f"[bold red]Error:[/bold red] Plan '{plan_id}' has expired")
+            err_console.print(
+                f"  Expiration: {loaded_plan.expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            )
+            err_console.print("Generate a new plan with: ag plan generate --task '...'")
+            raise typer.Exit(code=1)
+
+        if loaded_plan.status != PlanStatus.PENDING:
+            err_console.print(
+                f"[bold red]Error:[/bold red] Plan '{plan_id}' is not in pending status"
+            )
+            err_console.print(f"  Current status: {loaded_plan.status.value}")
+            raise typer.Exit(code=1)
+
+        # Validate workspace matches
+        if loaded_plan.workspace_id != resolved_workspace:
+            err_console.print("[bold red]Error:[/bold red] Plan workspace mismatch")
+            err_console.print(f"  Plan workspace: {loaded_plan.workspace_id}")
+            err_console.print(f"  Current workspace: {resolved_workspace}")
+            raise typer.Exit(code=1)
+
+        if not resolved_quiet and not resolved_json:
+            console.print(f"[dim]Executing plan:[/dim] {plan_id}")
+            console.print(f"[dim]Task:[/dim] {loaded_plan.task_prompt[:80]}...")
+            console.print(f"[dim]Steps:[/dim] {len(loaded_plan.planned_steps)}")
+
+        # Update plan status to EXECUTING (not in spec, but useful)
+        # We'll update to EXECUTED or back to PENDING on failure
+
+        run_store = _get_run_store()
+        artifact_store = _get_artifact_store()
+
+        try:
+            runtime = create_runtime(
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            # BUG-0016 FIX: Pass the plan's playbook object directly
+            # This ensures the planned_steps are executed, not the default playbook
+            trace = runtime.execute(
+                prompt=loaded_plan.task_prompt,
+                workspace=resolved_workspace,
+                mode=mode,
+                workspace_source=workspace_source,
+                playbook_object=loaded_plan.playbook,  # Pass actual Playbook, not name
+            )
+
+            # AF-0099: Link plan and trace
+            # Update trace with plan_id (need to re-save)
+            trace.plan_id = plan_id
+            # AF-0101: Set autonomy metadata (guided mode for plan execution)
+            trace.autonomy = AutonomyMetadata(
+                mode=AutonomyMode.GUIDED,
+                plan_id=plan_id,
+                confirmation_enabled=not yes,
+                confirmation_flags=[],  # Could be populated from plan
+            )
+            run_store.save(trace)
+
+            # Update plan with execution results
+            loaded_plan.status = PlanStatus.EXECUTED
+            loaded_plan.executed_at = datetime.now(UTC)
+            loaded_plan.run_id = trace.run_id
+            plan_store.save(loaded_plan)
+
+            # Output results
+            if resolved_json:
+                output = json.loads(trace.to_json())
+                output["plan_id"] = plan_id
+                output["plan_executed"] = True
+                print(json.dumps(output, indent=2))
+            else:
+                labels = extract_labels(trace)
+
+                if not resolved_quiet:
+                    console.print()
+                    console.print("[bold]Plan executed[/bold]")
+                    console.print(f"  Plan ID: {plan_id}")
+                    console.print(f"  Run ID: {labels['run_id']}")
+                    console.print(f"  Workspace: {labels['workspace_id']}")
+                    console.print("  Mode: [yellow]guided[/yellow] (pre-approved plan)")
+                    console.print(f"  Status: {format_status(trace.final)}")
+                    console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                    console.print(f"  Duration: {labels['duration']}")
+                    console.print(f"  Playbook: {labels['playbook']}")
+
+                    if resolved_verbose:
+                        console.print()
+                        console.print(f"  Steps: {len(trace.steps)}")
+                        for step in trace.steps:
+                            status_mark = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
+                            skill_name = step.skill_name or "reasoning"
+                            console.print(f"    {status_mark} {step.step_number}: {skill_name}")
+
+                    if trace.error:
+                        console.print()
+                        console.print(f"[red]Error: {trace.error}[/red]")
+
+            # Exit with error code if run failed
+            if trace.final != FinalStatus.SUCCESS:
+                raise typer.Exit(code=1)
+
+        except typer.Exit:
+            raise
+        except Exception as e:
+            # On failure, preserve plan for retry (per spec)
+            err_console.print(f"[bold red]Error executing plan:[/bold red] {e}")
+            raise typer.Exit(code=1)
+        finally:
+            run_store.close()
+            artifact_store.close()
+
+        return
+
     # Create and execute runtime
     run_store = _get_run_store()
     artifact_store = _get_artifact_store()
@@ -654,6 +866,16 @@ def run(
             workspace_source=workspace_source,
         )
 
+        # AF-0101: Set autonomy metadata (playbook mode for direct execution)
+        trace.autonomy = AutonomyMetadata(
+            mode=AutonomyMode.PLAYBOOK,
+            plan_id=None,
+            confirmation_enabled=not yes,
+            confirmation_flags=[],
+        )
+        # Re-save trace with autonomy metadata
+        run_store.save(trace)
+
         # Output results
         if resolved_json:
             console.print(trace.to_json())
@@ -666,6 +888,11 @@ def run(
                 console.print(f"  Run ID: {labels['run_id']}")
                 console.print(f"  Workspace: {labels['workspace_id']}")
                 console.print(f"  Mode: {labels['mode']}")
+                # AF-0101: Show autonomy mode
+                if trace.autonomy:
+                    is_playbook = trace.autonomy.mode == AutonomyMode.PLAYBOOK
+                    a_color = "[blue]" if is_playbook else "[yellow]"
+                    console.print(f"  Autonomy: {a_color}{trace.autonomy.mode.value}[/]")
                 console.print(f"  Status: {format_status(trace.final)}")
                 console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
                 console.print(f"  Duration: {labels['duration']}")
@@ -718,9 +945,8 @@ def runs_list(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs list")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs list")
 
     run_store = _get_run_store()
 
@@ -809,9 +1035,8 @@ def runs_show(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs show")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs show")
 
     run_store = _get_run_store()
 
@@ -847,6 +1072,11 @@ def runs_show(
                 console.print(f"  LLM: {trace.llm.provider}/{trace.llm.model}")
             else:
                 console.print("  LLM: manual (no LLM)")
+            # AF-0101: Show autonomy mode
+            if trace.autonomy:
+                mode_str = trace.autonomy.mode.value
+                mode_color = "blue" if trace.autonomy.mode.value == "playbook" else "yellow"
+                console.print(f"  Autonomy: [{mode_color}]{mode_str}[/{mode_color}]")
             console.print(f"  Started: {trace.started_at.isoformat()}")
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()
@@ -905,9 +1135,8 @@ def runs_stats(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for runs stats")
-        raise typer.Exit(code=1)
+    # AF-0097: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs stats")
 
     run_store = _get_run_store()
 
@@ -989,6 +1218,357 @@ def runs_tail(
 ) -> None:
     """Stream live output from a running agent session (stub)."""
     _not_implemented("ag runs tail", json_mode=json_output)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ag plan (AF-0098)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def _get_plan_store() -> "FilePlanStore":
+    """Get plan store instance."""
+    from ag.storage import FilePlanStore
+
+    return FilePlanStore(get_workspace_dir())
+
+
+def _get_skill_policy_flags() -> dict[str, list[str]]:
+    """Get policy flags for all skills from registry metadata."""
+    from ag.core import PolicyFlag
+
+    registry = get_default_registry()
+    flags: dict[str, list[str]] = {}
+
+    for skill_name in registry.list():
+        info = registry.get_info(skill_name)
+        if not info:
+            continue
+
+        skill_flags: list[str] = []
+
+        # Infer policy flags from skill metadata
+        if info.get("requires_llm"):
+            skill_flags.append(PolicyFlag.LLM_CALL.value)
+
+        # Check description for hints about external API usage
+        desc = info.get("description", "").lower()
+        if any(kw in desc for kw in ["web", "search", "http", "api", "fetch"]):
+            skill_flags.append(PolicyFlag.EXTERNAL_API.value)
+        if any(kw in desc for kw in ["write", "save", "create file", "emit"]):
+            skill_flags.append(PolicyFlag.FILE_WRITE.value)
+        if any(kw in desc for kw in ["read", "load"]):
+            skill_flags.append(PolicyFlag.FILE_READ.value)
+
+        if skill_flags:
+            flags[skill_name] = skill_flags
+
+    return flags
+
+
+@plan_app.command("generate")
+def plan_generate(
+    ctx: typer.Context,
+    task: str = typer.Option(..., "--task", "-t", help="Task description to plan."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    ttl: int = typer.Option(3600, "--ttl", help="Plan time-to-live in seconds (default: 3600)."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Generate an execution plan without executing it.
+
+    Creates a plan showing proposed skills, estimated tokens, and policy flags.
+    The plan is saved and can be executed later with `ag run --plan <plan_id>`.
+
+    Example:
+        ag plan generate --task "Research the history of Berlin" --workspace demo
+    """
+    import uuid
+
+    from ag.core import (
+        ExecutionMode,
+        PlannerError,
+        TaskSpec,
+        V1Planner,
+        create_execution_plan,
+    )
+    from ag.providers import ProviderConfig, get_provider
+
+    # Resolve options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required")
+        raise typer.Exit(code=1)
+
+    # Create task spec
+    task_spec = TaskSpec(
+        prompt=task,
+        workspace_id=resolved_workspace,
+        mode=ExecutionMode.SUPERVISED,
+    )
+
+    # Generate plan using V1Planner
+    try:
+        provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
+        provider = get_provider(provider_config)
+        registry = get_default_registry()
+        planner = V1Planner(provider, registry)
+
+        if not resolved_json:
+            console.print(f"[dim]Generating plan for workspace '{resolved_workspace}'...[/dim]")
+
+        playbook = planner.plan(task_spec)
+        confidence = playbook.metadata.get("confidence", 0.0)
+        warnings = playbook.metadata.get("warnings", [])
+
+    except PlannerError as e:
+        if resolved_json:
+            console.print(json.dumps({"error": str(e)}, indent=2))
+        else:
+            err_console.print(f"[bold red]Planning failed:[/bold red] {e}")
+        raise typer.Exit(code=1)
+    except Exception as e:
+        if resolved_json:
+            console.print(json.dumps({"error": f"Unexpected error: {e}"}, indent=2))
+        else:
+            err_console.print(f"[bold red]Error:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+    # Create execution plan
+    plan_id = f"plan_{uuid.uuid4().hex[:12]}"
+    skill_flags = _get_skill_policy_flags()
+
+    plan = create_execution_plan(
+        plan_id=plan_id,
+        workspace_id=resolved_workspace,
+        task_prompt=task,
+        playbook=playbook,
+        confidence=confidence,
+        warnings=warnings,
+        ttl_seconds=ttl,
+        skill_policy_flags=skill_flags,
+    )
+
+    # Save plan
+    plan_store = _get_plan_store()
+    plan_store.save(plan)
+
+    # Output
+    if resolved_json:
+        # Use print for clean JSON output (no rich markup)
+        print(json.dumps(json.loads(plan.to_json()), indent=2))
+    else:
+        _display_plan(plan)
+        console.print()
+        console.print(f"[green]Plan saved:[/green] {plan_id}")
+        console.print(
+            f"[dim]To execute: ag run --plan {plan_id} --workspace {resolved_workspace}[/dim]"
+        )
+        console.print(
+            f"[dim]To discard: ag plan delete {plan_id} --workspace {resolved_workspace}[/dim]"
+        )
+
+
+def _display_plan(plan: "ExecutionPlan") -> None:
+    """Display a plan in rich table format."""
+    console.print()
+    console.print(f"[bold]Plan ID:[/bold] {plan.plan_id}")
+    console.print(f"[bold]Task:[/bold] {plan.task_prompt}")
+    console.print(f"[bold]Workspace:[/bold] {plan.workspace_id}")
+    console.print(f"[bold]Generated:[/bold] {plan.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    console.print(f"[bold]Expires:[/bold] {plan.expires_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    console.print(f"[bold]Confidence:[/bold] {plan.confidence:.0%}")
+
+    if plan.warnings:
+        console.print(f"[bold yellow]Warnings:[/bold yellow] {', '.join(plan.warnings)}")
+
+    console.print()
+    console.print("[bold]Proposed execution:[/bold]")
+
+    table = Table()
+    table.add_column("#", style="dim", width=3)
+    table.add_column("Skill", style="cyan")
+    table.add_column("Est. Tokens", justify="right")
+    table.add_column("Policy Flags", style="yellow")
+    table.add_column("Status")
+
+    for step in plan.planned_steps:
+        flag_values = [f.value if hasattr(f, "value") else f for f in step.policy_flags]
+        flags_str = ", ".join(flag_values) or "—"
+        table.add_row(
+            str(step.step_number),
+            step.skill_name,
+            f"~{step.estimated_tokens}",
+            flags_str,
+            "pending",
+        )
+
+    console.print(table)
+    console.print()
+    console.print(f"[bold]Estimated total:[/bold] ~{plan.total_estimated_tokens} tokens")
+
+    # Count policy warnings
+    external_count = sum(
+        1
+        for s in plan.planned_steps
+        for f in s.policy_flags
+        if (f.value if hasattr(f, "value") else f) == "external_api"
+    )
+    if external_count > 0:
+        console.print(
+            f"[yellow]Policy warnings:[/yellow] {external_count} steps require external API access"
+        )
+
+
+@plan_app.command("show")
+def plan_show(
+    ctx: typer.Context,
+    plan_id: str = typer.Argument(..., help="Plan ID to show."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Show details of a saved plan.
+
+    Example:
+        ag plan show plan_abc123 --workspace demo
+    """
+    # Resolve options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required")
+        raise typer.Exit(code=1)
+
+    plan_store = _get_plan_store()
+    plan = plan_store.get(resolved_workspace, plan_id)
+
+    if plan is None:
+        if resolved_json:
+            print(json.dumps({"error": f"Plan not found: {plan_id}"}, indent=2))
+        else:
+            err_console.print(f"[bold red]Error:[/bold red] Plan not found: {plan_id}")
+        raise typer.Exit(code=1)
+
+    if resolved_json:
+        print(json.dumps(json.loads(plan.to_json()), indent=2))
+    else:
+        _display_plan(plan)
+
+        # Show status info
+        if plan.is_expired():
+            console.print("[bold red]Status: EXPIRED[/bold red]")
+        elif plan.status.value == "executed":
+            console.print(f"[bold green]Status: EXECUTED[/bold green] (run: {plan.run_id})")
+        else:
+            console.print(f"[bold]Status:[/bold] {plan.status.value.upper()}")
+
+
+@plan_app.command("delete")
+def plan_delete(
+    ctx: typer.Context,
+    plan_id: str = typer.Argument(..., help="Plan ID to delete."),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """Delete a saved plan.
+
+    Example:
+        ag plan delete plan_abc123 --workspace demo
+    """
+    # Resolve options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required")
+        raise typer.Exit(code=1)
+
+    plan_store = _get_plan_store()
+    deleted = plan_store.delete(resolved_workspace, plan_id)
+
+    if resolved_json:
+        print(json.dumps({"deleted": deleted, "plan_id": plan_id}, indent=2))
+    else:
+        if deleted:
+            console.print(f"[green]Deleted plan:[/green] {plan_id}")
+        else:
+            err_console.print(f"[bold red]Error:[/bold red] Plan not found: {plan_id}")
+            raise typer.Exit(code=1)
+
+
+@plan_app.command("list")
+def plan_list(
+    ctx: typer.Context,
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    all_plans: bool = typer.Option(False, "--all", "-a", help="Include expired plans."),
+    json_output: bool = typer.Option(False, "--json", help="Output JSON."),
+) -> None:
+    """List pending plans in a workspace.
+
+    Example:
+        ag plan list --workspace demo
+        ag plan list --workspace demo --all  # Include expired
+    """
+    # Resolve options
+    cli_ctx = get_cli_ctx(ctx)
+    resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
+    resolved_json = json_output or cli_ctx.json_output
+
+    if not resolved_workspace:
+        err_console.print("[bold red]Error:[/bold red] --workspace is required")
+        raise typer.Exit(code=1)
+
+    plan_store = _get_plan_store()
+    plans = plan_store.list(resolved_workspace, include_expired=all_plans)
+
+    if resolved_json:
+        output = {
+            "workspace": resolved_workspace,
+            "total": len(plans),
+            "plans": [json.loads(p.to_json()) for p in plans],
+        }
+        print(json.dumps(output, indent=2))
+    else:
+        if not plans:
+            console.print(f"[dim]No plans found in workspace '{resolved_workspace}'[/dim]")
+            return
+
+        title = f"Plans in workspace '{resolved_workspace}' ({len(plans)} total)"
+        table = Table(title=title)
+        table.add_column("Plan ID", style="cyan", no_wrap=True)
+        table.add_column("Status")
+        table.add_column("Steps")
+        table.add_column("Est. Tokens", justify="right")
+        table.add_column("Confidence")
+        table.add_column("Created")
+        table.add_column("Expires")
+
+        for plan in plans:
+            # Determine status display
+            if plan.is_expired():
+                status_str = "[red]expired[/red]"
+            elif plan.status.value == "executed":
+                status_str = "[green]executed[/green]"
+            elif plan.status.value == "approved":
+                status_str = "[cyan]approved[/cyan]"
+            else:
+                status_str = "[yellow]pending[/yellow]"
+
+            table.add_row(
+                plan.plan_id,
+                status_str,
+                str(len(plan.planned_steps)),
+                f"~{plan.total_estimated_tokens}",
+                f"{plan.confidence:.0%}",
+                plan.created_at.strftime("%Y-%m-%d %H:%M"),
+                plan.expires_at.strftime("%H:%M"),
+            )
+
+        console.print(table)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

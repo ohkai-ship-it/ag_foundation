@@ -1,6 +1,6 @@
 """Workspace management and directory layout.
 
-Workspace structure (v0.2 - AF0058):
+Workspace structure (v0.3 - AF0098):
     <workspace_root>/
         db.sqlite          # SQLite index for runs/artifacts
         inputs/            # User content (read by skills)
@@ -10,6 +10,8 @@ Workspace structure (v0.2 - AF0058):
                 trace.json     # RunTrace JSON
                 artifacts/     # Artifacts for this run
                     <filename>
+        plans/             # Execution plans (AF-0098)
+            <plan_id>.json
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ class Workspace:
 
     INPUTS_DIR = "inputs"
     RUNS_DIR = "runs"
+    PLANS_DIR = "plans"
     DB_FILE = "db.sqlite"
 
     def __init__(self, workspace_id: str, root_path: Path | None = None) -> None:
@@ -59,6 +62,11 @@ class Workspace:
         """Directory for run outputs (per-run folders)."""
         return self._path / self.RUNS_DIR
 
+    @property
+    def plans_path(self) -> Path:
+        """Directory for execution plans (AF-0098)."""
+        return self._path / self.PLANS_DIR
+
     # Backward compatibility alias
     @property
     def runs_dir(self) -> Path:
@@ -75,6 +83,7 @@ class Workspace:
         self._path.mkdir(parents=True, exist_ok=True)
         self.inputs_path.mkdir(exist_ok=True)
         self.runs_path.mkdir(exist_ok=True)
+        self.plans_path.mkdir(exist_ok=True)
 
     def exists(self) -> bool:
         """Check if workspace exists."""
@@ -88,6 +97,11 @@ class Workspace:
     def run_path(self, run_id: str) -> Path:
         """Get path for a specific run's trace JSON file."""
         return self.run_dir(run_id) / "trace.json"
+
+    def plan_path(self, plan_id: str) -> Path:
+        """Get path for a specific plan's JSON file."""
+        _validate_safe_path_component(plan_id)
+        return self.plans_path / f"{plan_id}.json"
 
     def artifact_dir_for_run(self, run_id: str) -> Path:
         """Get artifact directory for a specific run."""

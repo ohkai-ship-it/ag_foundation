@@ -7,7 +7,11 @@ Pipeline Position:
     This is step 2 of the summarize_v0 playbook:
     load_documents → summarize_docs → emit_result
 
+    Also works as step 3 of research pipelines:
+    web_search → fetch_web_content → summarize_docs → emit_result
+
 Schemas Defined (see docs/dev/additional/SCHEMA_INVENTORY.md):
+    SummarizableDocument — Unified document schema for any source
     SummarizeDocsInput  — Skill input (documents, prompt, max_tokens)
     SummarizeDocsOutput — Skill output (document_summary, key_points, sources)
 
@@ -29,7 +33,8 @@ Usage:
 
 See Also:
     - base.py: Skill ABC and base schema definitions
-    - load_documents.py: Previous skill in pipeline (produces documents)
+    - load_documents.py: Local file source (produces documents)
+    - fetch_web_content.py: Web source (produces documents)
     - emit_result.py: Next skill in pipeline (emits final output)
 """
 
@@ -37,10 +42,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
-from ag.skills.load_documents import Document
 
 if TYPE_CHECKING:
     pass
@@ -51,18 +55,50 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
+class SummarizableDocument(BaseModel):
+    """A document that can be summarized.
+
+    Unified schema that accepts documents from multiple sources:
+    - load_documents: local files with path, content, size_bytes
+    - fetch_web_content: web pages with url, content, status_code, etc.
+
+    Only `content` is required - all other fields are optional to allow
+    flexibility in pipeline chaining.
+    """
+
+    content: str = Field(..., description="Document text content to summarize")
+
+    # Local file source (from load_documents)
+    path: str | None = Field(default=None, description="File path (local source)")
+    size_bytes: int | None = Field(default=None, description="Size in bytes (local source)")
+
+    # Web source (from fetch_web_content)
+    url: str | None = Field(default=None, description="Source URL (web source)")
+    status_code: int | None = Field(default=None, description="HTTP status (web source)")
+    content_type: str | None = Field(default=None, description="Content-Type (web source)")
+    title: str | None = Field(default=None, description="Page title (web source)")
+    error: str | None = Field(default=None, description="Fetch error (web source)")
+
+    model_config = {"extra": "ignore"}  # Allow extra fields from either source
+
+    @property
+    def source_id(self) -> str:
+        """Get a human-readable source identifier."""
+        return self.url or self.path or "unknown"
+
+
 class SummarizeDocsInput(SkillInput):
     """Input schema for summarize_docs skill.
 
     Attributes:
-        documents: List of documents from load_documents skill
+        documents: List of documents from any source (local or web)
         prompt: User's summarization request/focus
         max_tokens: Maximum tokens for LLM response
     """
 
-    documents: list[Document] = Field(
+    documents: list[SummarizableDocument] = Field(
         default_factory=list,
-        description="Documents to summarize (from load_documents)",
+        description="Documents to summarize (from load_documents or fetch_web_content)",
     )
     max_tokens: int = Field(
         default=2000,
@@ -138,6 +174,7 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
     output_schema: ClassVar[type[SkillOutput]] = SummarizeDocsOutput
     # LLM is preferred but skill falls back to simple extraction without it
     requires_llm: ClassVar[bool] = True
+    policy_flags: ClassVar[list[str]] = ["llm_call"]  # AF-0100
 
     def execute(
         self,
@@ -163,7 +200,7 @@ class SummarizeDocsSkill(Skill[SummarizeDocsInput, SummarizeDocsOutput]):
                 error="no_documents",
             )
 
-        sources = [doc.path for doc in input.documents]
+        sources = [doc.source_id for doc in input.documents]
 
         # Check if LLM provider is available
         if not ctx.has_provider or ctx.provider is None:
@@ -218,7 +255,7 @@ Output format:
 
 Be factual and cite document names when making specific claims."""
 
-    def _build_user_prompt(self, documents: list[Document], user_prompt: str) -> str:
+    def _build_user_prompt(self, documents: list[SummarizableDocument], user_prompt: str) -> str:
         """Build user prompt with documents."""
         parts = []
 
@@ -230,7 +267,7 @@ Be factual and cite document names when making specific claims."""
         parts.append("")
 
         for doc in documents:
-            parts.append(f"=== {doc.path} ===")
+            parts.append(f"=== {doc.source_id} ===")
             # Include content, truncating very long documents
             content = doc.content
             if len(content) > 10000:
@@ -308,7 +345,7 @@ Be factual and cite document names when making specific claims."""
 
     def _fallback_summary(
         self,
-        documents: list[Document],
+        documents: list[SummarizableDocument],
         sources: list[str],
     ) -> SummarizeDocsOutput:
         """Generate simple summary without LLM (fallback mode)."""
@@ -323,7 +360,7 @@ Be factual and cite document names when making specific claims."""
                 para = para.strip()
                 # Skip headers and empty lines
                 if para and not para.startswith("#"):
-                    summaries.append(f"**{doc.path}**: {para[:200]}...")
+                    summaries.append(f"**{doc.source_id}**: {para[:200]}...")
                     break
 
             # Extract H1 headers as key points

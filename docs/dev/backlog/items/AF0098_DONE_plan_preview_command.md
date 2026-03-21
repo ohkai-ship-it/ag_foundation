@@ -1,5 +1,5 @@
 # BACKLOG ITEM — AF0098 — plan_preview_command
-# Version number: v0.1
+# Version number: v0.3
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -20,12 +20,12 @@
 ## Metadata
 - **ID:** AF0098
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** CLI / Core Runtime / Planner
 - **Owner:** TBD
 - **Target sprint:** Sprint 11 — guided_autonomy_enablement
-- **Depends on:** —
+- **Depends on:** AF-0102 (V1Planner — LLM-based skill composition)
 
 ---
 
@@ -115,10 +115,11 @@ To discard: ag plan delete plan_abc123
 - Plan schema includes: task, proposed_steps, estimated_tokens, policy_flags, expires_at
 - Plans auto-expire after TTL (default 1 hour, configurable)
 
-### Planner changes
-- Extract plan generation logic from runtime execution path
-- Return plan object instead of immediately executing
-- Plan object includes skill sequence, dependencies, estimates
+### Integration with V1Planner (AF-0102)
+- V1Planner is pure: `plan(task) -> Playbook` (no disk I/O)
+- AF-0098 calls V1Planner to generate Playbook
+- AF-0098 handles persistence: saves Playbook to `<workspace>/plans/`
+- Separation of concerns: planner plans, storage stores
 
 ### Policy integration
 - Each step annotated with policy flags (external_api, file_write, llm_call, etc.)

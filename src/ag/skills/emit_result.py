@@ -90,26 +90,27 @@ class EmitResultInput(SkillInput):
     )
 
     # Aliased fields from synthesize_research (normalized by validator)
-    report: str = Field(
+    # These use Any type to accept various input formats before normalization
+    report: Any = Field(
         default="",
         description="Alias for document_summary (from synthesize_research)",
     )
-    key_findings: list[str] = Field(
-        default_factory=list,
+    key_findings: Any = Field(
+        default=None,
         description="Alias for key_points (from synthesize_research)",
     )
-    sources_used: list[str] = Field(
-        default_factory=list,
+    sources_used: Any = Field(
+        default=None,
         description="Alias for sources (from synthesize_research)",
     )
 
-    # Artifact configuration
+    # Artifact configuration — default to Markdown for human-readable output
     artifact_name: str = Field(
-        default="summary.json",
+        default="summary.md",
         description="Name for the artifact file",
     )
     artifact_type: str = Field(
-        default="application/json",
+        default="text/markdown",
         description="MIME type of the artifact",
     )
 
@@ -124,15 +125,27 @@ class EmitResultInput(SkillInput):
             report → document_summary
             key_findings → key_points
             sources_used → sources
+
+        Also handles type coercion for list fields that may arrive as strings.
         """
         if isinstance(data, dict):
             # Map synthesize_research fields to emit_result canonical fields
             if "report" in data and not data.get("document_summary"):
                 data["document_summary"] = data["report"]
             if "key_findings" in data and not data.get("key_points"):
-                data["key_points"] = data["key_findings"]
+                # Coerce string to list if needed
+                value = data["key_findings"]
+                if isinstance(value, str) and value:
+                    data["key_points"] = [value]
+                elif isinstance(value, list):
+                    data["key_points"] = value
             if "sources_used" in data and not data.get("sources"):
-                data["sources"] = data["sources_used"]
+                # Coerce string to list if needed
+                value = data["sources_used"]
+                if isinstance(value, str) and value:
+                    data["sources"] = [value]
+                elif isinstance(value, list):
+                    data["sources"] = value
         return data
 
 
@@ -196,6 +209,7 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
     input_schema: ClassVar[type[SkillInput]] = EmitResultInput
     output_schema: ClassVar[type[SkillOutput]] = EmitResultOutput
     requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = ["file_write"]  # AF-0100
 
     def execute(
         self,
@@ -240,19 +254,19 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             artifacts_dir.mkdir(parents=True, exist_ok=True)
 
             # AF-0090: Determine output format from artifact_type parameter
-            # For backwards compatibility, also infer from filename extension if artifact_type
-            # is the default value and filename has a recognized extension
-            default_mime = "application/json"
+            # Also infer from filename extension if it has a recognized extension
+            # (extension takes precedence for explicit requests like "output.json")
             requested_mime = input.artifact_type
             artifact_name_lower = input.artifact_name.lower()
 
-            # Backwards compatibility: infer from filename extension if using default type
-            if requested_mime == default_mime:
-                if artifact_name_lower.endswith((".md", ".markdown")):
-                    requested_mime = "text/markdown"
-                elif artifact_name_lower.endswith(".txt"):
-                    requested_mime = "text/plain"
-                # else keep default application/json
+            # Infer from filename extension (extension takes precedence)
+            if artifact_name_lower.endswith((".json",)):
+                requested_mime = "application/json"
+            elif artifact_name_lower.endswith((".md", ".markdown")):
+                requested_mime = "text/markdown"
+            elif artifact_name_lower.endswith(".txt"):
+                requested_mime = "text/plain"
+            # else keep requested_mime (from artifact_type parameter)
 
             # Map MIME types to file extensions
             mime_to_ext = {

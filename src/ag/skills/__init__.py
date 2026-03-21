@@ -53,6 +53,7 @@ from .registry import (
     get_default_registry,
 )
 from .summarize_docs import (
+    SummarizableDocument,
     SummarizeDocsInput,
     SummarizeDocsOutput,
     SummarizeDocsSkill,
@@ -88,6 +89,7 @@ __all__ = [
     "LoadDocumentsInput",
     "LoadDocumentsOutput",
     "LoadDocumentsSkill",
+    "SummarizableDocument",
     "SummarizeDocsInput",
     "SummarizeDocsOutput",
     "SummarizeDocsSkill",

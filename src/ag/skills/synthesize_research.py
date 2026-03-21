@@ -382,6 +382,7 @@ class SynthesizeResearchSkill(Skill[SynthesizeResearchInput, SynthesizeResearchO
     input_schema: ClassVar[type[SynthesizeResearchInput]] = SynthesizeResearchInput
     output_schema: ClassVar[type[SynthesizeResearchOutput]] = SynthesizeResearchOutput
     requires_llm: ClassVar[bool] = True
+    policy_flags: ClassVar[list[str]] = ["llm_call"]  # AF-0100
 
     def execute(
         self, input: SynthesizeResearchInput, ctx: SkillContext

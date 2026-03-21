@@ -378,6 +378,7 @@ class FetchWebContentSkill(Skill[FetchWebContentInput, FetchWebContentOutput]):
     input_schema: ClassVar[type[FetchWebContentInput]] = FetchWebContentInput
     output_schema: ClassVar[type[FetchWebContentOutput]] = FetchWebContentOutput
     requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = ["external_api", "network"]  # AF-0100
 
     def execute(self, input: FetchWebContentInput, ctx: SkillContext) -> FetchWebContentOutput:
         """Fetch content from the provided URLs.

@@ -1,0 +1,32 @@
+# Sprint 11 Autonomy Gate Close Checklist
+Date: 2026-03-21
+
+## 9.2 Close Gate (SPRINT_MANUAL Section 9.2)
+
+### Required Checks
+- [x] User-visible labels verified as trace-derived
+  - Mode column in `ag runs list` derived from trace `autonomy` field
+  - Autonomy level displayed in `ag runs show` from stored trace
+  
+- [x] Policy checks verified in touched behavior paths
+  - Step confirmation hooks check `requires_confirmation` flag
+  - `--yes` flag bypasses all confirmations (16 tests)
+  
+- [x] Retry/timeout/failure behavior verified and trace-aligned
+  - Plan execution failures captured in trace
+  - V1Planner handles invalid LLM responses gracefully
+  
+- [x] Workspace isolation verified in happy and failure paths
+  - Plans stored per-workspace in plan_store
+  - Runs list correctly scoped to workspace
+  
+- [x] `pytest -W error` evidence captured
+  - 676 tests passing
+  - Evidence: artifacts/review_S11_01/ruff_summary.txt
+  
+- [x] Open autonomy blockers converted to AF/BUG items with index updates
+  - No open blockers remaining
+  - All scope items DONE
+
+## Decision: ACCEPT
+All P0 Autonomy Gate items verified. Sprint 11 closes successfully.

@@ -1,4 +1,4 @@
-"""Storage interfaces for runs and artifacts.
+"""Storage interfaces for runs, artifacts, and plans.
 
 All storage operations are scoped by workspace_id.
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from ag.core import Artifact, RunTrace
+    from ag.core import Artifact, ExecutionPlan, RunTrace
 
 
 class RunStore(Protocol):
@@ -124,5 +124,69 @@ class ArtifactStore(Protocol):
 
         Returns:
             True if deleted, False if not found
+        """
+        ...
+
+
+class PlanStore(Protocol):
+    """Interface for execution plan storage operations."""
+
+    def save(self, plan: ExecutionPlan) -> None:
+        """Persist an ExecutionPlan.
+
+        Args:
+            plan: The ExecutionPlan to persist
+        """
+        ...
+
+    def get(self, workspace_id: str, plan_id: str) -> ExecutionPlan | None:
+        """Retrieve an ExecutionPlan by ID.
+
+        Args:
+            workspace_id: Workspace to search in
+            plan_id: The plan ID to retrieve
+
+        Returns:
+            The ExecutionPlan if found, None otherwise
+        """
+        ...
+
+    def list(self, workspace_id: str, include_expired: bool = False) -> list[ExecutionPlan]:
+        """List plans in a workspace.
+
+        Args:
+            workspace_id: Workspace to list plans from
+            include_expired: Whether to include expired plans
+
+        Returns:
+            List of ExecutionPlan objects, most recent first
+        """
+        ...
+
+    def delete(self, workspace_id: str, plan_id: str) -> bool:
+        """Delete a plan.
+
+        Args:
+            workspace_id: Workspace containing the plan
+            plan_id: The plan ID to delete
+
+        Returns:
+            True if deleted, False if not found
+        """
+        ...
+
+    def update_status(
+        self, workspace_id: str, plan_id: str, status: str, run_id: str | None = None
+    ) -> bool:
+        """Update the status of a plan.
+
+        Args:
+            workspace_id: Workspace containing the plan
+            plan_id: The plan ID to update
+            status: New status value
+            run_id: Associated run ID (for executed status)
+
+        Returns:
+            True if updated, False if not found
         """
         ...

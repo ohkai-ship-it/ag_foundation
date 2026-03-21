@@ -214,6 +214,26 @@ class EvidenceRef(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0100: Step confirmation for guided autonomy
+class StepConfirmation(BaseModel):
+    """Confirmation status for a step requiring user approval (AF-0100)."""
+
+    required: bool = Field(default=False, description="Was confirmation required?")
+    policy_flags: list[str] = Field(
+        default_factory=list, description="Policy flags triggering confirmation"
+    )
+    decision: str | None = Field(
+        default=None, description="Confirmation decision: approved, denied, skipped"
+    )
+    decided_at: datetime | None = Field(default=None, description="When decision was made")
+    decided_by: str | None = Field(
+        default=None,
+        description="Who/what made decision: user_interactive, user_yes_flag, policy_allow, etc.",
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 class Step(BaseModel):
     """A single step in the run trace."""
 
@@ -242,6 +262,17 @@ class Step(BaseModel):
     # AF-0062: Model used for this step (additive field)
     model_used: str | None = Field(
         default=None, description="LLM model used for this step (AF-0062)"
+    )
+    # AF-0100: Confirmation status for guided autonomy (additive field)
+    confirmation: StepConfirmation | None = Field(
+        default=None, description="Confirmation details if step required approval (AF-0100)"
+    )
+    # AF-0094: Full step I/O for trace enrichment (additive fields)
+    input_data: dict[str, Any] | None = Field(
+        default=None, description="Full input data passed to the skill (AF-0094)"
+    )
+    output_data: dict[str, Any] | None = Field(
+        default=None, description="Full output data returned by the skill (AF-0094)"
     )
 
     model_config = {"extra": "forbid"}
@@ -287,6 +318,40 @@ class LLMExecution(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0101: Autonomy mode tracking
+class AutonomyMode(str, Enum):
+    """Mode of execution autonomy (AF-0101).
+
+    Tracks how the execution was controlled:
+    - playbook: Executing predefined playbook steps
+    - guided: Executing a pre-approved plan
+    - direct: Immediate execution without pre-approval
+    """
+
+    PLAYBOOK = "playbook"  # Predefined workflow
+    GUIDED = "guided"  # Pre-approved plan (--plan flag)
+    DIRECT = "direct"  # No plan, immediate execution
+
+
+class AutonomyMetadata(BaseModel):
+    """Autonomy settings for a run (AF-0101).
+
+    Records the autonomy mode and related policy information
+    for truthful UX - users should know HOW the system operated.
+    """
+
+    mode: AutonomyMode = Field(..., description="Execution autonomy mode")
+    plan_id: str | None = Field(default=None, description="Plan ID if mode is guided")
+    confirmation_enabled: bool = Field(
+        default=False, description="Whether step confirmation was enabled"
+    )
+    confirmation_flags: list[str] = Field(
+        default_factory=list, description="Policy flags requiring confirmation"
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 class RunTrace(BaseModel):
     """v0.1 RunTrace — the evidence log for a single run.
 
@@ -322,6 +387,14 @@ class RunTrace(BaseModel):
     verifier: Verifier = Field(..., description="Verification result")
     final: FinalStatus = Field(..., description="Final run outcome")
     error: str | None = Field(default=None, description="Error message if failed")
+    # AF-0099: Plan execution linkage
+    plan_id: str | None = Field(
+        default=None, description="Plan ID if run executed from approved plan"
+    )
+    # AF-0101: Autonomy mode tracking (additive field)
+    autonomy: AutonomyMetadata | None = Field(
+        default=None, description="Autonomy mode and policy info (AF-0101)"
+    )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 
     model_config = {"extra": "forbid"}

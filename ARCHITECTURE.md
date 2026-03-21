@@ -1,5 +1,5 @@
 # ag_foundation — Architecture
-# Version number: v0.2
+# Version number: v0.3
 
 This document defines the **core architecture** for ag_foundation: a modular, inspectable **agent network runtime** that can plan, execute, verify, and record runs.
 
@@ -70,6 +70,8 @@ The kernel of execution, implemented as replaceable modules:
 - decomposes into a step graph
 - selects agent roles/skills
 - chooses playbook + reasoning modes
+- **V0Planner (current):** deterministic registry lookup, requires explicit `--playbook`
+- **V1Planner (Sprint 11):** LLM analyzes task + skill catalog → composes skill sequence
 
 3) **Orchestrator**
 - executes the playbook step graph (sequence first; branching/parallel later)
@@ -245,12 +247,15 @@ Storage components:
 ### 4.1 Request-driven flow (CLI/API)
 1. Adapter receives a request
 2. Normalizer produces `TaskSpec` (workspace defaults applied)
-3. Planner selects Playbook + step graph
-4. Orchestrator executes steps:
+3. Planner creates execution plan:
+   - **V0 (current):** lookup playbook by `--playbook <name>`
+   - **V1 (Sprint 11):** LLM composes skill sequence from task + catalog
+4. (V1 only) User previews and approves plan via `ag plan` / `ag run --plan`
+5. Orchestrator executes steps:
    - Executor runs each step (LLM + skills/tools)
    - Verifier checks; may repair within limits
-5. Recorder persists trace + artifacts
-6. Adapter renders output strictly derived from trace (truthful UX)
+6. Recorder persists trace + artifacts
+7. Adapter renders output strictly derived from trace (truthful UX)
 
 ### 4.2 Event-driven flow (planned; IoT later)
 1. Event Adapter receives an event (sensor reading, trigger)
@@ -275,12 +280,43 @@ RIGID                                                    AUTONOMOUS
 │ Script │  │Playbook│  │ Guided │  │ Goals  │  │  Full  │
 │        │  │        │  │ Agent  │  │  Only  │  │ Agent  │
 └────────┘  └────────┘  └────────┘  └────────┘  └────────┘
-                 ▲
-                 │
-           CURRENT PHASE
+              ✅ Done     🔄 S11      ⏳         ⏳
 ```
 
-**Current design:** Playbook-driven with bounded agent autonomy.
+**Current design:** Transitioning from playbook-driven to guided autonomy (Sprint 11).
+
+### Planner Evolution
+
+The planner evolves through phases aligned with the autonomy spectrum:
+
+| Version | Behavior | Sprint |
+|---------|----------|--------|
+| V0Planner | Deterministic registry lookup; requires `--playbook <name>` | Current |
+| V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan` | Sprint 11 |
+| V2Planner | LLM uses skills AND playbooks as building blocks | Future |
+| V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | Future |
+
+**V1Planner flow:**
+```
+User: "Research Tokyo population trends"
+    │
+    ▼
+V1Planner receives:
+- Task description
+- Skill catalog (names, descriptions, I/O schemas)
+    │
+    ▼
+LLM prompt: "Given task + skills, create execution plan..."
+    │
+    ▼
+ExecutionPlan:
+  steps: [web_search, fetch_web_content, synthesize_research, emit_result]
+  confidence: 0.85
+  estimated_tokens: 5500
+```
+
+**Param chaining:** Steps reference previous outputs via `{{step_N.field}}` placeholders,
+resolved at runtime by a lightweight dot-access resolver.
 
 | Decision | Decided By | Rationale |
 |----------|------------|----------|
@@ -331,15 +367,26 @@ Example modes:
 | `default_v0` | test | (echo-style) | Testing playbook execution |
 | `delegate_v0` | test | (echo-style) | Testing multi-step delegation |
 
-### 5.4 Current Autonomy Boundaries (Post-Sprint08)
+### 5.4 Current Autonomy Boundaries (Sprint 11)
 
-Current runtime behavior is bounded, playbook-driven autonomy.
+Transitioning from playbook-driven to **guided autonomy**:
 
-- Playbook structure is human-defined and static at runtime.
-- Agents decide parameters and output content within skill/schema boundaries.
-- Dynamic playbook composition is deferred to future phases.
-- Policy hooks exist, but enforcement maturity is roadmap-driven and must be validated per sprint.
-- Autonomy progression requires passing reliability/safety gates (see project plan and sprint process docs).
+| Capability | Status | Notes |
+|------------|--------|-------|
+| Skill invocation | ✅ Operational | Human selects playbook, planner executes |
+| Playbook-driven execution | ✅ Operational | `ag run --playbook <name>` |
+| Dynamic skill composition | 🔄 Sprint 11 | V1Planner: LLM composes from skill catalog |
+| Plan preview | 🔄 Sprint 11 | `ag plan --task "..."` (AF-0098) |
+| Plan approval | 🔄 Sprint 11 | `ag run --plan <id>` (AF-0099) |
+| Step confirmation | 🔄 Sprint 11 | Policy-driven hooks (AF-0100) |
+| Dynamic playbook composition | ⏳ Future | V2Planner (AF-0103) |
+| Feasibility judgment | ⏳ Future | V3Planner (AF-0104) |
+
+**Core constraints (non-negotiable):**
+- Truthful UX: all labels trace-derived
+- Workspace isolation: no access outside boundaries
+- Human approval required before execution (guided mode)
+- Policy hooks enforce confirmation for high-impact actions
 
 #### How to Add a Playbook
 

@@ -8,6 +8,14 @@ from ag.playbooks import (
     list_playbooks,
 )
 
+from .execution_plan import (
+    DEFAULT_PLAN_TTL_SECONDS,
+    ExecutionPlan,
+    PlannedStep,
+    PlanStatus,
+    PolicyFlag,
+    create_execution_plan,
+)
 from .interfaces import (
     Executor,
     Normalizer,
@@ -17,6 +25,10 @@ from .interfaces import (
 )
 from .interfaces import (
     Verifier as VerifierProtocol,
+)
+from .planner import (
+    PlannerError,
+    V1Planner,
 )
 from .playbook import (
     Playbook,
@@ -28,6 +40,8 @@ from .playbook import (
 from .run_trace import (
     Artifact,
     ArtifactCategory,
+    AutonomyMetadata,
+    AutonomyMode,
     EvidenceRef,
     FinalStatus,
     LLMExecution,
@@ -35,6 +49,7 @@ from .run_trace import (
     RunTrace,
     RunTraceBuilder,
     Step,
+    StepConfirmation,
     StepType,
     Verifier,
     VerifierStatus,
@@ -81,9 +96,12 @@ __all__ = [
     "RunTraceBuilder",
     "Artifact",
     "ArtifactCategory",
+    "AutonomyMetadata",
+    "AutonomyMode",
     "EvidenceRef",
     "LLMExecution",
     "Step",
+    "StepConfirmation",
     "StepType",
     "PlaybookMetadata",
     "Verifier",
@@ -119,6 +137,16 @@ __all__ = [
     "V0Verifier",
     "V0Recorder",
     "create_runtime",
+    # planner (AF-0102)
+    "V1Planner",
+    "PlannerError",
+    # execution_plan (AF-0098)
+    "ExecutionPlan",
+    "PlannedStep",
+    "PlanStatus",
+    "PolicyFlag",
+    "create_execution_plan",
+    "DEFAULT_PLAN_TTL_SECONDS",
     # schema_verifier (AF-0050)
     "SchemaValidator",
     "ValidationAttempt",

@@ -131,6 +131,7 @@ class LoadDocumentsSkill(Skill[LoadDocumentsInput, LoadDocumentsOutput]):
     input_schema: ClassVar[type[SkillInput]] = LoadDocumentsInput
     output_schema: ClassVar[type[SkillOutput]] = LoadDocumentsOutput
     requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = ["file_read"]  # AF-0100
 
     def execute(
         self,
