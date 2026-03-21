@@ -86,7 +86,7 @@ from .task_spec import (
     TaskSpec,
     TaskSpecBuilder,
 )
-from .verifier import V0Verifier
+from .verifier import V0Verifier, V1Verifier
 
 __all__ = [
     # task_spec
@@ -139,6 +139,7 @@ __all__ = [
     "V0Orchestrator",
     "V0Executor",
     "V0Verifier",
+    "V1Verifier",
     "V0Recorder",
     "TrackingLLMProvider",
     "_adapt_document_to_source",

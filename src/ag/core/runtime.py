@@ -17,7 +17,7 @@ from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
 from ag.core.run_trace import RunTrace
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
-from ag.core.verifier import V0Verifier
+from ag.core.verifier import V0Verifier, V1Verifier
 from ag.skills import SkillRegistry
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
 
@@ -160,7 +160,7 @@ def create_runtime(
     """
     executor = V0Executor(registry)
     recorder = V0Recorder(run_store, artifact_store)
-    verifier = V0Verifier()
+    verifier = V1Verifier()
     orchestrator = V0Orchestrator(executor, verifier, recorder)
 
     return Runtime(
@@ -178,6 +178,7 @@ __all__ = [
     "V0Planner",
     "V0Executor",
     "V0Verifier",
+    "V1Verifier",
     "V0Recorder",
     "V0Orchestrator",
     "TrackingLLMProvider",

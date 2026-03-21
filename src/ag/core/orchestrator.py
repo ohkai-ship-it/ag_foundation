@@ -384,6 +384,8 @@ class V0Orchestrator:
                 # AF-0094: Full step I/O for trace enrichment
                 input_data=step_input_data,
                 output_data=step_output_data,
+                # AF-0115: Propagate required flag from playbook step
+                required=playbook_step.required,
             )
             steps.append(step)
 
@@ -403,6 +405,11 @@ class V0Orchestrator:
         # Run verification before constructing trace (AF-0029)
         verify_status, verify_message = self._verifier.verify_components(steps, final_status)
         checked_at = datetime.now(UTC)
+
+        # AF-0115: Build evidence if verifier supports it
+        verify_evidence: dict[str, Any] = {}
+        if hasattr(self._verifier, "build_evidence"):
+            verify_evidence = self._verifier.build_evidence(steps)
 
         # Convert workspace_source string to enum if provided (AF-0030)
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
@@ -438,6 +445,7 @@ class V0Orchestrator:
                 status=VerifierStatus(verify_status),
                 checked_at=checked_at,
                 message=verify_message,
+                evidence=verify_evidence,
             ),
             final=final_status,
             error=error_message,

@@ -614,9 +614,9 @@ def run(
             )
 
             # BUG0009: Run verifier on step (not skipped)
-            from ag.core.runtime import V0Verifier
+            from ag.core.verifier import V1Verifier
 
-            verifier = V0Verifier()
+            verifier = V1Verifier()
             final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
             verify_status, verify_message = verifier.verify_components([step], final_status)
 

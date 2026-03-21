@@ -274,6 +274,10 @@ class Step(BaseModel):
     output_data: dict[str, Any] | None = Field(
         default=None, description="Full output data returned by the skill (AF-0094)"
     )
+    # AF-0115: Whether this step was required for success (additive field)
+    required: bool = Field(
+        default=True, description="Whether this step was required for success (AF-0115)"
+    )
 
     model_config = {"extra": "forbid"}
 
