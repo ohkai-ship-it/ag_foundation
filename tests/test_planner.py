@@ -315,6 +315,22 @@ class TestResponseParsing:
         with pytest.raises(PlannerError, match="doesn't match schema"):
             planner._parse_response('{"estimated_tokens": 100}')  # Missing steps
 
+    def test_parse_trailing_comma_tolerance(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser tolerates trailing commas in LLM JSON output."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_trailing = (
+            '{"steps": [{"skill": "mock_skill", "params": {},'
+            ' "rationale": "test",}],'
+            ' "estimated_tokens": 100, "confidence": 0.8,}'
+        )
+        response = planner._parse_response(json_with_trailing)
+
+        assert len(response.steps) == 1
+        assert response.steps[0].skill == "mock_skill"
+
 
 # ---------------------------------------------------------------------------
 # Error Handling Tests

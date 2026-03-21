@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -327,6 +328,9 @@ Respond with a JSON plan."""
                 if in_block:
                     json_lines.append(line)
             json_str = "\n".join(json_lines)
+
+        # Clean common LLM JSON errors (trailing commas)
+        json_str = re.sub(r",\s*([}\]])", r"\1", json_str)
 
         try:
             data = json.loads(json_str)
