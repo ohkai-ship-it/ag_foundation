@@ -90,16 +90,17 @@ class EmitResultInput(SkillInput):
     )
 
     # Aliased fields from synthesize_research (normalized by validator)
-    report: str = Field(
+    # These use Any type to accept various input formats before normalization
+    report: Any = Field(
         default="",
         description="Alias for document_summary (from synthesize_research)",
     )
-    key_findings: list[str] = Field(
-        default_factory=list,
+    key_findings: Any = Field(
+        default=None,
         description="Alias for key_points (from synthesize_research)",
     )
-    sources_used: list[str] = Field(
-        default_factory=list,
+    sources_used: Any = Field(
+        default=None,
         description="Alias for sources (from synthesize_research)",
     )
 
@@ -124,15 +125,27 @@ class EmitResultInput(SkillInput):
             report → document_summary
             key_findings → key_points
             sources_used → sources
+
+        Also handles type coercion for list fields that may arrive as strings.
         """
         if isinstance(data, dict):
             # Map synthesize_research fields to emit_result canonical fields
             if "report" in data and not data.get("document_summary"):
                 data["document_summary"] = data["report"]
             if "key_findings" in data and not data.get("key_points"):
-                data["key_points"] = data["key_findings"]
+                # Coerce string to list if needed
+                value = data["key_findings"]
+                if isinstance(value, str) and value:
+                    data["key_points"] = [value]
+                elif isinstance(value, list):
+                    data["key_points"] = value
             if "sources_used" in data and not data.get("sources"):
-                data["sources"] = data["sources_used"]
+                # Coerce string to list if needed
+                value = data["sources_used"]
+                if isinstance(value, str) and value:
+                    data["sources"] = [value]
+                elif isinstance(value, list):
+                    data["sources"] = value
         return data
 
 
