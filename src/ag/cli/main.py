@@ -1327,9 +1327,9 @@ def plan_generate(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "plan generate")
+    _guard_workspace_exists(resolved_workspace)
 
     # Create task spec
     task_spec = TaskSpec(
@@ -1468,9 +1468,8 @@ def plan_show(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "plan show")
 
     plan_store = _get_plan_store()
     plan = plan_store.get(resolved_workspace, plan_id)
@@ -1513,9 +1512,8 @@ def plan_delete(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "plan delete")
 
     plan_store = _get_plan_store()
     deleted = plan_store.delete(resolved_workspace, plan_id)
@@ -1548,9 +1546,8 @@ def plan_list(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "plan list")
 
     # AF-0111: Guard against non-existent workspace
     _guard_workspace_exists(resolved_workspace)
@@ -1777,15 +1774,8 @@ def artifacts_list(
     run_store = _get_run_store()
     artifact_store = _get_artifact_store()
 
-    # If no workspace provided, we need to find the run
-    if not resolved_workspace:
-        # Try to find the run in all workspaces - for now just use a simple approach
-        # In a real implementation, we'd have a global index
-        err_console.print(
-            "[bold red]Error:[/bold red] --workspace is required for artifact listing."
-        )
-        err_console.print("Example: ag artifacts list --run <run_id> --workspace <workspace_id>")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "artifacts list")
 
     artifacts = artifact_store.list(resolved_workspace, run_id)
 
@@ -1839,9 +1829,8 @@ def artifacts_show(
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
     resolved_json = json_output or cli_ctx.json_output
 
-    if not resolved_workspace:
-        err_console.print("[bold red]Error:[/bold red] --workspace is required for artifact show.")
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "artifacts show")
 
     artifact_store = _get_artifact_store()
 
@@ -1921,11 +1910,8 @@ def artifacts_export(
     cli_ctx = get_cli_ctx(ctx)
     resolved_workspace = workspace if workspace is not None else cli_ctx.workspace
 
-    if not resolved_workspace:
-        err_console.print(
-            "[bold red]Error:[/bold red] --workspace is required for artifact export."
-        )
-        raise typer.Exit(code=1)
+    # AF-0105: Use default workspace if not specified
+    resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "artifacts export")
 
     # Check if output path already exists
     output = Path(output_path)

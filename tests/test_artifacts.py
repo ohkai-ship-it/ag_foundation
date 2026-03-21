@@ -136,12 +136,15 @@ class TestArtifactRegistration:
 class TestArtifactsCLI:
     """Test ag artifacts list CLI command."""
 
-    def test_artifacts_list_requires_workspace(self):
-        """ag artifacts list should require --workspace."""
+    def test_artifacts_list_requires_workspace(self, tmp_path, monkeypatch):
+        """ag artifacts list should require workspace when no default set."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(app, ["artifacts", "list", "--run", "test-run"])
         assert result.exit_code == 1
         # Error message goes to output (typer combines stdout/stderr)
-        assert "--workspace is required" in result.output
+        assert "No workspace specified" in result.output
 
     def test_artifacts_list_empty(self, tmp_path: Path, monkeypatch):
         """ag artifacts list for non-existent run should show empty."""
@@ -413,8 +416,11 @@ class TestArtifactGetCategory:
 class TestArtifactsExportCLI:
     """Tests for ag artifacts export command (AF-0051)."""
 
-    def test_export_requires_workspace(self) -> None:
-        """ag artifacts export should require --workspace."""
+    def test_export_requires_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag artifacts export should require workspace when no default set."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(
             app,
             [
@@ -428,7 +434,7 @@ class TestArtifactsExportCLI:
             ],
         )
         assert result.exit_code == 1
-        assert "--workspace is required" in result.output
+        assert "No workspace specified" in result.output
 
     def test_export_requires_run(self) -> None:
         """ag artifacts export should require --run."""
@@ -492,14 +498,17 @@ class TestArtifactsExportCLI:
 class TestArtifactsShowCLI:
     """Tests for ag artifacts show command (AF-0051)."""
 
-    def test_show_requires_workspace(self) -> None:
-        """ag artifacts show should require --workspace."""
+    def test_show_requires_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag artifacts show should require workspace when no default set."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(
             app,
             ["artifacts", "show", "test-artifact", "--run", "test-run"],
         )
         assert result.exit_code == 1
-        assert "--workspace is required" in result.output
+        assert "No workspace specified" in result.output
 
     def test_show_artifact_not_found(self, tmp_path: Path, monkeypatch) -> None:
         """ag artifacts show should error if artifact not found."""

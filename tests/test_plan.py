@@ -445,14 +445,20 @@ class TestPlanCLI:
         assert result.exit_code == 1
         assert "Error" in result.output
 
-    def test_plan_list_requires_workspace(self) -> None:
-        """ag plan list requires --workspace."""
+    def test_plan_list_requires_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag plan list requires workspace when no default set."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(app, ["plan", "list"])
         assert result.exit_code == 1
         assert "workspace" in result.output.lower()
 
-    def test_plan_generate_requires_workspace(self) -> None:
-        """ag plan generate requires --workspace."""
+    def test_plan_generate_requires_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag plan generate requires workspace when no default set."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(app, ["plan", "generate", "--task", "test task"])
         assert result.exit_code == 1
         assert "workspace" in result.output.lower()

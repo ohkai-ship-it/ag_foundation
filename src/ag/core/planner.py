@@ -259,19 +259,49 @@ Respond with valid JSON matching this schema:
 
         constraints_str = "\n".join(constraints) if constraints else "None"
 
+        # AF-0106: Detect workspace file types for better pattern generation
+        files_hint = self._detect_workspace_files(task.workspace_id)
+
         return f"""Create an execution plan for this task:
 
 **Task:** {task.prompt}
 
 **Available Skills:**
 {catalog_str}
-
+{files_hint}
 **Constraints:**
 {constraints_str}
 
 **Maximum steps:** {self.max_steps}
 
 Respond with a JSON plan."""
+
+    def _detect_workspace_files(self, workspace_id: str) -> str:
+        """Detect file types in workspace inputs (AF-0106).
+
+        Returns a prompt hint string describing available files, or empty string.
+        """
+        try:
+            from ag.config import get_workspace_dir
+            from ag.storage import Workspace
+
+            ws = Workspace(workspace_id, get_workspace_dir())
+            inputs_dir = ws.inputs_path
+            if not inputs_dir.exists():
+                return ""
+
+            extensions: set[str] = set()
+            for f in inputs_dir.rglob("*"):
+                if f.is_file() and f.suffix:
+                    extensions.add(f.suffix.lower())
+
+            if not extensions:
+                return ""
+
+            ext_list = ", ".join(sorted(extensions))
+            return f"\n**Workspace file types:** {ext_list}\n"
+        except Exception:
+            return ""
 
     def _parse_response(self, content: str) -> LLMPlanResponse:
         """Parse and validate LLM response as JSON."""

@@ -541,3 +541,57 @@ class TestV1PlannerIntegration:
         assert task_spec.prompt in messages[1].content
         # User message should include skill names
         assert "mock_skill" in messages[1].content
+
+
+class TestV1PlannerWorkspaceDetection:
+    """AF-0106: Workspace-aware file detection in planner."""
+
+    def test_detect_workspace_files_with_md(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner detects .md files in workspace inputs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import Workspace
+
+        ws = Workspace("detect-test", tmp_path)
+        ws.ensure_exists()
+        (ws.inputs_path / "notes.md").write_text("# Notes")
+        (ws.inputs_path / "data.txt").write_text("data")
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("detect-test")
+
+        assert ".md" in result
+        assert ".txt" in result
+        assert "Workspace file types" in result
+
+    def test_detect_workspace_files_empty(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner returns empty hint when no files in workspace."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import Workspace
+
+        ws = Workspace("empty-test", tmp_path)
+        ws.ensure_exists()
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("empty-test")
+
+        assert result == ""
+
+    def test_detect_workspace_files_nonexistent(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner returns empty hint for nonexistent workspace."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("no-such-ws")
+
+        assert result == ""
