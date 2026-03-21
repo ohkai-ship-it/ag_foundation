@@ -74,6 +74,7 @@
 
 | Model | Module | Purpose | Version |
 |-------|--------|---------|---------|
+| `SummarizableDocument` | summarize_docs.py | Unified document schema for any source (local/web) | 0.1 |
 | `SummarizeDocsInput` | summarize_docs.py | Input for document summarization (documents, max_tokens) | 0.1 |
 | `SummarizeDocsOutput` | summarize_docs.py | Summarized output (summary) | 0.1 |
 

@@ -23,6 +23,7 @@ from ag.skills.load_documents import (
     LoadDocumentsSkill,
 )
 from ag.skills.summarize_docs import (
+    SummarizableDocument,
     SummarizeDocsInput,
     SummarizeDocsOutput,
     SummarizeDocsSkill,
@@ -198,8 +199,8 @@ class TestSummarizeDocsSkill:
     def test_fallback_without_llm(self) -> None:
         """Falls back to simple summary without LLM provider."""
         docs = [
-            Document(path="doc1.md", content="# Title 1\nContent 1", size_bytes=20),
-            Document(path="doc2.md", content="# Title 2\nContent 2", size_bytes=20),
+            SummarizableDocument(path="doc1.md", content="# Title 1\nContent 1", size_bytes=20),
+            SummarizableDocument(path="doc2.md", content="# Title 2\nContent 2", size_bytes=20),
         ]
 
         skill = SummarizeDocsSkill()
@@ -217,7 +218,7 @@ class TestSummarizeDocsSkill:
     def test_extracts_key_points_from_headers(self) -> None:
         """Fallback mode extracts headers as key points."""
         docs = [
-            Document(
+            SummarizableDocument(
                 path="doc.md",
                 content="# Main Title\n\n# Section 1\n\n# Section 2",
                 size_bytes=50,
@@ -237,7 +238,7 @@ class TestSummarizeDocsSkill:
     def test_with_mock_llm_provider(self) -> None:
         """Works with mocked LLM provider."""
         docs = [
-            Document(path="doc.md", content="# Test\nContent", size_bytes=15),
+            SummarizableDocument(path="doc.md", content="# Test\nContent", size_bytes=15),
         ]
 
         # Create mock provider
@@ -267,7 +268,7 @@ This is a test summary of the documents.
     def test_handles_llm_error(self) -> None:
         """Handles LLM provider errors gracefully."""
         docs = [
-            Document(path="doc.md", content="Content", size_bytes=7),
+            SummarizableDocument(path="doc.md", content="Content", size_bytes=7),
         ]
 
         mock_provider = MagicMock()
@@ -285,8 +286,8 @@ This is a test summary of the documents.
     def test_sources_populated(self) -> None:
         """Sources list is populated from documents."""
         docs = [
-            Document(path="a.md", content="A", size_bytes=1),
-            Document(path="b.md", content="B", size_bytes=1),
+            SummarizableDocument(path="a.md", content="A", size_bytes=1),
+            SummarizableDocument(path="b.md", content="B", size_bytes=1),
         ]
 
         skill = SummarizeDocsSkill()
@@ -607,10 +608,12 @@ class TestSummarizeV0Pipeline:
         assert load_result.file_count == 2
 
         # Step 2: Summarize (fallback mode - no LLM)
+        # Convert Document objects to SummarizableDocument via dict
+        summarize_docs = [doc.model_dump() for doc in load_result.documents]
         summarize_skill = SummarizeDocsSkill()
         summarize_ctx = SkillContext(provider=None)
         summarize_input = SummarizeDocsInput(
-            documents=load_result.documents,
+            documents=summarize_docs,
             prompt="Summarize the documents",
         )
         summarize_result = summarize_skill.execute(summarize_input, summarize_ctx)
