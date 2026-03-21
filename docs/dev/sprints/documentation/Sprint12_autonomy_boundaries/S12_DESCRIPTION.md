@@ -24,7 +24,7 @@
 ## 1) Metadata
 - **Sprint:** Sprint12
 - **Name:** autonomy_boundaries
-- **Dates:** 2026-03-21 → TBD
+- **Dates:** 2026-03-21 → 2026-03-21
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
