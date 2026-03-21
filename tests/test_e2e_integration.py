@@ -322,7 +322,7 @@ class TestE2EIntegrationMock:
         # Check artifacts registered
         artifacts = artifact_store.list("e2e-test", trace.run_id)
 
-        # Should have at least one artifact (result.md from default playbook)
+        # Should have at least one artifact (step output from default playbook)
         assert len(artifacts) >= 1, "Should create at least one artifact"
 
         # Verify artifact has required metadata

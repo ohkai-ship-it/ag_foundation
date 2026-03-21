@@ -799,6 +799,20 @@ def run(
             loaded_plan.run_id = trace.run_id
             plan_store.save(loaded_plan)
 
+            # AF-0110: Store plan as run artifact
+            from ag.core import Artifact
+
+            plan_json_bytes = loaded_plan.to_json().encode("utf-8")
+            plan_artifact = Artifact(
+                artifact_id=f"{trace.run_id}-plan",
+                path="plan.json",
+                artifact_type="application/json",
+                size_bytes=len(plan_json_bytes),
+            )
+            artifact_store.save(
+                resolved_workspace, trace.run_id, plan_artifact, plan_json_bytes
+            )
+
             # Output results
             if resolved_json:
                 output = json.loads(trace.to_json())

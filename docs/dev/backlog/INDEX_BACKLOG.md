@@ -34,7 +34,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 12 Scope (Active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0110 | P1 | READY | Run layout and plan artifacts refactor | Runtime/Storage/CLI | TBD | [🔗](items/AF0110_READY_run_layout_plan_artifacts.md) |
+| 1 | AF-0110 | P1 | IN_PROGRESS | Run layout and plan artifacts refactor | Runtime/Storage/CLI | TBD | [🔗](items/AF0110_IN_PROGRESS_run_layout_plan_artifacts.md) |
 | 2 | AF-0108 | P1 | IN_PROGRESS | Unify summarization skill | Skills/Playbooks | Jacob | [🔗](items/AF0108_IN_PROGRESS_unify_summarization_skill.md) |
 | 3 | AF-0109 | P1 | IN_PROGRESS | emit_result strict content validation | Skills/Artifacts | TBD | [🔗](items/AF0109_IN_PROGRESS_emit_result_strict_content.md) |
 | 4 | AF-0107 | P1 | IN_PROGRESS | load_documents MD inputs reliability | Skills/Storage | Jacob | [🔗](items/AF0107_IN_PROGRESS_load_documents_md_inputs.md) |

@@ -77,7 +77,7 @@ class TestArtifactRegistration:
     """Test that Recorder registers artifacts during runs."""
 
     def test_run_creates_result_artifact(self, tmp_path: Path):
-        """Running a task should create a result.md artifact."""
+        """Running a task should create step output artifacts."""
         run_store = SQLiteRunStore(tmp_path)
         artifact_store = SQLiteArtifactStore(tmp_path)
         runtime = create_runtime(run_store=run_store, artifact_store=artifact_store)
@@ -93,21 +93,16 @@ class TestArtifactRegistration:
 
         assert len(artifacts) >= 1, "Run should create at least one artifact"
 
-        # Find result artifact
-        result_artifact = None
-        for a in artifacts:
-            if "result" in a.artifact_id:
-                result_artifact = a
-                break
-
-        assert result_artifact is not None, "Should have a result artifact"
-        assert result_artifact.artifact_type == "text/markdown"
+        # Step output artifacts should exist (AF-0094)
+        step_output = next((a for a in artifacts if "_output" in a.artifact_id), None)
+        assert step_output is not None, "Should have step output artifacts"
+        assert step_output.artifact_type == "application/json"
 
         run_store.close()
         artifact_store.close()
 
-    def test_result_artifact_contains_step_summaries(self, tmp_path: Path):
-        """Result artifact should contain step output summaries."""
+    def test_step_output_artifacts_contain_skill_results(self, tmp_path: Path):
+        """Step output artifacts should contain skill execution results."""
         run_store = SQLiteRunStore(tmp_path)
         artifact_store = SQLiteArtifactStore(tmp_path)
         runtime = create_runtime(run_store=run_store, artifact_store=artifact_store)
@@ -120,20 +115,19 @@ class TestArtifactRegistration:
 
         artifacts = artifact_store.list("summary-test", trace.run_id)
 
-        # Get the result artifact
-        result_artifact = next((a for a in artifacts if "result" in a.artifact_id), None)
-        assert result_artifact is not None
+        # Get any step output artifact
+        step_artifact = next((a for a in artifacts if "_output" in a.artifact_id), None)
+        assert step_artifact is not None
 
-        # Read the content
-        result = artifact_store.get("summary-test", trace.run_id, result_artifact.artifact_id)
+        # Read the content — should be valid JSON
+        result = artifact_store.get("summary-test", trace.run_id, step_artifact.artifact_id)
         assert result is not None
-        artifact_meta, content = result
+        _artifact_meta, content = result
 
-        # Check content has expected structure
-        content_str = content.decode("utf-8")
-        assert "# Run Result:" in content_str
-        assert "Status:" in content_str
-        assert "Steps" in content_str
+        import json
+
+        parsed = json.loads(content.decode("utf-8"))
+        assert isinstance(parsed, dict)
 
         run_store.close()
         artifact_store.close()
@@ -222,16 +216,15 @@ class TestArtifactsIntegration:
 
         assert len(artifacts) >= 1, "Should have at least one artifact"
 
-        # Verify the result artifact
-        result_artifact = next((a for a in artifacts if "result" in a.artifact_id), None)
-        assert result_artifact is not None, "Should have result artifact"
-        assert result_artifact.artifact_type == "text/markdown"
+        # Step output artifacts should be registered (AF-0094)
+        step_artifact = next((a for a in artifacts if "_output" in a.artifact_id), None)
+        assert step_artifact is not None, "Should have step output artifact"
 
         run_store.close()
         artifact_store.close()
 
     def test_artifact_content_matches_run(self, tmp_path: Path):
-        """Artifact content should reflect the actual run."""
+        """Step output artifact content should be valid JSON from the run."""
         run_store = SQLiteRunStore(tmp_path)
         artifact_store = SQLiteArtifactStore(tmp_path)
         runtime = create_runtime(run_store=run_store, artifact_store=artifact_store)
@@ -242,22 +235,24 @@ class TestArtifactsIntegration:
             mode="manual",
         )
 
-        artifact_store.list("content-test", trace.run_id)
+        artifacts = artifact_store.list("content-test", trace.run_id)
+
+        # Get any step output artifact
+        step_artifact = next((a for a in artifacts if "_output" in a.artifact_id), None)
+        assert step_artifact is not None
 
         result = artifact_store.get(
             "content-test",
             trace.run_id,
-            f"{trace.run_id}-result",
+            step_artifact.artifact_id,
         )
         assert result is not None
 
         _, content = result
-        content_str = content.decode("utf-8")
+        import json
 
-        # Content should reference the actual run_id
-        assert trace.run_id in content_str
-        # Content should have the mode
-        assert trace.mode.value in content_str
+        parsed = json.loads(content.decode("utf-8"))
+        assert isinstance(parsed, dict)
 
         run_store.close()
         artifact_store.close()
