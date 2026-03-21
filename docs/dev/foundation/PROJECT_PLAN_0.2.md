@@ -1,6 +1,6 @@
 # ag_foundation --- Project Plan
-# Version number: v0.9
-# Updated: 2026-03-20
+# Version number: v1.0
+# Updated: 2026-03-21
 
 ------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ depends on enforcement, resilience, and governance quality gates.
 
 ------------------------------------------------------------------------
 
-# Current State Summary (after Sprint 10)
+# Current State Summary (after Sprint 12)
 
 The system has:
 
@@ -31,6 +31,12 @@ The system has:
 -  Plugin architecture foundation (skills entry points, YAML playbooks)
 -  Gate A (Reliability) PASSED
 -  Gate B (Guided Autonomy) PASSED
+-  Guided autonomy with plan preview and approval (`ag plan`, `ag run --plan`)
+-  V1Planner with multi-output plans and accumulated chaining
+-  Run-centered storage layout (runs/<id>/result.md, trace.json, artifacts/*)
+-  Unified summarization pipeline (synthesize_research)
+-  Strict content emission validation (emit_result)
+-  Autonomy mode visibility in CLI and trace
 
 Canonical governance documents:
 
@@ -38,27 +44,29 @@ Canonical governance documents:
 - `/docs/dev/foundation/SPRINT_MANUAL.md`
 
 Key shift:
-Ready to implement guided autonomy capabilities. Sprint 11 enables plan
-preview, approval workflows, and step-level confirmation.
+Guided autonomy is operational and hardened. Next priority: LLM-powered
+pipeline intelligence (smarter plans, semantic verification, output repair)
+to maximize agent quality for end users.
 
 ------------------------------------------------------------------------
 
-# Strategic Focus (Post-Sprint 10)
+# Strategic Focus (Post-Sprint 12)
 
 We are transitioning from:
 
-> Gate B readiness (reliability + safety hardening)
+> Guided autonomy hardening (output quality + storage boundaries)
 
 to:
 
-> Guided autonomy implementation (plan preview + approval + confirmation)
+> Intelligent pipeline: LLM-powered planning, verification, and repair
 
 Key rule going forward:
 
-- Guided autonomy must prove reliable before goals-only mode
+- Maximize LLM impact for end users: smarter plans, better output quality
+- Pipeline V1 components enable V2 LLM intelligence layer
+- Gate C prerequisites drive sprint scope (replanning, feasibility, evidence)
 - Keep truthful UX and workspace isolation non-negotiable
 - Preserve bounded autonomy: humans define WHAT, agents decide HOW
-- Expand planner autonomy incrementally with user control
 
 ------------------------------------------------------------------------
 
@@ -103,7 +111,7 @@ Exit status of Phase 1:
 
 ------------------------------------------------------------------------
 
-# Phase 2 --- Autonomy Readiness Hardening (Current)
+# Phase 2 --- Autonomy Readiness Hardening (Completed)
 
 This phase operationalizes bounded autonomy with strong enforcement,
 resilience, and deterministic review gates.
@@ -188,7 +196,7 @@ steps, enabling plans that emit both Markdown and JSON from a single run.
 
 ------------------------------------------------------------------------
 
-## Sprint 12 --- Autonomy Boundaries (Current)
+## Sprint 12 --- Autonomy Boundaries (Closed)
 
 Goal: Stabilize guided autonomy output quality and storage boundaries by
 unifying summarization, hardening content emission, and standardizing
@@ -201,20 +209,111 @@ Scope focus:
 - AF-0107 load_documents MD inputs reliability (P1)
 - AF-0105 CLI defaults fix (P2)
 - AF-0106 V1Planner file pattern defaults (P2)
-- AF-0096 Test workspace cleanup pollution (P2)
 - AF-0111 --workspace flag must never create workspace (P1)
 
-Explicitly excluded:
-- AF-0103 LLM Planner V2 (skills+playbooks)
-- AF-0104 LLM Planner V3 (feasibility)
+Exit status:
+✓ Unified summarization pipeline — synthesize_research (AF-0108)
+✓ Strict emit_result content validation enforced (AF-0109)
+✓ Run-centered storage layout standardized (AF-0110)
+✓ load_documents reliability hardened (AF-0107)
+✓ CLI defaults fixed (AF-0105)
+✓ V1Planner file pattern defaults (AF-0106)
+✓ --workspace rejects non-existent names (AF-0111)
+
+Exit status of Phase 2:
+✓ Gate A and Gate B achieved
+✓ Guided autonomy operational with plan preview and approval
+✓ Output quality stabilized with strict content validation
+✓ Storage layout unified under run-centered model
+✓ Ready for intelligent pipeline development (Gate C track)
+
+------------------------------------------------------------------------
+
+# Phase 2b --- Intelligent Pipeline (Gate C Track)
+
+This phase upgrades the mechanical runtime pipeline with LLM intelligence,
+progressing from structural foundations through smart verification to
+full semantic quality assurance. Sprint ordering prioritizes maximum LLM
+impact for end users.
+
+------------------------------------------------------------------------
+
+## Sprint 13 --- LLM Planner Intelligence + Pipeline Foundation
+
+Goal: Deliver smarter LLM-composed plans with playbook awareness, inline
+approval UX, and a V1 Orchestrator for mixed plans, while extracting
+the monolithic runtime and fixing the verifier bug.
+
+Scope focus (2 parallel tracks):
+
+**Track 1: LLM Planner Impact (P1 — user-facing intelligence)**
+- AF-0103 V2 Planner: playbooks as first-class plan steps
+- AF-0112 Inline plan preview and confirm in `ag run`
+- AF-0117 (partial) V1 Orchestrator: mixed skill+playbook plan support
+
+**Track 2: Pipeline Architecture (P1 — structural prerequisite)**
+- AF-0114 Extract pipeline V0s to dedicated files
+- AF-0115 V1 Verifier: step-aware verification (fixes BUG-0017)
 
 Exit criteria:
-- Single summarization skill path (synthesize_research)
-- Strict emit_result content validation (no stub/empty output)
-- Run-centered layout (runs/<id>/result.md, trace.json, artifacts/*)
-- Plan stored under run artifacts, workspace /plans deprecated
-- CLI commands work with sensible defaults
-- --workspace rejects non-existent names (contract tested)
+- V2Planner composes plans using playbooks as macro steps
+- V1Orchestrator handles mixed skill+playbook plans natively
+- `ag run "task"` shows inline plan preview with [Y/n] confirmation
+- `--yes` and `--dry-run` flags operational
+- V0 components extracted to own files (orchestrator.py, executor.py, verifier.py, recorder.py)
+- V1Verifier respects required/optional step flags
+- BUG-0017 resolved
+
+------------------------------------------------------------------------
+
+## Sprint 14 --- Smart Verification Pipeline
+
+Goal: Complete per-step verification with output schema enforcement;
+every skill invocation is validated and retried on failure.
+
+Scope focus:
+- AF-0116 V1 Executor: output schema validation + bounded retry (P1)
+- AF-0117 (remainder) V1 Orchestrator: per-step verification wiring (P1)
+- AF-0118 V1 Recorder: verification evidence persistence (P2)
+- AF-0096 Test workspace cleanup pollution (P2)
+
+Note: V1Orchestrator was created in Sprint 13 for mixed plan support.
+Sprint 14 extends it with per-step verification wiring (V1Executor +
+V1Verifier integration, VERIFICATION steps in trace).
+
+Exit criteria:
+- Skill output validated against declared output_schema
+- Failed validation triggers bounded retry (max 3 attempts)
+- Verification runs after each step, not just end-of-run
+- StepType.VERIFICATION steps emitted in trace
+- `ag runs show` displays per-step verification evidence
+- Test workspace pollution eliminated
+
+------------------------------------------------------------------------
+
+## Sprint 15 --- LLM Intelligence Layer (Gate C Target)
+
+Goal: Add LLM-powered semantic verification, output repair, and
+feasibility judgment. Achieve Gate C readiness.
+
+Scope focus:
+- AF-0104 V3 Planner: feasibility assessment (P1)
+- V2 Verifier: LLM semantic quality checks (P1) — new AF from AF-0115 roadmap
+- V2 Executor: LLM output repair (P2) — new AF from AF-0116 roadmap
+
+Exit criteria:
+- Planner emits feasibility judgment (FULLY / MOSTLY / NOT_FEASIBLE)
+- Planner reports capability gaps and suggests workarounds
+- V2Verifier evaluates output relevance, completeness, consistency via LLM
+- V2Executor attempts LLM repair before full skill re-invocation
+- Gate C conditions substantially met (see Gate table)
+
+Gate C target items addressed across Sprint 13-15:
+- (2) Replanning on step failure: AF-0117 (mixed plans in S13, per-step verification in S14)
+- (3) Feasibility judgment: AF-0104
+- (4) Strategy justification in trace: AF-0118 + V2 Verifier evidence
+- (5) V2Planner composition: AF-0103 + AF-0117 partial (playbooks + V1Orchestrator)
+- (1) Policy engine: deferred (not LLM-dependent)
 
 ------------------------------------------------------------------------
 
@@ -224,7 +323,7 @@ Exit criteria:
 |------|---------|---------------------|--------|
 | Gate A: Reliability | Move from foundation to autonomy-ready execution | warning-clean tests, isolation stability, failure-path coverage, deterministic cleanup | ✅ Passed (Sprint 09) |
 | Gate B: Guided Autonomy | Enable guided planning behavior | policy enforcement present, verifier/failure rigor, trace-derived labels for all new behavior | ✅ Passed (Sprint 10) |
-| Gate C: Goals-Only Preparation | Prepare for dynamic composition | mature policy engine, stronger evidence model, controlled playbook/skill extensibility | Future |
+| Gate C: Goals-Only Preparation | Prepare for dynamic composition | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | 🔄 In Progress (Sprint 13-15) |
 
 Gate rule:
 No sprint may claim autonomy progression while a P0 gate condition is unmet.
@@ -270,13 +369,14 @@ RIGID                                                    AUTONOMOUS
 ```
 
 Current operational mode:
-Transitioning from playbook-driven to guided autonomy (Sprint 11).
+Guided autonomy hardened; building intelligent pipeline (Sprint 13).
 
 Progression status:
 - ✅ Playbook: established and validated
-- ✅ Guided Agent: operational (Sprint 11 closed; multi-output plans validated)
-- 🔄 Guided Agent hardening: Sprint 12 in progress
-- ⏳ Goals Only: future (requires Gate C)
+- ✅ Guided Agent: operational (Sprint 11; multi-output plans validated)
+- ✅ Guided Agent hardening: completed (Sprint 12)
+- 🔄 Intelligent Pipeline: Sprint 13-15 (Gate C track)
+- ⏳ Goals Only: requires Gate C (targeted Sprint 15)
 - ⏳ Full Agent: long-term (policy-engine dependent)
 
 Core principle:
@@ -286,24 +386,25 @@ Humans define WHAT, agents decide HOW.
 
 # Current Strategic Position
 
-**Gate A (Reliability) and Gate B (Guided Autonomy) are now PASSED.**
+**Gate A (Reliability) and Gate B (Guided Autonomy) are PASSED.**
+**Gate C (Goals-Only Preparation) is in progress.**
 
-Sprint 11 delivered guided autonomy capabilities:
-- Plan preview before execution (`ag plan`)
-- Plan approval workflow (`ag run --plan`)
-- Step-level confirmation for high-impact actions
-- Autonomy mode visibility in CLI and trace
-- Multi-output plan support with accumulated chaining (2026-03-21)
+Sprint 12 completed guided autonomy hardening:
+- Unified summarization pipeline (synthesize_research)
+- Strict content emission validation
+- Run-centered storage layout
+- CLI defaults and workspace safety
 
 The next failure mode is:
 
-> Shipping unreliable output quality or fragmented storage while
-> guided autonomy appears to work.
+> Adding LLM intelligence without mechanical correctness underneath;
+> semantic checks must layer on top of deterministic validation.
 
-Near-term focus for Sprint 12:
-- Unify summarization and harden content emission
-- Standardize run-centered storage layout
-- CLI defaults and workspace safety
+Pipeline intelligence roadmap (Sprint 13-15):
+1. Sprint 13: Smarter plans (V2Planner + playbooks) + inline UX + pipeline extraction
+2. Sprint 14: Per-step verification + output schema enforcement + retry
+3. Sprint 15: LLM semantic verification + output repair + feasibility judgment
 
-The path forward is incremental autonomy expansion with explicit gates.
-Guided autonomy must prove reliable before advancing to goals-only mode.
+Prioritization principle: maximum LLM impact for end users first.
+Mechanical foundations (V1) enable intelligent layers (V2).
+Gate C completion targets Sprint 15.

@@ -1,5 +1,5 @@
 # INDEX_SPRINTS
-# Version number: v0.4
+# Version number: v0.5
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -41,6 +41,7 @@ Each sprint folder:
 | Sprint 10 | Closed | [Sprint10_gate_b_readiness](documentation/Sprint10_gate_b_readiness/) |
 | Sprint 11 | Closed | [Sprint11_guided_autonomy_enablement](documentation/Sprint11_guided_autonomy_enablement/) |
 | Sprint 12 | Closed | [Sprint12_autonomy_boundaries](documentation/Sprint12_autonomy_boundaries/) |
+| Sprint 13 | In Progress | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
 
 ---
 

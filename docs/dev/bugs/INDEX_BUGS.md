@@ -1,5 +1,5 @@
 # INDEX_BUGS
-# Version number: v0.4
+# Version number: v0.5
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -19,6 +19,7 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0017 | P1 | OPEN | Verifier ignores optional step failures | Core Runtime / Verifier | [🔗](reports/BUG0017_OPEN_verifier_ignores_optional_steps.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
 | BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |

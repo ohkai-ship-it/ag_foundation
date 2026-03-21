@@ -426,6 +426,8 @@ verifier, skill chaining, policy hooks, or user-visible execution labels.
 | Date | Sprint | Milestone | Evidence |
 |------|--------|-----------|----------|
 | 2026-03-21 | S12 (pre-impl) | V1 Planner produces multi-output plans (two `emit_result` calls) with accumulated chaining | BUG-0016c fix; `plan_486286485e3b` |
+| 2026-03-21 | S13 (planned) | V2Planner composes mixed skill+playbook plans; V1Orchestrator handles playbook expansion inline; V1Verifier respects required/optional steps (BUG-0017 fix); pipeline V0s extracted to dedicated files | AF-0103, AF-0114, AF-0115, AF-0117 (partial) |
+| TBD | S14 (planned) | Per-step verification loop: V1Executor validates output against schema with bounded retry; V1Orchestrator wires per-step verification; VERIFICATION steps in trace; V1Recorder persists verification evidence | AF-0116, AF-0117 (remainder), AF-0118 |
 
 ### 9.4 Decision Rule
 - If any P0 Autonomy Gate item is unchecked: sprint cannot be Closed.
