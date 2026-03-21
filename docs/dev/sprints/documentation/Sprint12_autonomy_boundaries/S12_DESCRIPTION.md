@@ -104,7 +104,7 @@ Excluded explicitly for this sprint:
 - [x] All P0 items are merged
 - [x] Each merged AF has its completion section filled
 - [x] Evidence captured for behavior changes (tests + RunTrace ID(s))
-- [ ] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS)
+- [x] Review completed (ACCEPT WITH FOLLOW-UPS)
 - [x] Repo hygiene executed (per checklist)
 - [x] Indices updated and consistent
 
@@ -162,13 +162,22 @@ Excluded explicitly for this sprint:
 - Review file(s):
   - `S12_REVIEW_01.md`
 - Representative RunTrace IDs:
-  - N/A (no behavior-visible runtime changes requiring trace capture)
+  - `bf02b3bb-930e-4e81-8590-f0cea0b7db9e` — successful dual-emit run (MD + JSON)
+  - `9e70dcf7` — MD-only Düsseldorf history report
+  - `b908e74b` — failure-path run (content validation rejection, pre-fix)
+- Runtime bugfix commits (discovered during live testing):
+  - `04563f1` — strip `previous_step.*` placeholder strings from plan params
+  - `c87b99f` — tolerate trailing commas in LLM JSON output
+  - `461de59` — strip `//` comments from LLM JSON output
+  - `7af500d` — alias fields override placeholder canonical values (BUG-0016b)
+  - `517aba1` — accumulated chaining for multi-emit plans (BUG-0016c)
+  - `4066240` — remove unused `previous_result` variable (ruff F841)
 - Test summary:
-  - 682 passed, 3 deselected
+  - 690 passed, 3 deselected
   - `ruff check src tests` — All checks passed
   - `ruff format --check src tests` — All formatted
-  - `pytest -W error` — 682 passed
-  - Coverage: 89% (3569 statements, 387 missed)
+  - `pytest -W error` — 690 passed
+  - Coverage: 89% (3598 statements, 398 missed)
 
 ---
 
