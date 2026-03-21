@@ -27,6 +27,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
 | AF-0103 | P2 | PROPOSED | LLM Planner V2 (skills+playbooks) | Core Runtime/Planner | TBD | [🔗](items/AF0103_PROPOSED_llm_planner_v2_playbooks.md) |
 | AF-0104 | P2 | PROPOSED | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_PROPOSED_llm_planner_v3_feasibility.md) |
+| AF-0105 | P2 | PROPOSED | CLI defaults verification audit | CLI/QA | TBD | [🔗](items/AF0105_PROPOSED_cli_defaults_verification.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
@@ -34,14 +35,14 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 11 Scope (Active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0102 | P1 | IN_PROGRESS | LLM Planner V1 (skills) | Core Runtime/Planner | TBD | [🔗](items/AF0102_IN_PROGRESS_llm_planner_v1_skills.md) |
-| 2 | AF-0098 | P1 | READY | Plan preview command | CLI/Planner | TBD | [🔗](items/AF0098_READY_plan_preview_command.md) |
-| 3 | AF-0099 | P1 | READY | Plan approval workflow | CLI/Runtime | TBD | [🔗](items/AF0099_READY_plan_approval_workflow.md) |
-| 4 | AF-0100 | P1 | READY | Step confirmation hooks | Runtime/Policy | TBD | [🔗](items/AF0100_READY_step_confirmation_hooks.md) |
-| 5 | AF-0094 | P2 | READY | Trace full I/O enrichment | Core Runtime/Trace | TBD | [🔗](items/AF0094_READY_trace_full_io_enrichment.md) |
-| 6 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | Storage/CLI | TBD | — |
-| 7 | AF-0097 | P3 | READY | runs commands default workspace | CLI/UX | TBD | [🔗](items/AF0097_READY_runs_default_workspace.md) |
-| 8 | AF-0101 | P3 | READY | Autonomy level display | CLI/Trace | TBD | [🔗](items/AF0101_READY_autonomy_level_display.md) |
+| 1 | AF-0102 | P1 | DONE | LLM Planner V1 (skills) | Core Runtime/Planner | Jacob | [✅](items/AF0102_DONE_llm_planner_v1_skills.md) |
+| 2 | AF-0098 | P1 | DONE | Plan preview command | CLI/Planner | Jacob | [✅](items/AF0098_DONE_plan_preview_command.md) |
+| 3 | AF-0099 | P1 | DONE | Plan approval workflow | CLI/Runtime | Jacob | [✅](items/AF0099_DONE_plan_approval_workflow.md) |
+| 4 | AF-0100 | P1 | DONE | Step confirmation hooks | Runtime/Policy | Jacob | [✅](items/AF0100_DONE_step_confirmation_hooks.md) |
+| 5 | AF-0094 | P2 | DONE | Trace full I/O enrichment | Core Runtime/Trace | Jacob | [✅](items/AF0094_DONE_trace_full_io_enrichment.md) |
+| 6 | BUG-0015 | P2 | FIXED | Runs list count mismatch fix | Storage/CLI | Jacob | [✅](../bugs/reports/BUG0015_FIXED_runs_list_count_mismatch.md) |
+| 7 | AF-0097 | P3 | DONE | runs commands default workspace | CLI/UX | Jacob | [✅](items/AF0097_DONE_runs_default_workspace.md) |
+| 8 | AF-0101 | P3 | DONE | Autonomy level display | CLI/Trace | Jacob | [✅](items/AF0101_DONE_autonomy_level_display.md) |
 
 ### Done after Sprint 10
 | ID | Status | Title | Notes | Filename |

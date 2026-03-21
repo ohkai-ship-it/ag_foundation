@@ -439,12 +439,14 @@ class V0Orchestrator:
                             )
                             artifacts.append(step_output_artifact)
                             # Queue for registration after trace is built
-                            pending_artifacts.append((
-                                step_output_artifact_id,
-                                step_output_path,
-                                step_output_content,
-                                "application/json",
-                            ))
+                            pending_artifacts.append(
+                                (
+                                    step_output_artifact_id,
+                                    step_output_path,
+                                    step_output_content,
+                                    "application/json",
+                                )
+                            )
 
                     # AF-0019: Capture subtasks from plan_subtasks skill
                     if skill_name == "plan_subtasks" and success:

@@ -59,6 +59,7 @@ To list workspaces:    ag ws list
 
 ### Synopsis
 - `ag run "<prompt>"`
+- `ag run --plan <plan_id>` (execute pre-approved plan)
 - `ag run --playbook <name>` (override playbook selection)
 - `ag run --reasoning <mode>` (override default reasoning policy; applies to playbook unless overridden per role)
 - `ag run --allow-web` (planned; default false)
@@ -67,6 +68,13 @@ To list workspaces:    ag ws list
 > - `--file <path>` — treat file as input prompt/content
 > - `--task <task.json>` — explicit TaskSpec payload (dev-oriented)
 > - `--confirm` / `--no-confirm` — confirmation behavior (safety hook)
+
+### Plan execution mode (AF-0099)
+When `--plan <plan_id>` is specified:
+- The plan must exist and not be expired
+- Steps execute in order as defined in the plan
+- Trace records `plan_id` for audit
+- `--plan` and `"<prompt>"` are mutually exclusive
 
 ### Output contract
 On success:
@@ -93,6 +101,71 @@ These values must come from the persisted RunTrace fields.
 - `ag run "Draft a sprint plan for Sprint 03"`
 - `ag run --playbook balanced_default "Summarize these notes into bullets"`
 - `ag run --reasoning deep "Critique this proposal and suggest fixes"`
+- `ag run --plan plan_abc123 --workspace demo` (execute pre-approved plan)
+
+---
+
+## `ag plan` — execution plan management (AF-0098, AF-0099)
+
+### Synopsis
+- `ag plan generate --task "<prompt>" [--workspace <id>]`
+- `ag plan show <plan_id> [--workspace <id>]`
+- `ag plan list [--workspace <id>]`
+- `ag plan delete <plan_id> [--workspace <id>]`
+
+### Description
+The plan commands support a **guided autonomy** workflow where:
+1. User requests a plan for a task
+2. LLM planner composes skill sequence
+3. User reviews and approves/rejects
+4. If approved, execute with `ag run --plan <plan_id>`
+
+### Commands
+
+#### `ag plan generate`
+Generate an execution plan without executing it.
+
+Options:
+- `--task <prompt>`: Task description (required)
+- `--workspace <id>`: Target workspace (uses default if not specified)
+
+Output:
+- Plan ID for later reference
+- Proposed skill sequence with estimated tokens
+- Policy flags (external_api, llm_call, file_write)
+- Expiration time (default: 1 hour)
+
+#### `ag plan show <plan_id>`
+Display details of a saved plan.
+
+#### `ag plan list`
+List pending (non-expired) plans in a workspace.
+
+#### `ag plan delete <plan_id>`
+Remove a plan without executing it.
+
+### V1Planner (AF-0102)
+The V1Planner uses an LLM to compose skill sequences:
+- Reads available skills from registry
+- Generates JSON execution plan
+- Validates skill references
+- Estimates token usage
+- Returns confidence score
+
+### Examples
+```bash
+# Generate plan for research task
+ag plan generate --task "Research Berlin weather" -w demo
+
+# Review the plan
+ag plan show plan_abc123 -w demo
+
+# Execute if satisfied
+ag run --plan plan_abc123 -w demo
+
+# Or discard
+ag plan delete plan_abc123 -w demo
+```
 
 ---
 

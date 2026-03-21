@@ -256,7 +256,6 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             # AF-0090: Determine output format from artifact_type parameter
             # Also infer from filename extension if it has a recognized extension
             # (extension takes precedence for explicit requests like "output.json")
-            default_mime = "text/markdown"  # Schema default
             requested_mime = input.artifact_type
             artifact_name_lower = input.artifact_name.lower()
 

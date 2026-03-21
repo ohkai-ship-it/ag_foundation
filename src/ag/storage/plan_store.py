@@ -59,9 +59,7 @@ class FilePlanStore:
 
         return ExecutionPlan.from_json(plan_path.read_text(encoding="utf-8"))
 
-    def list(
-        self, workspace_id: str, include_expired: bool = False
-    ) -> "list[ExecutionPlan]":
+    def list(self, workspace_id: str, include_expired: bool = False) -> "list[ExecutionPlan]":
         """List plans in a workspace, most recent first."""
         from ag.core import ExecutionPlan
 

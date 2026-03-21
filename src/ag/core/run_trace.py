@@ -341,9 +341,7 @@ class AutonomyMetadata(BaseModel):
     """
 
     mode: AutonomyMode = Field(..., description="Execution autonomy mode")
-    plan_id: str | None = Field(
-        default=None, description="Plan ID if mode is guided"
-    )
+    plan_id: str | None = Field(default=None, description="Plan ID if mode is guided")
     confirmation_enabled: bool = Field(
         default=False, description="Whether step confirmation was enabled"
     )

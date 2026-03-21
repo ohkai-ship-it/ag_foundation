@@ -29,6 +29,7 @@ class TestSkillPolicyFlags:
 
     def test_skill_base_has_policy_flags_attribute(self) -> None:
         """Skill base class defines policy_flags as empty list by default."""
+
         # Create a minimal skill
         class MinimalOutput(SkillOutput):
             pass

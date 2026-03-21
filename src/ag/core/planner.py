@@ -182,13 +182,15 @@ class V1Planner:
             info = self.skill_registry.get_info(skill_name)
             if info:
                 # Simplify schema for LLM context (remove verbose JSON Schema metadata)
-                catalog.append({
-                    "name": info["name"],
-                    "description": info["description"],
-                    "requires_llm": info["requires_llm"],
-                    "input": self._simplify_schema(info["input_schema"]),
-                    "output": self._simplify_schema(info["output_schema"]),
-                })
+                catalog.append(
+                    {
+                        "name": info["name"],
+                        "description": info["description"],
+                        "requires_llm": info["requires_llm"],
+                        "input": self._simplify_schema(info["input_schema"]),
+                        "output": self._simplify_schema(info["output_schema"]),
+                    }
+                )
         return catalog
 
     def _simplify_schema(self, schema: dict[str, Any]) -> dict[str, Any]:

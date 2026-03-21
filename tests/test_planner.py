@@ -469,9 +469,7 @@ class TestPlaybookStructure:
 class TestV1PlannerIntegration:
     """Integration-style tests with realistic scenarios."""
 
-    def test_research_task_plan(
-        self, mock_provider: MagicMock, task_spec: TaskSpec
-    ) -> None:
+    def test_research_task_plan(self, mock_provider: MagicMock, task_spec: TaskSpec) -> None:
         """Test planning a research-style task."""
         # Set up registry with research skills
         from ag.skills import create_default_registry

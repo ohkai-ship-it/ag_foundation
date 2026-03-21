@@ -54,9 +54,7 @@ class PlannedStep(BaseModel):
     policy_flags: list[PolicyFlag] = Field(
         default_factory=list, description="Policy flags for this step"
     )
-    parameters: dict[str, Any] = Field(
-        default_factory=dict, description="Planned parameters"
-    )
+    parameters: dict[str, Any] = Field(default_factory=dict, description="Planned parameters")
 
     model_config = {"extra": "forbid"}
 
@@ -85,32 +83,22 @@ class ExecutionPlan(BaseModel):
     executed_at: datetime | None = Field(
         default=None, description="Execution timestamp (if executed)"
     )
-    run_id: str | None = Field(
-        default=None, description="Associated run ID (if executed)"
-    )
+    run_id: str | None = Field(default=None, description="Associated run ID (if executed)")
 
     # Plan content
     planned_steps: list[PlannedStep] = Field(
         default_factory=list, description="Steps with policy annotations"
     )
-    total_estimated_tokens: int = Field(
-        default=0, ge=0, description="Total estimated token usage"
-    )
-    confidence: float = Field(
-        default=0.0, ge=0.0, le=1.0, description="Planner confidence score"
-    )
-    warnings: list[str] = Field(
-        default_factory=list, description="Planner warnings"
-    )
+    total_estimated_tokens: int = Field(default=0, ge=0, description="Total estimated token usage")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Planner confidence score")
+    warnings: list[str] = Field(default_factory=list, description="Planner warnings")
 
     # The underlying playbook
     playbook: Playbook = Field(..., description="Generated playbook for execution")
 
     # Metadata
     planner_version: str = Field(default="v1", description="Planner version used")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional plan metadata"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional plan metadata")
 
     model_config = {"extra": "forbid"}
 

@@ -18,7 +18,7 @@
 ## Metadata
 - **ID:** AF0094
 - **Type:** Implementation
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2 (upgraded based on user feedback)
 - **Area:** Core Runtime / Trace
 - **Owner:** TBD

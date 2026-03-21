@@ -16,7 +16,7 @@
 
 ## Metadata
 - **ID:** BUG-0015
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P2
 - **Area:** Storage / CLI
 - **Reported by:** Kai

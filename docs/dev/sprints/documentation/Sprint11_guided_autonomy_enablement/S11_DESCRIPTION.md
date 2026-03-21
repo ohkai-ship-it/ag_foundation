@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint11
 - **Name:** guided_autonomy_enablement
-- **Dates:** 2026-03-20 → TBD
+- **Dates:** 2026-03-20 → 2026-03-21
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Active
+- **State:** Closed
 - **Branch:** `feat/sprint11-guided-autonomy`
 
 ---
@@ -59,22 +59,22 @@ Key capabilities:
 ### Track 1: LLM Planner + Plan Workflow (P1 — core autonomy)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 1 | AF-0102 | P1 | PROPOSED | LLM Planner V1 (skills) | TBD |
-| 2 | AF-0098 | P1 | READY | Plan preview command | TBD |
-| 3 | AF-0099 | P1 | READY | Plan approval workflow | TBD |
-| 4 | AF-0100 | P1 | READY | Step confirmation hooks | TBD |
+| 1 | AF-0102 | P1 | ✅ DONE | LLM Planner V1 (skills) | Jacob |
+| 2 | AF-0098 | P1 | ✅ DONE | Plan preview command | Jacob |
+| 3 | AF-0099 | P1 | ✅ DONE | Plan approval workflow | Jacob |
+| 4 | AF-0100 | P1 | ✅ DONE | Step confirmation hooks | Jacob |
 
 ### Track 2: Observability for Autonomy (P2 — audit support)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 5 | AF-0094 | P2 | READY | Trace full I/O enrichment | TBD |
-| 6 | BUG-0015 | P2 | OPEN | Runs list count mismatch fix | TBD |
+| 5 | AF-0094 | P2 | ✅ DONE | Trace full I/O enrichment | Jacob |
+| 6 | BUG-0015 | P2 | ✅ FIXED | Runs list count mismatch fix | Jacob |
 
 ### Track 3: UX Polish (P3 — quality of life)
 | Order | ID | Priority | Status | Title | Owner |
 |:--:|---|:--:|:--|---|---|
-| 7 | AF-0097 | P3 | READY | runs commands default workspace | TBD |
-| 8 | AF-0101 | P3 | READY | Autonomy level display | TBD |
+| 7 | AF-0097 | P3 | ✅ DONE | runs commands default workspace | Jacob |
+| 8 | AF-0101 | P3 | ✅ DONE | Autonomy level display | Jacob |
 
 ### Bundled bug fixes
 | Bug | Addressed by |
@@ -147,11 +147,11 @@ guided autonomy mode.
 
 | Capability | Status | Evidence |
 |------------|--------|----------|
-| Plan preview | Target | AF-0098 |
-| Plan approval | Target | AF-0099 |
-| Confirmation hooks | Target | AF-0100 |
-| Trace completeness | Target | AF-0094 |
-| Truthful UX | Maintained | BUG-0015 fix |
+| Plan preview | ✅ Shipped | AF-0098 `ag plan generate/show/list/delete` |
+| Plan approval | ✅ Shipped | AF-0099 `ag run --plan <id>` |
+| Confirmation hooks | ✅ Shipped | AF-0100 policy flags + prompts |
+| Trace completeness | ✅ Shipped | AF-0094 full I/O enrichment |
+| Truthful UX | ✅ Maintained | BUG-0015 count fix, AF-0101 mode display |
 
 ---
 
@@ -169,17 +169,40 @@ guided autonomy mode.
 ## 9) Report (filled at sprint close)
 
 ### What shipped
-_To be filled at sprint close_
+All 8 scope items shipped successfully:
+
+**Track 1 — LLM Planner + Plan Workflow (P1)**
+- ✅ AF-0102: V1Planner with LLM skill composition (19 tests)
+- ✅ AF-0098: `ag plan generate/show/list/delete` commands
+- ✅ AF-0099: `ag run --plan <id>` approval workflow
+- ✅ AF-0100: Step confirmation hooks with policy flags (16 tests)
+
+**Track 2 — Observability (P2)**
+- ✅ AF-0094: Full step I/O in trace (19 tests)
+- ✅ BUG-0015: Runs list count fix
+
+**Track 3 — UX Polish (P3)**
+- ✅ AF-0097: Default workspace for runs commands
+- ✅ AF-0101: Autonomy mode in CLI output
+
+**Evidence:**
+- `pytest -W error`: 676 tests passing
+- `ruff check src tests`: Clean
+- Coverage: 89%
+- Review artifacts: `artifacts/review_S11_01/` (10 evidence files)
 
 ### What didn't ship
-_To be filled at sprint close_
+All scope items shipped. No deferrals.
 
 ### Lessons learned
-_To be filled at sprint close_
+1. **Backlog integrity matters**: Review Pass 0.5 discovered 5 filename/status mismatches that needed correction before sprint close.
+2. **Test isolation pays off**: Confirmation hooks and planner tests needed careful mocking to avoid real LLM calls.
+3. **CLI contract traceability**: Documenting `ag plan` commands in CLI_REFERENCE.md during implementation prevented documentation drift.
+4. **Evidence capture discipline**: Creating artifacts during review passes provides clear audit trail.
 
 ---
 
 ## 10) PR plan
 | PR | Primary AF | Branch | Status |
 |--|--|--|--|
-| PR-01 | Sprint 11 scope | feat/sprint11-guided-autonomy | Not started |
+| PR-01 | Sprint 11 scope | feat/sprint11-guided-autonomy | Ready for merge |

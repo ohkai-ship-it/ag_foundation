@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0100
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Core Runtime / Policy
 - **Owner:** TBD

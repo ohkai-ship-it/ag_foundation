@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0098
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** CLI / Core Runtime / Planner
 - **Owner:** TBD

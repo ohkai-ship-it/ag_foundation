@@ -151,9 +151,7 @@ class PlanStore(Protocol):
         """
         ...
 
-    def list(
-        self, workspace_id: str, include_expired: bool = False
-    ) -> list[ExecutionPlan]:
+    def list(self, workspace_id: str, include_expired: bool = False) -> list[ExecutionPlan]:
         """List plans in a workspace.
 
         Args:

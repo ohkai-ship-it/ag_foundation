@@ -272,29 +272,21 @@ class TestFilePlanStore:
             playbook=playbook,
         )
 
-    def test_save_and_get(
-        self, plan_store: FilePlanStore, sample_plan: ExecutionPlan
-    ) -> None:
+    def test_save_and_get(self, plan_store: FilePlanStore, sample_plan: ExecutionPlan) -> None:
         """save persists plan, get retrieves it."""
         plan_store.save(sample_plan)
-        retrieved = plan_store.get(
-            sample_plan.workspace_id, sample_plan.plan_id
-        )
+        retrieved = plan_store.get(sample_plan.workspace_id, sample_plan.plan_id)
 
         assert retrieved is not None
         assert retrieved.plan_id == sample_plan.plan_id
         assert retrieved.task_prompt == sample_plan.task_prompt
 
-    def test_get_nonexistent_returns_none(
-        self, plan_store: FilePlanStore
-    ) -> None:
+    def test_get_nonexistent_returns_none(self, plan_store: FilePlanStore) -> None:
         """get returns None for non-existent plan."""
         result = plan_store.get("nonexistent-ws", "nonexistent-plan")
         assert result is None
 
-    def test_list_returns_plans(
-        self, plan_store: FilePlanStore, temp_workspaces: Path
-    ) -> None:
+    def test_list_returns_plans(self, plan_store: FilePlanStore, temp_workspaces: Path) -> None:
         """list returns all non-expired plans."""
         ws_id = "list-test"
         playbook = Playbook(name="test", version="1.0")
@@ -313,9 +305,7 @@ class TestFilePlanStore:
         plans = plan_store.list(ws_id)
         assert len(plans) == 3
 
-    def test_list_excludes_expired(
-        self, plan_store: FilePlanStore
-    ) -> None:
+    def test_list_excludes_expired(self, plan_store: FilePlanStore) -> None:
         """list excludes expired plans by default."""
         ws_id = "expire-test"
         playbook = Playbook(name="test", version="1.0")
@@ -343,9 +333,7 @@ class TestFilePlanStore:
         assert len(plans) == 1
         assert plans[0].plan_id == "valid_plan"
 
-    def test_list_includes_expired_when_requested(
-        self, plan_store: FilePlanStore
-    ) -> None:
+    def test_list_includes_expired_when_requested(self, plan_store: FilePlanStore) -> None:
         """list includes expired plans when include_expired=True."""
         ws_id = "include-expired-test"
         playbook = Playbook(name="test", version="1.0")
@@ -371,32 +359,22 @@ class TestFilePlanStore:
         plans = plan_store.list(ws_id, include_expired=True)
         assert len(plans) == 2
 
-    def test_delete(
-        self, plan_store: FilePlanStore, sample_plan: ExecutionPlan
-    ) -> None:
+    def test_delete(self, plan_store: FilePlanStore, sample_plan: ExecutionPlan) -> None:
         """delete removes plan."""
         plan_store.save(sample_plan)
-        deleted = plan_store.delete(
-            sample_plan.workspace_id, sample_plan.plan_id
-        )
+        deleted = plan_store.delete(sample_plan.workspace_id, sample_plan.plan_id)
         assert deleted is True
 
         # Verify deleted
-        result = plan_store.get(
-            sample_plan.workspace_id, sample_plan.plan_id
-        )
+        result = plan_store.get(sample_plan.workspace_id, sample_plan.plan_id)
         assert result is None
 
-    def test_delete_nonexistent_returns_false(
-        self, plan_store: FilePlanStore
-    ) -> None:
+    def test_delete_nonexistent_returns_false(self, plan_store: FilePlanStore) -> None:
         """delete returns False for non-existent plan."""
         deleted = plan_store.delete("any-ws", "nonexistent")
         assert deleted is False
 
-    def test_update_status(
-        self, plan_store: FilePlanStore, sample_plan: ExecutionPlan
-    ) -> None:
+    def test_update_status(self, plan_store: FilePlanStore, sample_plan: ExecutionPlan) -> None:
         """update_status changes plan status."""
         plan_store.save(sample_plan)
         updated = plan_store.update_status(
@@ -406,9 +384,7 @@ class TestFilePlanStore:
         )
         assert updated is True
 
-        retrieved = plan_store.get(
-            sample_plan.workspace_id, sample_plan.plan_id
-        )
+        retrieved = plan_store.get(sample_plan.workspace_id, sample_plan.plan_id)
         assert retrieved is not None
         assert retrieved.status == PlanStatus.APPROVED
 
@@ -445,19 +421,13 @@ class TestPlanCLI:
         assert "delete" in result.output
         assert "list" in result.output
 
-    def test_plan_list_empty(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_list_empty(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan list shows no plans when empty."""
-        result = runner.invoke(
-            app, ["plan", "list", "--workspace", test_workspace]
-        )
+        result = runner.invoke(app, ["plan", "list", "--workspace", test_workspace])
         assert result.exit_code == 0
         assert "No plans found" in result.output
 
-    def test_plan_show_not_found(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_show_not_found(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan show with invalid plan_id fails."""
         result = runner.invoke(
             app,
@@ -466,9 +436,7 @@ class TestPlanCLI:
         assert result.exit_code == 1
         assert "Error" in result.output
 
-    def test_plan_delete_not_found(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_delete_not_found(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan delete with invalid plan_id fails."""
         result = runner.invoke(
             app,
@@ -485,9 +453,7 @@ class TestPlanCLI:
 
     def test_plan_generate_requires_workspace(self) -> None:
         """ag plan generate requires --workspace."""
-        result = runner.invoke(
-            app, ["plan", "generate", "--task", "test task"]
-        )
+        result = runner.invoke(app, ["plan", "generate", "--task", "test task"])
         assert result.exit_code == 1
         assert "workspace" in result.output.lower()
 
@@ -510,9 +476,7 @@ class TestPlanCLIWithMockedPlanner:
         ws.ensure_exists()
         return "plan-test-ws"
 
-    def test_plan_generate_creates_plan(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_generate_creates_plan(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan generate creates and saves a plan."""
         # Create a mock playbook response
         mock_playbook = Playbook(
@@ -530,8 +494,10 @@ class TestPlanCLIWithMockedPlanner:
             metadata={"confidence": 0.85, "warnings": []},
         )
 
-        with patch("ag.providers.registry.get_provider") as mock_get_provider, \
-             patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
@@ -541,9 +507,12 @@ class TestPlanCLIWithMockedPlanner:
             result = runner.invoke(
                 app,
                 [
-                    "plan", "generate",
-                    "--task", "Test task",
-                    "--workspace", test_workspace,
+                    "plan",
+                    "generate",
+                    "--task",
+                    "Test task",
+                    "--workspace",
+                    test_workspace,
                 ],
             )
 
@@ -551,9 +520,7 @@ class TestPlanCLIWithMockedPlanner:
             assert "Plan saved" in result.output
             assert "plan_" in result.output
 
-    def test_plan_generate_json_output(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_generate_json_output(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan generate --json outputs JSON."""
         mock_playbook = Playbook(
             name="v1plan_test",
@@ -561,8 +528,10 @@ class TestPlanCLIWithMockedPlanner:
             metadata={"confidence": 0.9, "warnings": []},
         )
 
-        with patch("ag.providers.registry.get_provider") as mock_get_provider, \
-             patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
@@ -572,9 +541,12 @@ class TestPlanCLIWithMockedPlanner:
             result = runner.invoke(
                 app,
                 [
-                    "plan", "generate",
-                    "--task", "Test task",
-                    "--workspace", test_workspace,
+                    "plan",
+                    "generate",
+                    "--task",
+                    "Test task",
+                    "--workspace",
+                    test_workspace,
                     "--json",
                 ],
             )
@@ -585,9 +557,7 @@ class TestPlanCLIWithMockedPlanner:
             assert "plan_id" in data
             assert "task_prompt" in data
 
-    def test_plan_show_after_generate(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_show_after_generate(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan show displays generated plan."""
         mock_playbook = Playbook(
             name="v1plan_test",
@@ -595,8 +565,10 @@ class TestPlanCLIWithMockedPlanner:
             metadata={"confidence": 0.75, "warnings": []},
         )
 
-        with patch("ag.providers.registry.get_provider") as mock_get_provider, \
-             patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
@@ -607,9 +579,12 @@ class TestPlanCLIWithMockedPlanner:
             gen_result = runner.invoke(
                 app,
                 [
-                    "plan", "generate",
-                    "--task", "Show test",
-                    "--workspace", test_workspace,
+                    "plan",
+                    "generate",
+                    "--task",
+                    "Show test",
+                    "--workspace",
+                    test_workspace,
                     "--json",
                 ],
             )
@@ -627,9 +602,7 @@ class TestPlanCLIWithMockedPlanner:
             assert plan_id in show_result.output
             assert "Show test" in show_result.output
 
-    def test_plan_delete_after_generate(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_plan_delete_after_generate(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag plan delete removes generated plan."""
         mock_playbook = Playbook(
             name="v1plan_test",
@@ -637,8 +610,10 @@ class TestPlanCLIWithMockedPlanner:
             metadata={"confidence": 0.8, "warnings": []},
         )
 
-        with patch("ag.providers.registry.get_provider") as mock_get_provider, \
-             patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
@@ -649,9 +624,12 @@ class TestPlanCLIWithMockedPlanner:
             gen_result = runner.invoke(
                 app,
                 [
-                    "plan", "generate",
-                    "--task", "Delete test",
-                    "--workspace", test_workspace,
+                    "plan",
+                    "generate",
+                    "--task",
+                    "Delete test",
+                    "--workspace",
+                    test_workspace,
                     "--json",
                 ],
             )
@@ -692,8 +670,10 @@ class TestPlanCLIWithMockedPlanner:
             metadata={"confidence": 0.7, "warnings": []},
         )
 
-        with patch("ag.providers.registry.get_provider") as mock_get_provider, \
-             patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
@@ -704,9 +684,12 @@ class TestPlanCLIWithMockedPlanner:
             gen_result = runner.invoke(
                 app,
                 [
-                    "plan", "generate",
-                    "--task", "List test",
-                    "--workspace", test_workspace,
+                    "plan",
+                    "generate",
+                    "--task",
+                    "List test",
+                    "--workspace",
+                    test_workspace,
                     "--json",
                 ],
             )
@@ -775,9 +758,13 @@ class TestPlanExecution:
         result = runner.invoke(
             app,
             [
-                "run", "--plan", "plan_123",
-                "--playbook", "research",
-                "--workspace", test_workspace,
+                "run",
+                "--plan",
+                "plan_123",
+                "--playbook",
+                "research",
+                "--workspace",
+                test_workspace,
             ],
         )
         assert result.exit_code == 1
@@ -790,17 +777,19 @@ class TestPlanExecution:
         result = runner.invoke(
             app,
             [
-                "run", "--plan", "plan_123",
-                "--skill", "emit_result",
-                "--workspace", test_workspace,
+                "run",
+                "--plan",
+                "plan_123",
+                "--skill",
+                "emit_result",
+                "--workspace",
+                test_workspace,
             ],
         )
         assert result.exit_code == 1
         assert "cannot be combined" in result.output.lower()
 
-    def test_run_requires_prompt_or_plan(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_run_requires_prompt_or_plan(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag run requires either a prompt or --plan."""
         result = runner.invoke(
             app,
@@ -809,9 +798,7 @@ class TestPlanExecution:
         assert result.exit_code == 1
         assert "required" in result.output.lower()
 
-    def test_run_plan_expired(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_run_plan_expired(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag run --plan with expired plan fails."""
         # Create an expired plan directly
         plan_store = FilePlanStore(temp_workspaces)
@@ -832,9 +819,7 @@ class TestPlanExecution:
         assert result.exit_code == 1
         assert "expired" in result.output.lower()
 
-    def test_run_plan_workspace_mismatch(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_run_plan_workspace_mismatch(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag run --plan with workspace mismatch fails."""
         plan_store = FilePlanStore(temp_workspaces)
 
@@ -929,10 +914,11 @@ class TestPlanExecutionWithMockedRuntime:
             final=FinalStatus.SUCCESS,
         )
 
-        with patch("ag.cli.main.create_runtime") as mock_create_runtime, \
-             patch("ag.cli.main._get_run_store") as mock_run_store, \
-             patch("ag.cli.main._get_artifact_store") as mock_artifact_store:
-
+        with (
+            patch("ag.cli.main.create_runtime") as mock_create_runtime,
+            patch("ag.cli.main._get_run_store") as mock_run_store,
+            patch("ag.cli.main._get_artifact_store") as mock_artifact_store,
+        ):
             mock_runtime = MagicMock()
             mock_runtime.execute.return_value = mock_trace
             mock_create_runtime.return_value = mock_runtime
@@ -967,9 +953,7 @@ class TestPlanExecutionWithMockedRuntime:
         assert updated_plan.run_id == "mock_run_123"
         assert updated_plan.executed_at is not None
 
-    def test_run_plan_json_output(
-        self, temp_workspaces: Path, test_workspace: str
-    ) -> None:
+    def test_run_plan_json_output(self, temp_workspaces: Path, test_workspace: str) -> None:
         """ag run --plan --json returns proper JSON output."""
         from ag.core.run_trace import (
             ExecutionMode,
@@ -1006,10 +990,11 @@ class TestPlanExecutionWithMockedRuntime:
             final=FinalStatus.SUCCESS,
         )
 
-        with patch("ag.cli.main.create_runtime") as mock_create_runtime, \
-             patch("ag.cli.main._get_run_store"), \
-             patch("ag.cli.main._get_artifact_store"):
-
+        with (
+            patch("ag.cli.main.create_runtime") as mock_create_runtime,
+            patch("ag.cli.main._get_run_store"),
+            patch("ag.cli.main._get_artifact_store"),
+        ):
             mock_runtime = MagicMock()
             mock_runtime.execute.return_value = mock_trace
             mock_create_runtime.return_value = mock_runtime

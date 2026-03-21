@@ -1,0 +1,30 @@
+# Pass 6: Observability Verification
+Date: 2025-01-27
+
+## AF-0094: Trace Enrichment
+- test_trace_enrichment.py: 19/19 PASSED
+- Token tracking fields verified:
+  - total_tokens: 6388
+  - input_tokens: 6068
+  - output_tokens: 320
+
+## BUG-0015: ag runs list count fix
+- `ag runs list --workspace demo` shows:
+  - Total rows displayed: 1
+  - Footer count: "1 total run(s)"
+  - ✓ Count matches displayed rows
+
+## AF-0101: Autonomy Level Display
+- `ag runs list` output includes Mode column: "supervised"
+- `ag runs show` JSON includes autonomy field
+- ✓ Autonomy level exposed in CLI
+
+## Verification Commands
+```
+ag runs list --workspace demo
+ag runs show <run-id> --workspace demo --json
+pytest tests/test_trace_enrichment.py -v --tb=no
+```
+
+## Result: PASS
+All observability requirements verified.

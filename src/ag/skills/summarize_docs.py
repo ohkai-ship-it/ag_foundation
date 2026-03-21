@@ -255,9 +255,7 @@ Output format:
 
 Be factual and cite document names when making specific claims."""
 
-    def _build_user_prompt(
-        self, documents: list[SummarizableDocument], user_prompt: str
-    ) -> str:
+    def _build_user_prompt(self, documents: list[SummarizableDocument], user_prompt: str) -> str:
         """Build user prompt with documents."""
         parts = []
 

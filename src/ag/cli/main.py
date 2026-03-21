@@ -162,9 +162,7 @@ def _resolve_workspace_with_default(resolved_workspace: str | None, command_name
         return env_workspace
 
     # No workspace found - error with guidance
-    err_console.print(
-        f"[bold red]Error:[/bold red] No workspace specified for {command_name}"
-    )
+    err_console.print(f"[bold red]Error:[/bold red] No workspace specified for {command_name}")
     err_console.print()
     err_console.print("Specify a workspace using one of:")
     err_console.print("  1. [cyan]--workspace <name>[/cyan] flag")
@@ -361,9 +359,7 @@ def run(
     reasoning: Optional[str] = typer.Option(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
-    yes: bool = typer.Option(
-        False, "--yes", "-y", help="Skip all confirmation prompts (AF-0100)."
-    ),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip all confirmation prompts (AF-0100)."),
     json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Reduce output."),
     verbose: bool = typer.Option(
@@ -398,9 +394,7 @@ def run(
             )
             raise typer.Exit(code=1)
         if skill:
-            err_console.print(
-                "[bold red]Error:[/bold red] --plan cannot be combined with --skill"
-            )
+            err_console.print("[bold red]Error:[/bold red] --plan cannot be combined with --skill")
             raise typer.Exit(code=1)
     elif not prompt:
         err_console.print("[bold red]Error:[/bold red] prompt argument is required")
@@ -755,9 +749,7 @@ def run(
 
         # Validate workspace matches
         if loaded_plan.workspace_id != resolved_workspace:
-            err_console.print(
-                "[bold red]Error:[/bold red] Plan workspace mismatch"
-            )
+            err_console.print("[bold red]Error:[/bold red] Plan workspace mismatch")
             err_console.print(f"  Plan workspace: {loaded_plan.workspace_id}")
             err_console.print(f"  Current workspace: {resolved_workspace}")
             raise typer.Exit(code=1)
@@ -832,9 +824,7 @@ def run(
                         console.print()
                         console.print(f"  Steps: {len(trace.steps)}")
                         for step in trace.steps:
-                            status_mark = (
-                                "[green]✓[/green]" if not step.error else "[red]✗[/red]"
-                            )
+                            status_mark = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
                             skill_name = step.skill_name or "reasoning"
                             console.print(f"    {status_mark} {step.step_number}: {skill_name}")
 
@@ -1279,12 +1269,8 @@ def _get_skill_policy_flags() -> dict[str, list[str]]:
 def plan_generate(
     ctx: typer.Context,
     task: str = typer.Option(..., "--task", "-t", help="Task description to plan."),
-    workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Workspace ID."
-    ),
-    ttl: int = typer.Option(
-        3600, "--ttl", help="Plan time-to-live in seconds (default: 3600)."
-    ),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    ttl: int = typer.Option(3600, "--ttl", help="Plan time-to-live in seconds (default: 3600)."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """Generate an execution plan without executing it.
@@ -1377,12 +1363,10 @@ def plan_generate(
         console.print()
         console.print(f"[green]Plan saved:[/green] {plan_id}")
         console.print(
-            f"[dim]To execute: ag run --plan {plan_id} "
-            f"--workspace {resolved_workspace}[/dim]"
+            f"[dim]To execute: ag run --plan {plan_id} --workspace {resolved_workspace}[/dim]"
         )
         console.print(
-            f"[dim]To discard: ag plan delete {plan_id} "
-            f"--workspace {resolved_workspace}[/dim]"
+            f"[dim]To discard: ag plan delete {plan_id} --workspace {resolved_workspace}[/dim]"
         )
 
 
@@ -1410,9 +1394,7 @@ def _display_plan(plan: "ExecutionPlan") -> None:
     table.add_column("Status")
 
     for step in plan.planned_steps:
-        flag_values = [
-            f.value if hasattr(f, "value") else f for f in step.policy_flags
-        ]
+        flag_values = [f.value if hasattr(f, "value") else f for f in step.policy_flags]
         flags_str = ", ".join(flag_values) or "—"
         table.add_row(
             str(step.step_number),
@@ -1428,14 +1410,14 @@ def _display_plan(plan: "ExecutionPlan") -> None:
 
     # Count policy warnings
     external_count = sum(
-        1 for s in plan.planned_steps
+        1
+        for s in plan.planned_steps
         for f in s.policy_flags
         if (f.value if hasattr(f, "value") else f) == "external_api"
     )
     if external_count > 0:
         console.print(
-            f"[yellow]Policy warnings:[/yellow] "
-            f"{external_count} steps require external API access"
+            f"[yellow]Policy warnings:[/yellow] {external_count} steps require external API access"
         )
 
 
@@ -1443,9 +1425,7 @@ def _display_plan(plan: "ExecutionPlan") -> None:
 def plan_show(
     ctx: typer.Context,
     plan_id: str = typer.Argument(..., help="Plan ID to show."),
-    workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Workspace ID."
-    ),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """Show details of a saved plan.
@@ -1490,9 +1470,7 @@ def plan_show(
 def plan_delete(
     ctx: typer.Context,
     plan_id: str = typer.Argument(..., help="Plan ID to delete."),
-    workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Workspace ID."
-    ),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """Delete a saved plan.
@@ -1525,12 +1503,8 @@ def plan_delete(
 @plan_app.command("list")
 def plan_list(
     ctx: typer.Context,
-    workspace: Optional[str] = typer.Option(
-        None, "--workspace", "-w", help="Workspace ID."
-    ),
-    all_plans: bool = typer.Option(
-        False, "--all", "-a", help="Include expired plans."
-    ),
+    workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Workspace ID."),
+    all_plans: bool = typer.Option(False, "--all", "-a", help="Include expired plans."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
     """List pending plans in a workspace.

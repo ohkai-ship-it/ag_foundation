@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0102
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Core Runtime / Planner
 - **Owner:** TBD
