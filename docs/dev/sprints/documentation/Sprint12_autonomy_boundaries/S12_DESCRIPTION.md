@@ -50,6 +50,8 @@ Stabilize guided autonomy output quality and storage boundaries by unifying summ
 ### Nice-to-have (P2)
 - AF0105 — CLI defaults verification audit (Owner: TBD)
 - AF0106 — V1Planner file pattern defaults (Owner: TBD)
+- AF0096 — Test workspace cleanup pollution (Owner: TBD)
+- AF0111 — --workspace flag must never create (Owner: Jacob)
 
 Excluded explicitly for this sprint:
 - AF0103 — LLM Planner V2 (skills+playbooks)
@@ -64,16 +66,16 @@ Excluded explicitly for this sprint:
 - [x] Define sprint ID + sprint name
 
 ### Jacob
-- [ ] Read sprint description
-- [ ] Check AFs in `/docs/dev/backlog/items/`
-- [ ] Ask clarifying questions in chat (no writing required)
-- [ ] Create branch
+- [x] Read sprint description
+- [x] Check AFs in `/docs/dev/backlog/items/`
+- [x] Ask clarifying questions in chat (no writing required)
+- [x] Create branch (`feat/sprint12-autonomy-boundaries`)
 - [x] Create sprint folder
-- [ ] Update INDEX files (ritual at sprint start):
-  - `/docs/dev/backlog/INDEX_BACKLOG.md`
-  - `/docs/dev/bugs/INDEX_BUGS.md`
-  - `/docs/dev/decisions/INDEX_DECISIONS.md`
-  - `/docs/dev/sprints/INDEX_SPRINTS.md`
+- [x] Update INDEX files (ritual at sprint start):
+  - `/docs/dev/backlog/INDEX_BACKLOG.md` — 4 AFs promoted PROPOSED → READY
+  - `/docs/dev/bugs/INDEX_BUGS.md` — no changes needed
+  - `/docs/dev/decisions/INDEX_DECISIONS.md` — no changes needed
+  - `/docs/dev/sprints/INDEX_SPRINTS.md` — already Active
 - [ ] Confirm with Kai before starting implementation
 
 > **INDEX update rule (strict):**
@@ -83,12 +85,18 @@ Excluded explicitly for this sprint:
 ---
 
 ## 5) PR plan (expected slices)
-> Rule: **1 PR = 1 primary AF item.**
+> Rule: **1 PR = 1 sprint (per SPRINT_MANUAL §1.1 + §6.0).**
 
-- PR1: AF0110 — Run layout and plan artifacts refactor — branch `feat/s12-run-layout-plan-artifacts`
-- PR2: AF0108 — Unify summarization skill — branch `feat/s12-unify-summarization-skill`
-- PR3: AF0109 — emit_result strict content validation — branch `feat/s12-emit-result-strict-content`
-- PR4: AF0107 — load_documents MD inputs reliability — branch `fix/s12-load-documents-md-inputs`
+- **Single branch:** `feat/sprint12-autonomy-boundaries`
+- **Single PR at sprint close** covering all scope items:
+  - AF0107 — load_documents MD inputs reliability
+  - AF0108 — Unify summarization skill
+  - AF0109 — emit_result strict content validation
+  - AF0110 — Run layout and plan artifacts refactor
+  - AF0111 — --workspace flag must never create
+  - AF0105 — CLI defaults verification audit
+  - AF0106 — V1Planner file pattern defaults
+  - AF0096 — Test workspace cleanup pollution
 
 ---
 

@@ -1,7 +1,7 @@
 # AF-0105 — CLI defaults fix
 # Version number: v0.2
 # Created: 2026-03-21
-# Status: PROPOSED
+# Status: READY
 # Priority: P2
 # Area: CLI/QA
 

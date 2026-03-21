@@ -1,7 +1,7 @@
 # AF-0096 — Test workspace cleanup pollution
 # Version number: v0.1
 # Created: 2026-03-12
-# Status: PROPOSED
+# Status: READY
 # Priority: P2
 # Area: Testing/Storage
 
