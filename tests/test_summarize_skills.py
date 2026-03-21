@@ -390,7 +390,7 @@ class TestEmitResultSkill:
         assert "custom-output.json" in result.artifact_path
 
     def test_artifact_metadata(self, tmp_path: Path) -> None:
-        """Artifact contains proper metadata."""
+        """Artifact contains proper metadata (JSON format)."""
         skill = EmitResultSkill()
         ctx = SkillContext(
             workspace_path=tmp_path,
@@ -401,6 +401,7 @@ class TestEmitResultSkill:
             document_summary="test result",
             key_points=["point 1", "point 2"],
             sources=["file1.md"],
+            artifact_name="metadata.json",  # Explicit JSON for this test
         )
 
         result = skill.execute(input_data, ctx)
@@ -671,12 +672,12 @@ class TestSchemaValidation:
         assert input_data.max_tokens == 2000
 
     def test_emit_result_input_defaults(self) -> None:
-        """EmitResultInput has sensible defaults."""
+        """EmitResultInput has sensible defaults (Markdown for human readability)."""
         input_data = EmitResultInput()
         assert input_data.document_summary == ""
         assert input_data.key_points == []
-        assert input_data.artifact_name == "summary.json"
-        assert input_data.artifact_type == "application/json"
+        assert input_data.artifact_name == "summary.md"
+        assert input_data.artifact_type == "text/markdown"
 
     def test_document_schema(self) -> None:
         """Document schema works correctly."""

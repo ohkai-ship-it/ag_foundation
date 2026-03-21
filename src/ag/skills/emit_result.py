@@ -104,13 +104,13 @@ class EmitResultInput(SkillInput):
         description="Alias for sources (from synthesize_research)",
     )
 
-    # Artifact configuration
+    # Artifact configuration — default to Markdown for human-readable output
     artifact_name: str = Field(
-        default="summary.json",
+        default="summary.md",
         description="Name for the artifact file",
     )
     artifact_type: str = Field(
-        default="application/json",
+        default="text/markdown",
         description="MIME type of the artifact",
     )
 
@@ -254,19 +254,20 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
             artifacts_dir.mkdir(parents=True, exist_ok=True)
 
             # AF-0090: Determine output format from artifact_type parameter
-            # For backwards compatibility, also infer from filename extension if artifact_type
-            # is the default value and filename has a recognized extension
-            default_mime = "application/json"
+            # Also infer from filename extension if it has a recognized extension
+            # (extension takes precedence for explicit requests like "output.json")
+            default_mime = "text/markdown"  # Schema default
             requested_mime = input.artifact_type
             artifact_name_lower = input.artifact_name.lower()
 
-            # Backwards compatibility: infer from filename extension if using default type
-            if requested_mime == default_mime:
-                if artifact_name_lower.endswith((".md", ".markdown")):
-                    requested_mime = "text/markdown"
-                elif artifact_name_lower.endswith(".txt"):
-                    requested_mime = "text/plain"
-                # else keep default application/json
+            # Infer from filename extension (extension takes precedence)
+            if artifact_name_lower.endswith((".json",)):
+                requested_mime = "application/json"
+            elif artifact_name_lower.endswith((".md", ".markdown")):
+                requested_mime = "text/markdown"
+            elif artifact_name_lower.endswith(".txt"):
+                requested_mime = "text/plain"
+            # else keep requested_mime (from artifact_type parameter)
 
             # Map MIME types to file extensions
             mime_to_ext = {
