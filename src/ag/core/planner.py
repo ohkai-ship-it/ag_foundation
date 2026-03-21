@@ -47,6 +47,7 @@ from ag.core.playbook import (
     ReasoningMode,
 )
 from ag.core.task_spec import TaskSpec
+from ag.playbooks import DEFAULT_V0, get_playbook
 from ag.providers.base import ChatMessage, LLMProvider, MessageRole
 from ag.skills import SkillRegistry
 
@@ -83,6 +84,25 @@ class PlannerError(Exception):
     """Error during plan generation."""
 
     pass
+
+
+# ---------------------------------------------------------------------------
+# V0 Planner Implementation (extracted from runtime.py, AF-0114)
+# ---------------------------------------------------------------------------
+
+
+class V0Planner:
+    """v0 Planner: selects playbook (always default_v0 for now)."""
+
+    def plan(self, task: TaskSpec) -> Playbook:
+        """Select playbook for task execution."""
+        # v0: Honor preference if valid, otherwise use default
+        if task.playbook_preference:
+            playbook = get_playbook(task.playbook_preference)
+            if playbook:
+                return playbook
+
+        return DEFAULT_V0
 
 
 # ---------------------------------------------------------------------------

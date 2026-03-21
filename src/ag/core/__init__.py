@@ -16,6 +16,7 @@ from .execution_plan import (
     PolicyFlag,
     create_execution_plan,
 )
+from .executor import V0Executor
 from .interfaces import (
     Executor,
     Normalizer,
@@ -26,8 +27,14 @@ from .interfaces import (
 from .interfaces import (
     Verifier as VerifierProtocol,
 )
+from .orchestrator import (
+    TrackingLLMProvider,
+    V0Orchestrator,
+    _adapt_document_to_source,
+)
 from .planner import (
     PlannerError,
+    V0Planner,
     V1Planner,
 )
 from .playbook import (
@@ -37,6 +44,7 @@ from .playbook import (
     PlaybookStepType,
     ReasoningMode,
 )
+from .recorder import V0Recorder
 from .run_trace import (
     Artifact,
     ArtifactCategory,
@@ -58,12 +66,7 @@ from .run_trace import (
 )
 from .runtime import (
     Runtime,
-    V0Executor,
     V0Normalizer,
-    V0Orchestrator,
-    V0Planner,
-    V0Recorder,
-    V0Verifier,
     create_runtime,
 )
 from .schema_verifier import (
@@ -83,6 +86,7 @@ from .task_spec import (
     TaskSpec,
     TaskSpecBuilder,
 )
+from .verifier import V0Verifier
 
 __all__ = [
     # task_spec
@@ -136,6 +140,8 @@ __all__ = [
     "V0Executor",
     "V0Verifier",
     "V0Recorder",
+    "TrackingLLMProvider",
+    "_adapt_document_to_source",
     "create_runtime",
     # planner (AF-0102)
     "V1Planner",
