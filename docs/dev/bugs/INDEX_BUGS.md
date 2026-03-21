@@ -22,13 +22,14 @@
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
 | BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |
-| BUG-0015 | P2 | OPEN | Runs list count mismatch (orphaned index) | Storage/CLI | [🔗](reports/BUG0015_OPEN_runs_list_count_mismatch.md) |
 
 ---
 
 ## FIXED bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0016 | P1 | FIXED | Plan steps not executed (--plan ignores planned_steps) | Core Runtime | [🔗](reports/BUG0016_FIXED_plan_steps_not_executed.md) |
+| BUG-0015 | P2 | FIXED | Runs list count mismatch (orphaned index) | Storage/CLI | [🔗](reports/BUG0015_FIXED_runs_list_count_mismatch.md) |
 | BUG-0012 | P2 | FIXED | Test workspace cleanup pollution | Testing/Storage | [🔗](reports/BUG0012_FIXED_test_workspace_cleanup.md) |
 | BUG-0014 | P2 | FIXED | Trace summary encoding degradation | Core Runtime/Trace | [🔗](reports/BUG0014_FIXED_trace_summary_encoding.md) |
 | BUG-0007 | P1 | FIXED | OpenAI provider test isolation failure | Testing | [🔗](reports/BUG0007_FIXED_openai_test_isolation.md) |

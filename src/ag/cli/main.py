@@ -779,13 +779,14 @@ def run(
                 artifact_store=artifact_store,
             )
 
-            # Execute using plan's playbook and task prompt
+            # BUG-0016 FIX: Pass the plan's playbook object directly
+            # This ensures the planned_steps are executed, not the default playbook
             trace = runtime.execute(
                 prompt=loaded_plan.task_prompt,
                 workspace=resolved_workspace,
                 mode=mode,
-                playbook=loaded_plan.playbook.name,
                 workspace_source=workspace_source,
+                playbook_object=loaded_plan.playbook,  # Pass actual Playbook, not name
             )
 
             # AF-0099: Link plan and trace

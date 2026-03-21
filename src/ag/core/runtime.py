@@ -14,8 +14,6 @@ from uuid import uuid4
 from ag.core.playbook import Playbook
 from ag.core.run_trace import (
     Artifact,
-    AutonomyMetadata,
-    AutonomyMode,
     FinalStatus,
     LLMExecution,
     PlaybookMetadata,
@@ -674,6 +672,7 @@ class Runtime:
         mode: str = "llm",
         playbook: str | None = None,
         workspace_source: str | None = None,
+        playbook_object: Playbook | None = None,
     ) -> RunTrace:
         """Execute a task and return the trace.
 
@@ -681,8 +680,9 @@ class Runtime:
             prompt: User's task description
             workspace: Workspace ID (auto-generated if not provided)
             mode: Execution mode ('manual' or 'llm')
-            playbook: Playbook name preference
+            playbook: Playbook name preference (used if playbook_object not provided)
             workspace_source: How the workspace was resolved (AF-0030)
+            playbook_object: Pre-built Playbook to execute directly (for plan execution)
 
         Returns:
             RunTrace capturing the execution
@@ -695,8 +695,11 @@ class Runtime:
             playbook=playbook,
         )
 
-        # Plan
-        selected_playbook = self._planner.plan(task)
+        # Plan - skip if playbook_object provided (e.g., from ExecutionPlan)
+        if playbook_object is not None:
+            selected_playbook = playbook_object
+        else:
+            selected_playbook = self._planner.plan(task)
 
         # Execute
         trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)

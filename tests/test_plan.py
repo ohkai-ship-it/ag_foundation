@@ -954,7 +954,11 @@ class TestPlanExecutionWithMockedRuntime:
             mock_runtime.execute.assert_called_once()
             call_kwargs = mock_runtime.execute.call_args.kwargs
             assert call_kwargs["prompt"] == "Execute this test task"
-            assert call_kwargs["playbook"] == "test_playbook"
+            # BUG-0016 FIX: Verify playbook_object is passed (not just name)
+            assert "playbook_object" in call_kwargs
+            assert call_kwargs["playbook_object"].name == "test_playbook"
+            assert len(call_kwargs["playbook_object"].steps) == 1
+            assert call_kwargs["playbook_object"].steps[0].skill_name == "emit_result"
 
         # Verify plan status was updated
         updated_plan = plan_store.get(test_workspace, "exec_plan")

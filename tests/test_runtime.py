@@ -201,6 +201,40 @@ class TestRuntimeHappyPath:
 
         assert trace.playbook.name == "default_v0"
 
+    def test_playbook_object_bypasses_planner(self, runtime: "Runtime") -> None:
+        """BUG-0016: playbook_object parameter bypasses planner selection."""
+        from ag.core import Playbook, PlaybookStep, PlaybookStepType
+
+        # Create a custom playbook with a specific skill
+        custom_playbook = Playbook(
+            name="custom_test_playbook",
+            version="1.0.0",
+            description="Test playbook for BUG-0016 fix",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test Echo",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="echo",  # Use echo skill which exists in registry
+                    parameters={"message": "BUG-0016 test"},
+                ),
+            ],
+        )
+
+        trace = runtime.execute(
+            prompt="Test task",
+            workspace="ws-test",
+            playbook_object=custom_playbook,
+        )
+
+        # Verify the custom playbook was used, not default
+        assert trace.playbook.name == "custom_test_playbook"
+        assert trace.playbook.version == "1.0.0"
+
+        # Verify the step was executed
+        assert len(trace.steps) >= 1
+        assert any(s.skill_name == "echo" for s in trace.steps)
+
 
 # ---------------------------------------------------------------------------
 # Failure Path Tests
