@@ -35,7 +35,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0110 | P1 | READY | Run layout and plan artifacts refactor | Runtime/Storage/CLI | TBD | [🔗](items/AF0110_READY_run_layout_plan_artifacts.md) |
-| 2 | AF-0108 | P1 | READY | Unify summarization skill | Skills/Playbooks | TBD | [🔗](items/AF0108_READY_unify_summarization_skill.md) |
+| 2 | AF-0108 | P1 | IN_PROGRESS | Unify summarization skill | Skills/Playbooks | Jacob | [🔗](items/AF0108_IN_PROGRESS_unify_summarization_skill.md) |
 | 3 | AF-0109 | P1 | READY | emit_result strict content validation | Skills/Artifacts | TBD | [🔗](items/AF0109_READY_emit_result_strict_content.md) |
 | 4 | AF-0107 | P1 | IN_PROGRESS | load_documents MD inputs reliability | Skills/Storage | Jacob | [🔗](items/AF0107_IN_PROGRESS_load_documents_md_inputs.md) |
 | 5 | AF-0105 | P2 | READY | CLI defaults fix | CLI/QA | TBD | [🔗](items/AF0105_READY_cli_defaults_fix.md) |

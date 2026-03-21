@@ -101,6 +101,27 @@ class TrackingLLMProvider:
 
 
 # ---------------------------------------------------------------------------
+# AF-0108: Pipeline document conversion adapter
+# ---------------------------------------------------------------------------
+
+
+def _adapt_document_to_source(doc: dict[str, Any] | Any) -> dict[str, Any]:
+    """Convert a Document dict to SourceDocument-compatible dict.
+
+    Bridges load_documents output (Document schema) to synthesize_research
+    input (SourceDocument schema) during pipeline chaining.
+    """
+    if isinstance(doc, dict) and "path" in doc and "source" not in doc:
+        return {
+            "source": doc["path"],
+            "content": doc.get("content", ""),
+            "title": None,
+            "source_type": "file",
+        }
+    return doc
+
+
+# ---------------------------------------------------------------------------
 # v0 Normalizer Implementation
 # ---------------------------------------------------------------------------
 
@@ -361,11 +382,25 @@ class V0Orchestrator:
                 if skill_name:
                     # Build skill parameters: merge step params with task context
                     # AF-0065: Include previous step result for pipeline chaining
+                    chained_result = previous_result
+                    # AF-0108: Convert Document dicts to SourceDocument format
+                    # when chaining load_documents output to synthesize_research
+                    if (
+                        skill_name == "synthesize_research"
+                        and "documents" in chained_result
+                    ):
+                        chained_result = {
+                            **chained_result,
+                            "documents": [
+                                _adapt_document_to_source(doc)
+                                for doc in chained_result["documents"]
+                            ],
+                        }
                     skill_params = {
                         "prompt": task.prompt,
                         "step": i,
                         **playbook_step.parameters,
-                        **previous_result,  # Chain previous step output
+                        **chained_result,  # Chain previous step output
                     }
                     # AF-0019: Pass subtasks context to execute_subtask skills
                     if skill_name == "execute_subtask" and planned_subtasks:

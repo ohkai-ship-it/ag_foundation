@@ -2,7 +2,7 @@
 
 AF-0065: A three-step playbook for document summarization:
 1. load_documents - Read files from workspace
-2. summarize_docs - Call LLM to summarize
+2. synthesize_research - Call LLM to synthesize/summarize (AF-0108: replaces summarize_docs)
 3. emit_result - Store output as artifact
 """
 
@@ -37,10 +37,10 @@ SUMMARIZE_V0 = Playbook(
         ),
         PlaybookStep(
             step_id="step_1",
-            name="summarize",
+            name="synthesize",
             step_type=PlaybookStepType.SKILL,
-            skill_name="summarize_docs",
-            description="Call LLM to summarize document contents",
+            skill_name="synthesize_research",
+            description="Call LLM to synthesize document contents",
             required=True,
             retry_count=1,
         ),

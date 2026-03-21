@@ -13,7 +13,7 @@ Package Structure:
     registry.py     — SkillRegistry for typed skill management (V1 removed in AF0079)
     stubs.py        — Test stub skills (echo_tool, fail_skill)
     load_documents.py  — Production skill: loads documents from workspace
-    summarize_docs.py  — Production skill: LLM-powered document summarization
+    synthesize_research.py — Production skill: LLM-powered document synthesis (AF-0108: canonical)
     emit_result.py     — Production skill: emits final results to trace
 
 Quick Start (Creating a New Skill):
@@ -52,12 +52,6 @@ from .registry import (
     create_default_registry,
     get_default_registry,
 )
-from .summarize_docs import (
-    SummarizableDocument,
-    SummarizeDocsInput,
-    SummarizeDocsOutput,
-    SummarizeDocsSkill,
-)
 from .web_search import (
     SearchResult,
     WebSearchInput,
@@ -89,10 +83,6 @@ __all__ = [
     "LoadDocumentsInput",
     "LoadDocumentsOutput",
     "LoadDocumentsSkill",
-    "SummarizableDocument",
-    "SummarizeDocsInput",
-    "SummarizeDocsOutput",
-    "SummarizeDocsSkill",
     "EmitResultInput",
     "EmitResultOutput",
     "EmitResultSkill",
