@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v1.0
+# Version number: v1.1
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -24,15 +24,26 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
 | AF-0103 | P2 | PROPOSED | LLM Planner V2 (skills+playbooks) | Core Runtime/Planner | TBD | [🔗](items/AF0103_PROPOSED_llm_planner_v2_playbooks.md) |
 | AF-0104 | P2 | PROPOSED | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_PROPOSED_llm_planner_v3_feasibility.md) |
-| AF-0105 | P2 | PROPOSED | CLI defaults verification audit | CLI/QA | TBD | [🔗](items/AF0105_PROPOSED_cli_defaults_verification.md) |
+
 
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 11 Scope (Active)
+### Sprint 12 Scope (Active)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0110 | P1 | READY | Run layout and plan artifacts refactor | Runtime/Storage/CLI | TBD | [🔗](items/AF0110_READY_run_layout_plan_artifacts.md) |
+| 2 | AF-0108 | P1 | READY | Unify summarization skill | Skills/Playbooks | TBD | [🔗](items/AF0108_READY_unify_summarization_skill.md) |
+| 3 | AF-0109 | P1 | READY | emit_result strict content validation | Skills/Artifacts | TBD | [🔗](items/AF0109_READY_emit_result_strict_content.md) |
+| 4 | AF-0107 | P1 | READY | load_documents MD inputs reliability | Skills/Storage | TBD | [🔗](items/AF0107_READY_load_documents_md_inputs.md) |
+| 5 | AF-0105 | P2 | PROPOSED | CLI defaults fix | CLI/QA | TBD | [🔗](items/AF0105_PROPOSED_cli_defaults_fix.md) |
+| 6 | AF-0106 | P2 | PROPOSED | V1Planner file pattern defaults | Planner/Skills | TBD | [🔗](items/AF0106_PROPOSED_planner_file_pattern_defaults.md) |
+| 7 | AF-0096 | P2 | PROPOSED | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_PROPOSED_test_workspace_cleanup.md) |
+| 8 | AF-0111 | P1 | PROPOSED | --workspace flag must never create | CLI/Storage | TBD | [🔗](items/AF0111_PROPOSED_workspace_flag_no_create.md) |
+
+### Sprint 11 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0102 | P1 | DONE | LLM Planner V1 (skills) | Core Runtime/Planner | Jacob | [✅](items/AF0102_DONE_llm_planner_v1_skills.md) |
