@@ -331,6 +331,42 @@ class TestResponseParsing:
         assert len(response.steps) == 1
         assert response.steps[0].skill == "mock_skill"
 
+    def test_parse_strips_line_comments(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser strips // comments from LLM JSON output."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_comments = (
+            "{\n"
+            "  // This is the plan\n"
+            '  "steps": [{"skill": "mock_skill", "params": {},'
+            ' "rationale": "test"}],\n'
+            '  "estimated_tokens": 100, // token estimate\n'
+            '  "confidence": 0.8\n'
+            "}"
+        )
+        response = planner._parse_response(json_with_comments)
+
+        assert len(response.steps) == 1
+        assert response.confidence == 0.8
+
+    def test_parse_preserves_urls_in_strings(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser does not strip // inside quoted string values (e.g. URLs)."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_url = (
+            '{"steps": [{"skill": "mock_skill",'
+            ' "params": {"url": "https://example.com/path"},'
+            ' "rationale": "fetch from https://example.com"}],'
+            ' "estimated_tokens": 100, "confidence": 0.8}'
+        )
+        response = planner._parse_response(json_with_url)
+
+        assert response.steps[0].params["url"] == "https://example.com/path"
+
 
 # ---------------------------------------------------------------------------
 # Error Handling Tests

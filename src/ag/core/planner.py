@@ -329,8 +329,23 @@ Respond with a JSON plan."""
                     json_lines.append(line)
             json_str = "\n".join(json_lines)
 
-        # Clean common LLM JSON errors (trailing commas)
-        json_str = re.sub(r",\s*([}\]])", r"\1", json_str)
+        # Clean common LLM JSON errors
+        # Strip // line comments (outside quoted strings) by processing line-by-line
+        cleaned_lines: list[str] = []
+        for line in json_str.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith("//"):
+                continue  # skip full-line comments
+            # Remove trailing // comments only if not inside a string value
+            # Simple heuristic: count unescaped quotes before the //
+            comment_pos = line.find("//")
+            if comment_pos > 0:
+                prefix = line[:comment_pos]
+                if prefix.count('"') % 2 == 0:
+                    line = prefix.rstrip()
+            cleaned_lines.append(line)
+        json_str = "\n".join(cleaned_lines)
+        json_str = re.sub(r",\s*([}\]])", r"\1", json_str)  # strip trailing commas
 
         try:
             data = json.loads(json_str)
