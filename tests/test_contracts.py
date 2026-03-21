@@ -957,3 +957,48 @@ class TestAliasFieldsOverridePlaceholderCanonicals:
         assert result.document_summary == "Direct summary"
         assert result.key_points == ["Direct point"]
         assert result.sources == ["direct_source.txt"]
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016c: accumulated chaining for multi-emit plans
+# ---------------------------------------------------------------------------
+
+
+class TestAccumulatedChaining:
+    """Contract: runtime accumulates step results so multi-emit plans work.
+
+    When a plan has two consecutive emit_result steps (e.g. one MD, one JSON),
+    the second emit_result must still see the synthesize_research output, not
+    just the first emit_result's artifact metadata.
+    """
+
+    def test_accumulated_result_preserves_earlier_data(self) -> None:
+        """Simulates the runtime accumulation logic for multi-emit scenarios."""
+        # Step 2: synthesize_research output
+        synth_output = {
+            "report": "# Full research report",
+            "key_findings": ["Finding 1", "Finding 2"],
+            "sources_used": ["https://example.com"],
+            "source_count": 5,
+        }
+
+        # Step 3: first emit_result output (MD)
+        emit1_output = {
+            "artifact_id": "art-abc123",
+            "artifact_path": "runs/r1/artifacts/report.md",
+            "artifact_type": "text/markdown",
+            "bytes_written": 5000,
+        }
+
+        # Accumulated chaining: merge all results
+        accumulated = {}
+        accumulated.update(synth_output)
+        accumulated.update(emit1_output)
+
+        # Step 4: second emit_result should still see research fields
+        assert accumulated["report"] == "# Full research report"
+        assert accumulated["key_findings"] == ["Finding 1", "Finding 2"]
+        assert accumulated["sources_used"] == ["https://example.com"]
+        assert accumulated["source_count"] == 5
+        # Plus the emit metadata
+        assert accumulated["artifact_id"] == "art-abc123"

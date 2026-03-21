@@ -342,6 +342,11 @@ class V0Orchestrator:
         # AF-0065: Track step results for pipeline chaining
         step_results: list[dict[str, Any]] = []
         previous_result: dict[str, Any] = {}
+        # Accumulated results across all successful steps so that data
+        # from earlier steps (e.g. synthesize_research output) remains
+        # available even after intermediate steps (e.g. a first emit_result)
+        # that produce unrelated output.  Later keys override earlier ones.
+        accumulated_result: dict[str, Any] = {}
 
         # AF-0065: Create LLM provider for non-manual modes
         # AF-0062: Track provider configuration for LLMExecution in trace
@@ -382,7 +387,10 @@ class V0Orchestrator:
                 if skill_name:
                     # Build skill parameters: merge step params with task context
                     # AF-0065: Include previous step result for pipeline chaining
-                    chained_result = previous_result
+                    # Use accumulated_result so data from earlier steps (e.g.
+                    # synthesize_research) survives through intermediate steps
+                    # like a first emit_result when multiple emits are planned.
+                    chained_result = accumulated_result.copy()
                     # AF-0108: Convert Document dicts to SourceDocument format
                     # when chaining load_documents output to synthesize_research
                     if skill_name == "synthesize_research" and "documents" in chained_result:
@@ -450,6 +458,9 @@ class V0Orchestrator:
                         # AF-0065: Store result for next step
                         previous_result = result
                         step_results.append(result)
+                        # Accumulate: merge into running dict so earlier data
+                        # (report, key_findings, …) persists across steps.
+                        accumulated_result.update(result)
 
                         # AF-0057: Capture skill-produced artifacts in trace
                         if "artifact_id" in result:
