@@ -1,8 +1,8 @@
-"""Tests for summarize_v0 playbook skills (AF0065).
+"""Tests for summarize_v0 playbook skills (AF0065, AF0108).
 
 Tests the three skills that make up the summarize_v0 playbook:
 - load_documents: Read files from workspace
-- summarize_docs: Summarize documents with LLM
+- synthesize_research: Synthesize/summarize documents with LLM (AF-0108: replaces summarize_docs)
 - emit_result: Store output as artifact
 """
 
@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -21,12 +20,6 @@ from ag.skills.load_documents import (
     LoadDocumentsInput,
     LoadDocumentsOutput,
     LoadDocumentsSkill,
-)
-from ag.skills.summarize_docs import (
-    SummarizableDocument,
-    SummarizeDocsInput,
-    SummarizeDocsOutput,
-    SummarizeDocsSkill,
 )
 
 # ---------------------------------------------------------------------------
@@ -139,17 +132,49 @@ class TestLoadDocumentsSkill:
         assert result.error == "workspace_not_found"
 
     def test_fails_with_no_matching_files(self, tmp_path: Path) -> None:
-        """Fails gracefully when no files match pattern."""
-        (tmp_path / "doc.txt").write_text("text file", encoding="utf-8")
+        """Fails gracefully when no files match pattern or fallback."""
+        # Create a binary-like file that won't match any text patterns
+        (tmp_path / "data.bin").write_bytes(b"\x00\x01\x02")
 
         skill = LoadDocumentsSkill()
         ctx = SkillContext(workspace_path=tmp_path)
-        input_data = LoadDocumentsInput(patterns=["**/*.md"])
+        # Use the fallback patterns themselves so no retry is triggered
+        input_data = LoadDocumentsInput(patterns=["**/*.md", "**/*.txt"])
 
         result = skill.execute(input_data, ctx)
 
         assert result.success is False
         assert result.error == "no_files_found"
+
+    def test_fallback_patterns_when_primary_finds_nothing(self, tmp_path: Path) -> None:
+        """Falls back to default patterns when user patterns find nothing (AF-0107)."""
+        # Only .md files exist, but planner asks for *.pdf
+        (tmp_path / "readme.md").write_text("# Hello", encoding="utf-8")
+
+        skill = LoadDocumentsSkill()
+        ctx = SkillContext(workspace_path=tmp_path)
+        input_data = LoadDocumentsInput(patterns=["**/*.pdf"])
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.file_count == 1
+        assert result.documents[0].path == "readme.md"
+
+    def test_no_fallback_when_primary_patterns_match(self, tmp_path: Path) -> None:
+        """Fallback is not used when primary patterns find files."""
+        (tmp_path / "readme.md").write_text("# Hello", encoding="utf-8")
+        (tmp_path / "notes.txt").write_text("notes", encoding="utf-8")
+
+        skill = LoadDocumentsSkill()
+        ctx = SkillContext(workspace_path=tmp_path)
+        input_data = LoadDocumentsInput(patterns=["**/*.txt"])
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.file_count == 1
+        assert result.documents[0].path == "notes.txt"
 
     def test_document_schema(self, tmp_path: Path) -> None:
         """Documents have correct schema."""
@@ -166,137 +191,6 @@ class TestLoadDocumentsSkill:
         assert doc.path == "test.md"
         assert doc.content == "Hello World"
         assert doc.size_bytes == len("Hello World".encode("utf-8"))
-
-
-# ---------------------------------------------------------------------------
-# SummarizeDocsSkill Tests
-# ---------------------------------------------------------------------------
-
-
-class TestSummarizeDocsSkill:
-    """Tests for summarize_docs skill."""
-
-    def test_skill_metadata(self) -> None:
-        """Skill has correct metadata."""
-        skill = SummarizeDocsSkill()
-        assert skill.name == "summarize_docs"
-        # AF-0065: requires_llm=True, but skill has fallback mode
-        assert skill.requires_llm is True
-        assert skill.input_schema == SummarizeDocsInput
-        assert skill.output_schema == SummarizeDocsOutput
-
-    def test_fails_with_no_documents(self) -> None:
-        """Fails gracefully when no documents provided."""
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext()
-        input_data = SummarizeDocsInput(documents=[])
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.success is False
-        assert result.error == "no_documents"
-
-    def test_fallback_without_llm(self) -> None:
-        """Falls back to simple summary without LLM provider."""
-        docs = [
-            SummarizableDocument(path="doc1.md", content="# Title 1\nContent 1", size_bytes=20),
-            SummarizableDocument(path="doc2.md", content="# Title 2\nContent 2", size_bytes=20),
-        ]
-
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext(provider=None)  # No LLM
-        input_data = SummarizeDocsInput(documents=docs)
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.success is True
-        assert "[Fallback mode" in result.summary
-        assert result.source_count == 2
-        assert "doc1.md" in result.sources
-        assert "doc2.md" in result.sources
-
-    def test_extracts_key_points_from_headers(self) -> None:
-        """Fallback mode extracts headers as key points."""
-        docs = [
-            SummarizableDocument(
-                path="doc.md",
-                content="# Main Title\n\n# Section 1\n\n# Section 2",
-                size_bytes=50,
-            ),
-        ]
-
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext(provider=None)
-        input_data = SummarizeDocsInput(documents=docs)
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.success is True
-        # Should extract H1 headers as key points
-        assert "Main Title" in result.key_points or len(result.key_points) >= 1
-
-    def test_with_mock_llm_provider(self) -> None:
-        """Works with mocked LLM provider."""
-        docs = [
-            SummarizableDocument(path="doc.md", content="# Test\nContent", size_bytes=15),
-        ]
-
-        # Create mock provider
-        mock_provider = MagicMock()
-        mock_response = MagicMock()
-        mock_response.content = """## Summary
-This is a test summary of the documents.
-
-## Key Points
-- Point 1
-- Point 2
-- Point 3
-"""
-        mock_provider.chat.return_value = mock_response
-
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext(provider=mock_provider)
-        input_data = SummarizeDocsInput(documents=docs, prompt="Summarize this")
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.success is True
-        assert "test summary" in result.document_summary.lower()
-        assert len(result.key_points) == 3
-        assert result.source_count == 1
-
-    def test_handles_llm_error(self) -> None:
-        """Handles LLM provider errors gracefully."""
-        docs = [
-            SummarizableDocument(path="doc.md", content="Content", size_bytes=7),
-        ]
-
-        mock_provider = MagicMock()
-        mock_provider.chat.side_effect = RuntimeError("LLM API error")
-
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext(provider=mock_provider)
-        input_data = SummarizeDocsInput(documents=docs)
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.success is False
-        assert "LLM API error" in result.error
-
-    def test_sources_populated(self) -> None:
-        """Sources list is populated from documents."""
-        docs = [
-            SummarizableDocument(path="a.md", content="A", size_bytes=1),
-            SummarizableDocument(path="b.md", content="B", size_bytes=1),
-        ]
-
-        skill = SummarizeDocsSkill()
-        ctx = SkillContext(provider=None)
-        input_data = SummarizeDocsInput(documents=docs)
-
-        result = skill.execute(input_data, ctx)
-
-        assert result.sources == ["a.md", "b.md"]
 
 
 # ---------------------------------------------------------------------------
@@ -584,6 +478,87 @@ class TestEmitResultSkill:
         # No execution details table without trace_metadata
         assert "## Execution Details" not in content
 
+    # AF-0109: Strict content validation tests
+    def test_rejects_empty_document_summary(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects empty document_summary."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="empty-run")
+        input_data = EmitResultInput(document_summary="", artifact_name="out.md")
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+        assert "empty" in result.summary.lower()
+
+    def test_rejects_whitespace_only_summary(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects whitespace-only document_summary."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="ws-run")
+        input_data = EmitResultInput(document_summary="   \n\t  ", artifact_name="out.md")
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_rejects_template_markers_curly(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with {{ }} template markers."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="tpl-run")
+        input_data = EmitResultInput(
+            document_summary="Summary with {{placeholder}} in it",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+        assert "template marker" in result.summary.lower()
+
+    def test_rejects_template_markers_todo(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with [TODO] marker."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="todo-run")
+        input_data = EmitResultInput(
+            document_summary="Summary with [TODO] fill in later",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_rejects_template_markers_placeholder(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with [PLACEHOLDER] marker."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="ph-run")
+        input_data = EmitResultInput(
+            document_summary="This is [placeholder] content",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_accepts_valid_content(self, tmp_path: Path) -> None:
+        """AF-0109: Accepts valid content without template markers."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="valid-run")
+        input_data = EmitResultInput(
+            document_summary="This is a valid research summary with real content.",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.bytes_written > 0
+
 
 # ---------------------------------------------------------------------------
 # Integration Tests
@@ -594,7 +569,13 @@ class TestSummarizeV0Pipeline:
     """Integration tests for the complete summarize_v0 pipeline."""
 
     def test_full_pipeline_flow(self, tmp_path: Path) -> None:
-        """Test documents flow through all three skills."""
+        """Test documents flow through all three skills (AF-0108: uses synthesize_research)."""
+        from ag.core.runtime import _adapt_document_to_source
+        from ag.skills.synthesize_research import (
+            SynthesizeResearchInput,
+            SynthesizeResearchSkill,
+        )
+
         # Setup: Create input files
         (tmp_path / "doc1.md").write_text("# Overview\nThis is content.", encoding="utf-8")
         (tmp_path / "doc2.md").write_text("# Details\nMore content here.", encoding="utf-8")
@@ -608,27 +589,27 @@ class TestSummarizeV0Pipeline:
         assert load_result.success is True
         assert load_result.file_count == 2
 
-        # Step 2: Summarize (fallback mode - no LLM)
-        # Convert Document objects to SummarizableDocument via dict
-        summarize_docs = [doc.model_dump() for doc in load_result.documents]
-        summarize_skill = SummarizeDocsSkill()
-        summarize_ctx = SkillContext(provider=None)
-        summarize_input = SummarizeDocsInput(
-            documents=summarize_docs,
+        # Step 2: Synthesize (fallback mode - no LLM)
+        # AF-0108: Use conversion adapter for Document → SourceDocument
+        source_docs = [_adapt_document_to_source(doc.model_dump()) for doc in load_result.documents]
+        synth_skill = SynthesizeResearchSkill()
+        synth_ctx = SkillContext(provider=None)
+        synth_input = SynthesizeResearchInput(
+            documents=source_docs,
             prompt="Summarize the documents",
         )
-        summarize_result = summarize_skill.execute(summarize_input, summarize_ctx)
+        synth_result = synth_skill.execute(synth_input, synth_ctx)
 
-        assert summarize_result.success is True
-        assert summarize_result.source_count == 2
+        assert synth_result.success is True
+        assert synth_result.source_count == 2
 
         # Step 3: Emit result
         emit_skill = EmitResultSkill()
         emit_ctx = SkillContext(workspace_path=tmp_path, run_id="pipeline-test")
         emit_input = EmitResultInput(
-            document_summary=summarize_result.document_summary,
-            key_points=summarize_result.key_points,
-            sources=summarize_result.sources,
+            document_summary=synth_result.report,
+            key_points=synth_result.key_findings,
+            sources=synth_result.sources_used,
             artifact_name="summary.json",
         )
         emit_result = emit_skill.execute(emit_input, emit_ctx)
@@ -664,12 +645,6 @@ class TestSchemaValidation:
             LoadDocumentsInput(max_files=0)  # Below minimum
         with pytest.raises(ValueError):
             LoadDocumentsInput(max_files=101)  # Above maximum
-
-    def test_summarize_docs_input_defaults(self) -> None:
-        """SummarizeDocsInput has sensible defaults."""
-        input_data = SummarizeDocsInput()
-        assert input_data.documents == []
-        assert input_data.max_tokens == 2000
 
     def test_emit_result_input_defaults(self) -> None:
         """EmitResultInput has sensible defaults (Markdown for human readability)."""

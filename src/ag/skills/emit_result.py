@@ -36,6 +36,7 @@ See Also:
 from __future__ import annotations
 
 import json
+import re as _re
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
@@ -126,21 +127,43 @@ class EmitResultInput(SkillInput):
             key_findings → key_points
             sources_used → sources
 
+        Alias fields (from chained pipeline output) always take precedence
+        over canonical fields when they contain substantive content, because
+        canonical fields may hold LLM-generated placeholder strings from the
+        plan while alias fields carry actual pipeline data.
+
         Also handles type coercion for list fields that may arrive as strings.
         """
         if isinstance(data, dict):
-            # Map synthesize_research fields to emit_result canonical fields
-            if "report" in data and not data.get("document_summary"):
+            # Map synthesize_research fields to emit_result canonical fields.
+            # Alias values (report, key_findings, sources_used) always win
+            # when they have real content — plan params may set canonical
+            # fields with placeholder strings that look truthy.
+            if "report" in data and data.get("report"):
                 data["document_summary"] = data["report"]
-            if "key_findings" in data and not data.get("key_points"):
-                # Coerce string to list if needed
+            elif "report" in data and not data.get("document_summary"):
+                data["document_summary"] = data["report"]
+
+            if "key_findings" in data and data.get("key_findings"):
                 value = data["key_findings"]
                 if isinstance(value, str) and value:
                     data["key_points"] = [value]
                 elif isinstance(value, list):
                     data["key_points"] = value
-            if "sources_used" in data and not data.get("sources"):
-                # Coerce string to list if needed
+            elif "key_findings" in data and not data.get("key_points"):
+                value = data["key_findings"]
+                if isinstance(value, str) and value:
+                    data["key_points"] = [value]
+                elif isinstance(value, list):
+                    data["key_points"] = value
+
+            if "sources_used" in data and data.get("sources_used"):
+                value = data["sources_used"]
+                if isinstance(value, str) and value:
+                    data["sources"] = [value]
+                elif isinstance(value, list):
+                    data["sources"] = value
+            elif "sources_used" in data and not data.get("sources"):
                 value = data["sources_used"]
                 if isinstance(value, str) and value:
                     data["sources"] = [value]
@@ -178,6 +201,26 @@ class EmitResultOutput(SkillOutput):
     )
 
     model_config = {"extra": "forbid"}
+
+
+# ---------------------------------------------------------------------------
+# AF-0109: Content Validation
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_MARKERS = _re.compile(r"\{\{.*?\}\}|\[TODO\]|\[PLACEHOLDER\]", _re.IGNORECASE)
+
+
+def _validate_content(text: str) -> str | None:
+    """Reject empty, whitespace-only, or template-placeholder content.
+
+    Returns a human-readable rejection reason, or None if content is valid.
+    """
+    if not text or not text.strip():
+        return "document_summary is empty or whitespace-only"
+    match = _TEMPLATE_MARKERS.search(text)
+    if match:
+        return f"document_summary contains template marker: {match.group()!r}"
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -239,6 +282,15 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
                 success=False,
                 summary=f"Workspace path does not exist: {workspace_path}",
                 error="workspace_not_found",
+            )
+
+        # AF-0109: Strict content validation — reject empty/placeholder content
+        rejection = _validate_content(input.document_summary)
+        if rejection:
+            return EmitResultOutput(
+                success=False,
+                summary=f"Content rejected: {rejection}",
+                error="content_validation_failed",
             )
 
         try:

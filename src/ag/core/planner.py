@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -215,9 +216,15 @@ execution plans by composing available skills into a sequence of steps.
 Rules:
 1. Only use skills from the provided catalog — no hallucinated capabilities
 2. Order steps logically — later steps may depend on earlier outputs
-3. The runtime automatically chains step outputs (no placeholder syntax needed)
+3. The runtime automatically chains step outputs to the next step's input — do NOT
+   use "previous_step.X" references in params. Only include static configuration
+   values that the skill needs (e.g. artifact_name, output_format). Omit fields
+   that come from the previous step's output.
 4. Minimize steps while ensuring task completion
 5. Provide clear rationale for each step
+6. For load_documents: prefer the default patterns (["**/*.md"]) unless the task
+   explicitly requires other file types. Do not invent patterns like *.docx or
+   *.pdf unless the user asks for those formats
 
 Respond with valid JSON matching this schema:
 {
@@ -258,19 +265,49 @@ Respond with valid JSON matching this schema:
 
         constraints_str = "\n".join(constraints) if constraints else "None"
 
+        # AF-0106: Detect workspace file types for better pattern generation
+        files_hint = self._detect_workspace_files(task.workspace_id)
+
         return f"""Create an execution plan for this task:
 
 **Task:** {task.prompt}
 
 **Available Skills:**
 {catalog_str}
-
+{files_hint}
 **Constraints:**
 {constraints_str}
 
 **Maximum steps:** {self.max_steps}
 
 Respond with a JSON plan."""
+
+    def _detect_workspace_files(self, workspace_id: str) -> str:
+        """Detect file types in workspace inputs (AF-0106).
+
+        Returns a prompt hint string describing available files, or empty string.
+        """
+        try:
+            from ag.config import get_workspace_dir
+            from ag.storage import Workspace
+
+            ws = Workspace(workspace_id, get_workspace_dir())
+            inputs_dir = ws.inputs_path
+            if not inputs_dir.exists():
+                return ""
+
+            extensions: set[str] = set()
+            for f in inputs_dir.rglob("*"):
+                if f.is_file() and f.suffix:
+                    extensions.add(f.suffix.lower())
+
+            if not extensions:
+                return ""
+
+            ext_list = ", ".join(sorted(extensions))
+            return f"\n**Workspace file types:** {ext_list}\n"
+        except Exception:
+            return ""
 
     def _parse_response(self, content: str) -> LLMPlanResponse:
         """Parse and validate LLM response as JSON."""
@@ -291,6 +328,24 @@ Respond with a JSON plan."""
                 if in_block:
                     json_lines.append(line)
             json_str = "\n".join(json_lines)
+
+        # Clean common LLM JSON errors
+        # Strip // line comments (outside quoted strings) by processing line-by-line
+        cleaned_lines: list[str] = []
+        for line in json_str.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith("//"):
+                continue  # skip full-line comments
+            # Remove trailing // comments only if not inside a string value
+            # Simple heuristic: count unescaped quotes before the //
+            comment_pos = line.find("//")
+            if comment_pos > 0:
+                prefix = line[:comment_pos]
+                if prefix.count('"') % 2 == 0:
+                    line = prefix.rstrip()
+            cleaned_lines.append(line)
+        json_str = "\n".join(cleaned_lines)
+        json_str = re.sub(r",\s*([}\]])", r"\1", json_str)  # strip trailing commas
 
         try:
             data = json.loads(json_str)

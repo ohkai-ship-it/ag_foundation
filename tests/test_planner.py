@@ -11,6 +11,7 @@ Tests cover:
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
 import pytest
@@ -314,6 +315,58 @@ class TestResponseParsing:
         with pytest.raises(PlannerError, match="doesn't match schema"):
             planner._parse_response('{"estimated_tokens": 100}')  # Missing steps
 
+    def test_parse_trailing_comma_tolerance(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser tolerates trailing commas in LLM JSON output."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_trailing = (
+            '{"steps": [{"skill": "mock_skill", "params": {},'
+            ' "rationale": "test",}],'
+            ' "estimated_tokens": 100, "confidence": 0.8,}'
+        )
+        response = planner._parse_response(json_with_trailing)
+
+        assert len(response.steps) == 1
+        assert response.steps[0].skill == "mock_skill"
+
+    def test_parse_strips_line_comments(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser strips // comments from LLM JSON output."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_comments = (
+            "{\n"
+            "  // This is the plan\n"
+            '  "steps": [{"skill": "mock_skill", "params": {},'
+            ' "rationale": "test"}],\n'
+            '  "estimated_tokens": 100, // token estimate\n'
+            '  "confidence": 0.8\n'
+            "}"
+        )
+        response = planner._parse_response(json_with_comments)
+
+        assert len(response.steps) == 1
+        assert response.confidence == 0.8
+
+    def test_parse_preserves_urls_in_strings(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """Parser does not strip // inside quoted string values (e.g. URLs)."""
+        planner = V1Planner(mock_provider, mock_registry)
+
+        json_with_url = (
+            '{"steps": [{"skill": "mock_skill",'
+            ' "params": {"url": "https://example.com/path"},'
+            ' "rationale": "fetch from https://example.com"}],'
+            ' "estimated_tokens": 100, "confidence": 0.8}'
+        )
+        response = planner._parse_response(json_with_url)
+
+        assert response.steps[0].params["url"] == "https://example.com/path"
+
 
 # ---------------------------------------------------------------------------
 # Error Handling Tests
@@ -541,3 +594,57 @@ class TestV1PlannerIntegration:
         assert task_spec.prompt in messages[1].content
         # User message should include skill names
         assert "mock_skill" in messages[1].content
+
+
+class TestV1PlannerWorkspaceDetection:
+    """AF-0106: Workspace-aware file detection in planner."""
+
+    def test_detect_workspace_files_with_md(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner detects .md files in workspace inputs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import Workspace
+
+        ws = Workspace("detect-test", tmp_path)
+        ws.ensure_exists()
+        (ws.inputs_path / "notes.md").write_text("# Notes")
+        (ws.inputs_path / "data.txt").write_text("data")
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("detect-test")
+
+        assert ".md" in result
+        assert ".txt" in result
+        assert "Workspace file types" in result
+
+    def test_detect_workspace_files_empty(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner returns empty hint when no files in workspace."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import Workspace
+
+        ws = Workspace("empty-test", tmp_path)
+        ws.ensure_exists()
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("empty-test")
+
+        assert result == ""
+
+    def test_detect_workspace_files_nonexistent(self, tmp_path: Path, monkeypatch) -> None:
+        """Planner returns empty hint for nonexistent workspace."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        provider = MagicMock()
+        registry = SkillRegistry()
+        planner = V1Planner(provider, registry)
+
+        result = planner._detect_workspace_files("no-such-ws")
+
+        assert result == ""

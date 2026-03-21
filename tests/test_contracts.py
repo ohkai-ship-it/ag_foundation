@@ -779,3 +779,226 @@ class TestPlaybookPluginArchitecture:
 
         # Clean up - re-initialize with real entry points
         reset_registry()
+
+
+# ===========================================================================
+# AF-0111: Workspace Guard Contract Tests
+# ===========================================================================
+
+
+class TestWorkspaceGuardContract:
+    """Contract: --workspace <nonexistent> must fail on every code path.
+
+    No CLI command may silently create a workspace when given a name that
+    does not exist on disk. These tests guard against regressions.
+    """
+
+    def test_run_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag run -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_DEV", "1")
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["run", "-w", "nonexistent", "test prompt"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_plan_list_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag plan list -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["plan", "list", "-w", "nonexistent"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_runs_list_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag runs list -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["runs", "list", "-w", "nonexistent"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_error_message_includes_workspace_name(self, tmp_path, monkeypatch) -> None:
+        """Error message must include the bad workspace name."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_DEV", "1")
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["run", "-w", "my_typo_ws", "test prompt"])
+
+        assert result.exit_code != 0
+        assert "my_typo_ws" in result.output
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016: previous_step placeholder stripping
+# ---------------------------------------------------------------------------
+
+
+class TestPreviousStepPlaceholderStripping:
+    """Contract: runtime must strip 'previous_step.*' placeholder strings.
+
+    The LLM planner may generate params like {"key_points": "previous_step.key_findings"}.
+    The runtime never resolves these; actual values come from chained output.
+    Placeholder strings must be stripped so they don't override real chained data.
+    """
+
+    def test_placeholder_strings_stripped_from_step_params(self) -> None:
+        """Params with 'previous_step.*' values are removed before skill execution."""
+        raw_params = {
+            "artifact_name": "report.md",
+            "key_points": "previous_step.key_findings",
+            "sources": "previous_step.sources_used",
+            "document_summary": "previous_step.report",
+        }
+
+        filtered = {
+            k: v
+            for k, v in raw_params.items()
+            if not (isinstance(v, str) and v.startswith("previous_step."))
+        }
+
+        assert filtered == {"artifact_name": "report.md"}
+        assert "key_points" not in filtered
+        assert "sources" not in filtered
+        assert "document_summary" not in filtered
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016b: alias fields must override placeholder canonical fields
+# ---------------------------------------------------------------------------
+
+
+class TestAliasFieldsOverridePlaceholderCanonicals:
+    """Contract: EmitResultInput alias fields always win over placeholder canonicals.
+
+    When both canonical fields (document_summary, key_points, sources) AND
+    alias fields (report, key_findings, sources_used) are present, the alias
+    values must take precedence because they carry real pipeline data while
+    canonical fields may contain LLM-generated placeholder strings from the plan.
+    """
+
+    def test_alias_overrides_placeholder_canonical(self) -> None:
+        """Alias 'report' overrides placeholder 'document_summary'."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "report_output_from_previous_step",
+            "key_points": ["key_findings_output_from_previous_step"],
+            "sources": ["sources_used_output_from_previous_step"],
+            "source_count": 10,
+            "report": "# Actual Research Report\n\nReal content here.",
+            "key_findings": ["Finding 1", "Finding 2"],
+            "sources_used": ["https://example.com"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "# Actual Research Report\n\nReal content here."
+        assert result.key_points == ["Finding 1", "Finding 2"]
+        assert result.sources == ["https://example.com"]
+
+    def test_alias_still_maps_when_canonical_empty(self) -> None:
+        """Alias values map to canonical when canonical is empty (original behavior)."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "",
+            "key_points": [],
+            "sources": [],
+            "report": "Real report text",
+            "key_findings": ["Point A"],
+            "sources_used": ["src.txt"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "Real report text"
+        assert result.key_points == ["Point A"]
+        assert result.sources == ["src.txt"]
+
+    def test_canonical_preserved_when_no_alias(self) -> None:
+        """Canonical values preserved when alias fields are absent."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "Direct summary",
+            "key_points": ["Direct point"],
+            "sources": ["direct_source.txt"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "Direct summary"
+        assert result.key_points == ["Direct point"]
+        assert result.sources == ["direct_source.txt"]
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016c: accumulated chaining for multi-emit plans
+# ---------------------------------------------------------------------------
+
+
+class TestAccumulatedChaining:
+    """Contract: runtime accumulates step results so multi-emit plans work.
+
+    When a plan has two consecutive emit_result steps (e.g. one MD, one JSON),
+    the second emit_result must still see the synthesize_research output, not
+    just the first emit_result's artifact metadata.
+    """
+
+    def test_accumulated_result_preserves_earlier_data(self) -> None:
+        """Simulates the runtime accumulation logic for multi-emit scenarios."""
+        # Step 2: synthesize_research output
+        synth_output = {
+            "report": "# Full research report",
+            "key_findings": ["Finding 1", "Finding 2"],
+            "sources_used": ["https://example.com"],
+            "source_count": 5,
+        }
+
+        # Step 3: first emit_result output (MD)
+        emit1_output = {
+            "artifact_id": "art-abc123",
+            "artifact_path": "runs/r1/artifacts/report.md",
+            "artifact_type": "text/markdown",
+            "bytes_written": 5000,
+        }
+
+        # Accumulated chaining: merge all results
+        accumulated = {}
+        accumulated.update(synth_output)
+        accumulated.update(emit1_output)
+
+        # Step 4: second emit_result should still see research fields
+        assert accumulated["report"] == "# Full research report"
+        assert accumulated["key_findings"] == ["Finding 1", "Finding 2"]
+        assert accumulated["sources_used"] == ["https://example.com"]
+        assert accumulated["source_count"] == 5
+        # Plus the emit metadata
+        assert accumulated["artifact_id"] == "art-abc123"

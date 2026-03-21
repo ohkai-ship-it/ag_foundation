@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0108
 - **Type:** Refactor
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Skills / Playbooks
 - **Owner:** TBD

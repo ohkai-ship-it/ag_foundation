@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0110
 - **Type:** Refactor
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Runtime / Storage / CLI
 - **Owner:** TBD

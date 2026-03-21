@@ -81,13 +81,6 @@ class TestSkillPolicyFlags:
         assert info is not None
         assert "external_api" in info["policy_flags"]
 
-    def test_summarize_docs_has_llm_call_flag(self) -> None:
-        """summarize_docs skill declares llm_call flag."""
-        registry = get_default_registry()
-        info = registry.get_info("summarize_docs")
-        assert info is not None
-        assert "llm_call" in info["policy_flags"]
-
     def test_synthesize_research_has_llm_call_flag(self) -> None:
         """synthesize_research skill declares llm_call flag."""
         registry = get_default_registry()

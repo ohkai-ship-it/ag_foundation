@@ -40,7 +40,7 @@ Each sprint folder:
 | Sprint 09 | Closed | [Sprint09_reliability_safety_hardening](documentation/Sprint09_reliability_safety_hardening/) |
 | Sprint 10 | Closed | [Sprint10_gate_b_readiness](documentation/Sprint10_gate_b_readiness/) |
 | Sprint 11 | Closed | [Sprint11_guided_autonomy_enablement](documentation/Sprint11_guided_autonomy_enablement/) |
-| Sprint 12 | Active | [Sprint12_autonomy_boundaries](documentation/Sprint12_autonomy_boundaries/) |
+| Sprint 12 | Closed | [Sprint12_autonomy_boundaries](documentation/Sprint12_autonomy_boundaries/) |
 
 ---
 

@@ -101,6 +101,27 @@ class TrackingLLMProvider:
 
 
 # ---------------------------------------------------------------------------
+# AF-0108: Pipeline document conversion adapter
+# ---------------------------------------------------------------------------
+
+
+def _adapt_document_to_source(doc: dict[str, Any] | Any) -> dict[str, Any]:
+    """Convert a Document dict to SourceDocument-compatible dict.
+
+    Bridges load_documents output (Document schema) to synthesize_research
+    input (SourceDocument schema) during pipeline chaining.
+    """
+    if isinstance(doc, dict) and "path" in doc and "source" not in doc:
+        return {
+            "source": doc["path"],
+            "content": doc.get("content", ""),
+            "title": None,
+            "source_type": "file",
+        }
+    return doc
+
+
+# ---------------------------------------------------------------------------
 # v0 Normalizer Implementation
 # ---------------------------------------------------------------------------
 
@@ -320,7 +341,11 @@ class V0Orchestrator:
 
         # AF-0065: Track step results for pipeline chaining
         step_results: list[dict[str, Any]] = []
-        previous_result: dict[str, Any] = {}
+        # Accumulated results across all successful steps so that data
+        # from earlier steps (e.g. synthesize_research output) remains
+        # available even after intermediate steps (e.g. a first emit_result)
+        # that produce unrelated output.  Later keys override earlier ones.
+        accumulated_result: dict[str, Any] = {}
 
         # AF-0065: Create LLM provider for non-manual modes
         # AF-0062: Track provider configuration for LLMExecution in trace
@@ -361,11 +386,33 @@ class V0Orchestrator:
                 if skill_name:
                     # Build skill parameters: merge step params with task context
                     # AF-0065: Include previous step result for pipeline chaining
+                    # Use accumulated_result so data from earlier steps (e.g.
+                    # synthesize_research) survives through intermediate steps
+                    # like a first emit_result when multiple emits are planned.
+                    chained_result = accumulated_result.copy()
+                    # AF-0108: Convert Document dicts to SourceDocument format
+                    # when chaining load_documents output to synthesize_research
+                    if skill_name == "synthesize_research" and "documents" in chained_result:
+                        chained_result = {
+                            **chained_result,
+                            "documents": [
+                                _adapt_document_to_source(doc)
+                                for doc in chained_result["documents"]
+                            ],
+                        }
+                    # Strip "previous_step.*" placeholder strings from plan
+                    # parameters — these are LLM-generated references that the
+                    # runtime never resolves; actual values come from chained_result.
+                    step_params = {
+                        k: v
+                        for k, v in playbook_step.parameters.items()
+                        if not (isinstance(v, str) and v.startswith("previous_step."))
+                    }
                     skill_params = {
                         "prompt": task.prompt,
                         "step": i,
-                        **playbook_step.parameters,
-                        **previous_result,  # Chain previous step output
+                        **step_params,
+                        **chained_result,  # Chain previous step output
                     }
                     # AF-0019: Pass subtasks context to execute_subtask skills
                     if skill_name == "execute_subtask" and planned_subtasks:
@@ -408,8 +455,10 @@ class V0Orchestrator:
                         step_error = output_summary
                     else:
                         # AF-0065: Store result for next step
-                        previous_result = result
                         step_results.append(result)
+                        # Accumulate: merge into running dict so earlier data
+                        # (report, key_findings, …) persists across steps.
+                        accumulated_result.update(result)
 
                         # AF-0057: Capture skill-produced artifacts in trace
                         if "artifact_id" in result:
@@ -577,59 +626,7 @@ class V0Orchestrator:
                 artifact_type=artifact_type,
             )
 
-        # AF-0009: Create result artifact with step summaries
-        if steps:
-            result_content = self._build_result_artifact(trace, steps)
-            artifact_id = f"{run_id}-result"
-            self._recorder.register_artifact(
-                trace=trace,
-                artifact_id=artifact_id,
-                path="result.md",
-                content=result_content.encode("utf-8"),
-                artifact_type="text/markdown",
-            )
-            # Update trace artifacts list with the new artifact ID
-            artifacts.append(artifact_id)
-
         return trace
-
-    def _build_result_artifact(self, trace: RunTrace, steps: list[Step]) -> str:
-        """Build result.md artifact content from step outputs.
-
-        Args:
-            trace: The completed run trace
-            steps: List of steps that were executed
-
-        Returns:
-            Markdown content summarizing the run results
-        """
-        lines = [
-            f"# Run Result: {trace.run_id}",
-            "",
-            f"- **Status:** {trace.final.value}",
-            f"- **Mode:** {trace.mode.value}",
-            (
-                f"- **Duration:** {trace.duration_ms}ms"
-                if trace.duration_ms
-                else "- **Duration:** unknown"
-            ),
-            f"- **Playbook:** {trace.playbook.name}@{trace.playbook.version}",
-            "",
-            "## Steps",
-            "",
-        ]
-
-        for step in steps:
-            status = "✓" if not step.error else "✗"
-            lines.append(f"### {status} Step {step.step_number}: {step.step_type.value}")
-            if step.skill_name:
-                lines.append(f"- **Skill:** {step.skill_name}")
-            lines.append(f"- **Output:** {step.output_summary}")
-            if step.error:
-                lines.append(f"- **Error:** {step.error}")
-            lines.append("")
-
-        return "\n".join(lines)
 
     def close(self) -> None:
         """Close underlying storage connections."""
