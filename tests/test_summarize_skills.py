@@ -479,6 +479,87 @@ class TestEmitResultSkill:
         # No execution details table without trace_metadata
         assert "## Execution Details" not in content
 
+    # AF-0109: Strict content validation tests
+    def test_rejects_empty_document_summary(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects empty document_summary."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="empty-run")
+        input_data = EmitResultInput(document_summary="", artifact_name="out.md")
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+        assert "empty" in result.summary.lower()
+
+    def test_rejects_whitespace_only_summary(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects whitespace-only document_summary."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="ws-run")
+        input_data = EmitResultInput(document_summary="   \n\t  ", artifact_name="out.md")
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_rejects_template_markers_curly(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with {{ }} template markers."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="tpl-run")
+        input_data = EmitResultInput(
+            document_summary="Summary with {{placeholder}} in it",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+        assert "template marker" in result.summary.lower()
+
+    def test_rejects_template_markers_todo(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with [TODO] marker."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="todo-run")
+        input_data = EmitResultInput(
+            document_summary="Summary with [TODO] fill in later",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_rejects_template_markers_placeholder(self, tmp_path: Path) -> None:
+        """AF-0109: Rejects content with [PLACEHOLDER] marker."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="ph-run")
+        input_data = EmitResultInput(
+            document_summary="This is [placeholder] content",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is False
+        assert result.error == "content_validation_failed"
+
+    def test_accepts_valid_content(self, tmp_path: Path) -> None:
+        """AF-0109: Accepts valid content without template markers."""
+        skill = EmitResultSkill()
+        ctx = SkillContext(workspace_path=tmp_path, run_id="valid-run")
+        input_data = EmitResultInput(
+            document_summary="This is a valid research summary with real content.",
+            artifact_name="out.md",
+        )
+
+        result = skill.execute(input_data, ctx)
+
+        assert result.success is True
+        assert result.bytes_written > 0
+
 
 # ---------------------------------------------------------------------------
 # Integration Tests

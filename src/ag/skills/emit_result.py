@@ -181,6 +181,28 @@ class EmitResultOutput(SkillOutput):
 
 
 # ---------------------------------------------------------------------------
+# AF-0109: Content Validation
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+_TEMPLATE_MARKERS = _re.compile(r"\{\{.*?\}\}|\[TODO\]|\[PLACEHOLDER\]", _re.IGNORECASE)
+
+
+def _validate_content(text: str) -> str | None:
+    """Reject empty, whitespace-only, or template-placeholder content.
+
+    Returns a human-readable rejection reason, or None if content is valid.
+    """
+    if not text or not text.strip():
+        return "document_summary is empty or whitespace-only"
+    match = _TEMPLATE_MARKERS.search(text)
+    if match:
+        return f"document_summary contains template marker: {match.group()!r}"
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Skill Implementation
 # ---------------------------------------------------------------------------
 
@@ -239,6 +261,15 @@ class EmitResultSkill(Skill[EmitResultInput, EmitResultOutput]):
                 success=False,
                 summary=f"Workspace path does not exist: {workspace_path}",
                 error="workspace_not_found",
+            )
+
+        # AF-0109: Strict content validation — reject empty/placeholder content
+        rejection = _validate_content(input.document_summary)
+        if rejection:
+            return EmitResultOutput(
+                success=False,
+                summary=f"Content rejected: {rejection}",
+                error="content_validation_failed",
             )
 
         try:

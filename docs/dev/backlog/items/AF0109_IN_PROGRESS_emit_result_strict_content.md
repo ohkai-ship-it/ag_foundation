@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0109
 - **Type:** Feature
-- **Status:** READY
+- **Status:** IN_PROGRESS
 - **Priority:** P1
 - **Area:** Skills / Artifacts
 - **Owner:** TBD
