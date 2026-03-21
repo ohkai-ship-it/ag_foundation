@@ -422,7 +422,12 @@ verifier, skill chaining, policy hooks, or user-visible execution labels.
 - [ ] `pytest -W error` evidence captured
 - [ ] Open autonomy blockers converted to AF/BUG items with index updates
 
-### 9.3 Decision Rule
+### 9.3 Autonomy Milestones
+| Date | Sprint | Milestone | Evidence |
+|------|--------|-----------|----------|
+| 2026-03-21 | S12 (pre-impl) | V1 Planner produces multi-output plans (two `emit_result` calls) with accumulated chaining | BUG-0016c fix; `plan_486286485e3b` |
+
+### 9.4 Decision Rule
 - If any P0 Autonomy Gate item is unchecked: sprint cannot be Closed.
 - If only P1/P2 items remain: `ACCEPT WITH FOLLOW-UPS` is allowed only if
    follow-up AF/BUG items are created and indexed.

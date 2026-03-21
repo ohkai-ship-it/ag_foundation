@@ -141,7 +141,7 @@ Exit status:
 
 ------------------------------------------------------------------------
 
-## Sprint 11 --- Guided Autonomy Enablement (Current)
+## Sprint 11 --- Guided Autonomy Enablement (Closed)
 
 Goal: Enable guided autonomy mode where users can preview, approve, and
 control agent execution plans before they run.
@@ -180,26 +180,41 @@ Exit criteria:
 - Autonomy mode visible in CLI and trace
 - Truthful UX maintained (BUG-0015)
 
+Key milestone (2026-03-21):
+V1Planner produces multi-output plans (multiple `emit_result` calls) with
+accumulated chaining. Earlier step outputs flow through to all subsequent
+steps, enabling plans that emit both Markdown and JSON from a single run.
+(BUG-0016c fix, plan `plan_486286485e3b`)
+
 ------------------------------------------------------------------------
 
-## Sprint 12 --- Autonomy Boundaries (Future)
+## Sprint 12 --- Autonomy Boundaries (Current)
 
-Goal: Prepare the system for Guided Agent evolution behind explicit gates.
+Goal: Stabilize guided autonomy output quality and storage boundaries by
+unifying summarization, hardening content emission, and standardizing
+run-centered artifact/plan layout.
 
 Scope focus:
-- Controlled planner evolution (suggestions, not unconstrained autonomy)
-- Policy/confirmation escalation discipline for higher-impact actions
-- Operational quality gates integrated into sprint close ritual
+- AF-0110 Run layout and plan artifacts refactor (P1)
+- AF-0108 Unify summarization skill (P1)
+- AF-0109 emit_result strict content validation (P1)
+- AF-0107 load_documents MD inputs reliability (P1)
+- AF-0105 CLI defaults fix (P2)
+- AF-0106 V1Planner file pattern defaults (P2)
+- AF-0096 Test workspace cleanup pollution (P2)
+- AF-0111 --workspace flag must never create workspace (P1)
 
-Candidate follow-up themes:
-- AF-0077 skills plugin architecture (if gate-ready)
-- AF-0078 playbooks plugin architecture (if gate-ready)
-- AF-0064 process documentation hardening
+Explicitly excluded:
+- AF-0103 LLM Planner V2 (skills+playbooks)
+- AF-0104 LLM Planner V3 (feasibility)
 
 Exit criteria:
-- Guided autonomy scope is explicitly bounded and documented
-- Safety and policy checks are enforced, not only declared
-- Review/autonomy gates are integrated in sprint templates and closure
+- Single summarization skill path (synthesize_research)
+- Strict emit_result content validation (no stub/empty output)
+- Run-centered layout (runs/<id>/result.md, trace.json, artifacts/*)
+- Plan stored under run artifacts, workspace /plans deprecated
+- CLI commands work with sensible defaults
+- --workspace rejects non-existent names (contract tested)
 
 ------------------------------------------------------------------------
 
@@ -259,7 +274,8 @@ Transitioning from playbook-driven to guided autonomy (Sprint 11).
 
 Progression status:
 - ✅ Playbook: established and validated
-- 🔄 Guided Agent: Sprint 11 in progress
+- ✅ Guided Agent: operational (Sprint 11 closed; multi-output plans validated)
+- 🔄 Guided Agent hardening: Sprint 12 in progress
 - ⏳ Goals Only: future (requires Gate C)
 - ⏳ Full Agent: long-term (policy-engine dependent)
 
@@ -272,21 +288,22 @@ Humans define WHAT, agents decide HOW.
 
 **Gate A (Reliability) and Gate B (Guided Autonomy) are now PASSED.**
 
-Sprint 11 implements the guided autonomy capabilities:
+Sprint 11 delivered guided autonomy capabilities:
 - Plan preview before execution (`ag plan`)
 - Plan approval workflow (`ag run --plan`)
 - Step-level confirmation for high-impact actions
 - Autonomy mode visibility in CLI and trace
+- Multi-output plan support with accumulated chaining (2026-03-21)
 
 The next failure mode is:
 
-> Rushing to goals-only autonomy without sufficient guided autonomy experience.
+> Shipping unreliable output quality or fragmented storage while
+> guided autonomy appears to work.
 
-Near-term focus for Sprint 11:
-- Plan generation and approval workflow
-- Confirmation policy enforcement
-- Full trace observability for autonomous decisions
-- Clear autonomy mode boundaries
+Near-term focus for Sprint 12:
+- Unify summarization and harden content emission
+- Standardize run-centered storage layout
+- CLI defaults and workspace safety
 
 The path forward is incremental autonomy expansion with explicit gates.
 Guided autonomy must prove reliable before advancing to goals-only mode.

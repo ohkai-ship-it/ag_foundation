@@ -283,7 +283,10 @@ RIGID                                                    AUTONOMOUS
               ✅ Done     🔄 S11      ⏳         ⏳
 ```
 
-**Current design:** Transitioning from playbook-driven to guided autonomy (Sprint 11).
+**Current design:** Operating in guided autonomy mode (Sprint 11+).
+V1Planner composes multi-step, multi-output plans from the skill catalog.
+Accumulated chaining allows earlier step outputs to flow through to all
+subsequent steps (validated 2026-03-21 with multi-emit plans).
 
 ### Planner Evolution
 
@@ -292,7 +295,7 @@ The planner evolves through phases aligned with the autonomy spectrum:
 | Version | Behavior | Sprint |
 |---------|----------|--------|
 | V0Planner | Deterministic registry lookup; requires `--playbook <name>` | Current |
-| V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan` | Sprint 11 |
+| V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan`. Supports multi-output plans (multiple `emit_result` steps) with accumulated chaining. | Sprint 11 ✅ |
 | V2Planner | LLM uses skills AND playbooks as building blocks | Future |
 | V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | Future |
 

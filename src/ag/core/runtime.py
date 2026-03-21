@@ -341,7 +341,6 @@ class V0Orchestrator:
 
         # AF-0065: Track step results for pipeline chaining
         step_results: list[dict[str, Any]] = []
-        previous_result: dict[str, Any] = {}
         # Accumulated results across all successful steps so that data
         # from earlier steps (e.g. synthesize_research output) remains
         # available even after intermediate steps (e.g. a first emit_result)
@@ -456,7 +455,6 @@ class V0Orchestrator:
                         step_error = output_summary
                     else:
                         # AF-0065: Store result for next step
-                        previous_result = result
                         step_results.append(result)
                         # Accumulate: merge into running dict so earlier data
                         # (report, key_findings, …) persists across steps.
