@@ -890,3 +890,70 @@ class TestPreviousStepPlaceholderStripping:
         assert "key_points" not in filtered
         assert "sources" not in filtered
         assert "document_summary" not in filtered
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016b: alias fields must override placeholder canonical fields
+# ---------------------------------------------------------------------------
+
+
+class TestAliasFieldsOverridePlaceholderCanonicals:
+    """Contract: EmitResultInput alias fields always win over placeholder canonicals.
+
+    When both canonical fields (document_summary, key_points, sources) AND
+    alias fields (report, key_findings, sources_used) are present, the alias
+    values must take precedence because they carry real pipeline data while
+    canonical fields may contain LLM-generated placeholder strings from the plan.
+    """
+
+    def test_alias_overrides_placeholder_canonical(self) -> None:
+        """Alias 'report' overrides placeholder 'document_summary'."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "report_output_from_previous_step",
+            "key_points": ["key_findings_output_from_previous_step"],
+            "sources": ["sources_used_output_from_previous_step"],
+            "source_count": 10,
+            "report": "# Actual Research Report\n\nReal content here.",
+            "key_findings": ["Finding 1", "Finding 2"],
+            "sources_used": ["https://example.com"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "# Actual Research Report\n\nReal content here."
+        assert result.key_points == ["Finding 1", "Finding 2"]
+        assert result.sources == ["https://example.com"]
+
+    def test_alias_still_maps_when_canonical_empty(self) -> None:
+        """Alias values map to canonical when canonical is empty (original behavior)."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "",
+            "key_points": [],
+            "sources": [],
+            "report": "Real report text",
+            "key_findings": ["Point A"],
+            "sources_used": ["src.txt"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "Real report text"
+        assert result.key_points == ["Point A"]
+        assert result.sources == ["src.txt"]
+
+    def test_canonical_preserved_when_no_alias(self) -> None:
+        """Canonical values preserved when alias fields are absent."""
+        from ag.skills.emit_result import EmitResultInput
+
+        data = {
+            "document_summary": "Direct summary",
+            "key_points": ["Direct point"],
+            "sources": ["direct_source.txt"],
+        }
+        result = EmitResultInput(**data)
+
+        assert result.document_summary == "Direct summary"
+        assert result.key_points == ["Direct point"]
+        assert result.sources == ["direct_source.txt"]

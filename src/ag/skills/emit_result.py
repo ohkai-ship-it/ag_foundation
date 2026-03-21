@@ -127,21 +127,43 @@ class EmitResultInput(SkillInput):
             key_findings → key_points
             sources_used → sources
 
+        Alias fields (from chained pipeline output) always take precedence
+        over canonical fields when they contain substantive content, because
+        canonical fields may hold LLM-generated placeholder strings from the
+        plan while alias fields carry actual pipeline data.
+
         Also handles type coercion for list fields that may arrive as strings.
         """
         if isinstance(data, dict):
-            # Map synthesize_research fields to emit_result canonical fields
-            if "report" in data and not data.get("document_summary"):
+            # Map synthesize_research fields to emit_result canonical fields.
+            # Alias values (report, key_findings, sources_used) always win
+            # when they have real content — plan params may set canonical
+            # fields with placeholder strings that look truthy.
+            if "report" in data and data.get("report"):
                 data["document_summary"] = data["report"]
-            if "key_findings" in data and not data.get("key_points"):
-                # Coerce string to list if needed
+            elif "report" in data and not data.get("document_summary"):
+                data["document_summary"] = data["report"]
+
+            if "key_findings" in data and data.get("key_findings"):
                 value = data["key_findings"]
                 if isinstance(value, str) and value:
                     data["key_points"] = [value]
                 elif isinstance(value, list):
                     data["key_points"] = value
-            if "sources_used" in data and not data.get("sources"):
-                # Coerce string to list if needed
+            elif "key_findings" in data and not data.get("key_points"):
+                value = data["key_findings"]
+                if isinstance(value, str) and value:
+                    data["key_points"] = [value]
+                elif isinstance(value, list):
+                    data["key_points"] = value
+
+            if "sources_used" in data and data.get("sources_used"):
+                value = data["sources_used"]
+                if isinstance(value, str) and value:
+                    data["sources"] = [value]
+                elif isinstance(value, list):
+                    data["sources"] = value
+            elif "sources_used" in data and not data.get("sources"):
                 value = data["sources_used"]
                 if isinstance(value, str) and value:
                     data["sources"] = [value]
