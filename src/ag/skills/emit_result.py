@@ -36,6 +36,7 @@ See Also:
 from __future__ import annotations
 
 import json
+import re as _re
 import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, ClassVar
@@ -183,8 +184,6 @@ class EmitResultOutput(SkillOutput):
 # ---------------------------------------------------------------------------
 # AF-0109: Content Validation
 # ---------------------------------------------------------------------------
-
-import re as _re
 
 _TEMPLATE_MARKERS = _re.compile(r"\{\{.*?\}\}|\[TODO\]|\[PLACEHOLDER\]", _re.IGNORECASE)
 

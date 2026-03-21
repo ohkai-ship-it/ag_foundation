@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF-0106
 - **Title:** V1Planner file pattern defaults
-- **Status:** IN_PROGRESS
+- **Status:** DONE
 - **Priority:** P2
 - **Owner:** TBD
 - **Sprint:** TBD

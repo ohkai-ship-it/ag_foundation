@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -592,10 +591,7 @@ class TestSummarizeV0Pipeline:
 
         # Step 2: Synthesize (fallback mode - no LLM)
         # AF-0108: Use conversion adapter for Document → SourceDocument
-        source_docs = [
-            _adapt_document_to_source(doc.model_dump())
-            for doc in load_result.documents
-        ]
+        source_docs = [_adapt_document_to_source(doc.model_dump()) for doc in load_result.documents]
         synth_skill = SynthesizeResearchSkill()
         synth_ctx = SkillContext(provider=None)
         synth_input = SynthesizeResearchInput(

@@ -34,14 +34,14 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 12 Scope (Active)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0110 | P1 | IN_PROGRESS | Run layout and plan artifacts refactor | Runtime/Storage/CLI | TBD | [🔗](items/AF0110_IN_PROGRESS_run_layout_plan_artifacts.md) |
-| 2 | AF-0108 | P1 | IN_PROGRESS | Unify summarization skill | Skills/Playbooks | Jacob | [🔗](items/AF0108_IN_PROGRESS_unify_summarization_skill.md) |
-| 3 | AF-0109 | P1 | IN_PROGRESS | emit_result strict content validation | Skills/Artifacts | TBD | [🔗](items/AF0109_IN_PROGRESS_emit_result_strict_content.md) |
-| 4 | AF-0107 | P1 | IN_PROGRESS | load_documents MD inputs reliability | Skills/Storage | Jacob | [🔗](items/AF0107_IN_PROGRESS_load_documents_md_inputs.md) |
-| 5 | AF-0105 | P2 | IN_PROGRESS | CLI defaults fix | CLI/QA | TBD | [🔗](items/AF0105_IN_PROGRESS_cli_defaults_fix.md) |
-| 6 | AF-0106 | P2 | IN_PROGRESS | V1Planner file pattern defaults | Planner/Skills | TBD | [🔗](items/AF0106_IN_PROGRESS_planner_file_pattern_defaults.md) |
+| 1 | AF-0110 | P1 | DONE | Run layout and plan artifacts refactor | Runtime/Storage/CLI | Jacob | [✅](items/AF0110_DONE_run_layout_plan_artifacts.md) |
+| 2 | AF-0108 | P1 | DONE | Unify summarization skill | Skills/Playbooks | Jacob | [✅](items/AF0108_DONE_unify_summarization_skill.md) |
+| 3 | AF-0109 | P1 | DONE | emit_result strict content validation | Skills/Artifacts | Jacob | [✅](items/AF0109_DONE_emit_result_strict_content.md) |
+| 4 | AF-0107 | P1 | DONE | load_documents MD inputs reliability | Skills/Storage | Jacob | [✅](items/AF0107_DONE_load_documents_md_inputs.md) |
+| 5 | AF-0105 | P2 | DONE | CLI defaults fix | CLI/QA | Jacob | [✅](items/AF0105_DONE_cli_defaults_fix.md) |
+| 6 | AF-0106 | P2 | DONE | V1Planner file pattern defaults | Planner/Skills | Jacob | [✅](items/AF0106_DONE_planner_file_pattern_defaults.md) |
 | 7 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
-| 8 | AF-0111 | P1 | IN_PROGRESS | --workspace flag must never create | CLI/Storage | TBD | [🔗](items/AF0111_IN_PROGRESS_workspace_flag_no_create.md) |
+| 8 | AF-0111 | P1 | DONE | --workspace flag must never create | CLI/Storage | Jacob | [✅](items/AF0111_DONE_workspace_flag_no_create.md) |
 
 ### Sprint 11 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

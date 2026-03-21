@@ -176,9 +176,7 @@ class LoadDocumentsSkill(Skill[LoadDocumentsInput, LoadDocumentsOutput]):
 
             # AF-0107: fallback when user/planner patterns find nothing
             if not documents and input.patterns != self._FALLBACK_PATTERNS:
-                documents = self._load_files(
-                    inputs_path, self._FALLBACK_PATTERNS, input.max_files
-                )
+                documents = self._load_files(inputs_path, self._FALLBACK_PATTERNS, input.max_files)
 
             if not documents:
                 return LoadDocumentsOutput(

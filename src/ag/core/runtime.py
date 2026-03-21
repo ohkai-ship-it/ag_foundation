@@ -385,10 +385,7 @@ class V0Orchestrator:
                     chained_result = previous_result
                     # AF-0108: Convert Document dicts to SourceDocument format
                     # when chaining load_documents output to synthesize_research
-                    if (
-                        skill_name == "synthesize_research"
-                        and "documents" in chained_result
-                    ):
+                    if skill_name == "synthesize_research" and "documents" in chained_result:
                         chained_result = {
                             **chained_result,
                             "documents": [

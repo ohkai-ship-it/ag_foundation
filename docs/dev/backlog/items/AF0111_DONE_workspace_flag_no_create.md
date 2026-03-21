@@ -1,7 +1,7 @@
 # AF-0111 — --workspace flag must never create a workspace
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: IN_PROGRESS
+# Status: DONE
 # Priority: P1
 # Area: CLI/Storage
 

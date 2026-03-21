@@ -177,9 +177,7 @@ def _guard_workspace_exists(workspace_id: str) -> None:
 
     ws = Workspace(workspace_id, get_workspace_dir())
     if not ws.exists():
-        err_console.print(
-            f"[bold red]Error:[/bold red] Workspace '{workspace_id}' does not exist."
-        )
+        err_console.print(f"[bold red]Error:[/bold red] Workspace '{workspace_id}' does not exist.")
         err_console.print(f"Create it first: [cyan]ag ws create {workspace_id}[/cyan]")
         raise typer.Exit(code=1)
 
@@ -822,9 +820,7 @@ def run(
                 artifact_type="application/json",
                 size_bytes=len(plan_json_bytes),
             )
-            artifact_store.save(
-                resolved_workspace, trace.run_id, plan_artifact, plan_json_bytes
-            )
+            artifact_store.save(resolved_workspace, trace.run_id, plan_artifact, plan_json_bytes)
 
             # Output results
             if resolved_json:
