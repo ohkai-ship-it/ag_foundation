@@ -779,3 +779,80 @@ class TestPlaybookPluginArchitecture:
 
         # Clean up - re-initialize with real entry points
         reset_registry()
+
+
+# ===========================================================================
+# AF-0111: Workspace Guard Contract Tests
+# ===========================================================================
+
+
+class TestWorkspaceGuardContract:
+    """Contract: --workspace <nonexistent> must fail on every code path.
+
+    No CLI command may silently create a workspace when given a name that
+    does not exist on disk. These tests guard against regressions.
+    """
+
+    def test_run_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag run -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_DEV", "1")
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["run", "-w", "nonexistent", "test prompt"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_plan_list_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag plan list -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["plan", "list", "-w", "nonexistent"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_runs_list_rejects_nonexistent_workspace(self, tmp_path, monkeypatch) -> None:
+        """ag runs list -w nonexistent must exit non-zero and not create directory."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["runs", "list", "-w", "nonexistent"])
+
+        assert result.exit_code != 0
+        assert "does not exist" in result.output
+        assert "ag ws create" in result.output
+        assert not (tmp_path / "nonexistent").exists()
+
+    def test_error_message_includes_workspace_name(self, tmp_path, monkeypatch) -> None:
+        """Error message must include the bad workspace name."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_DEV", "1")
+        runner = CliRunner()
+
+        result = runner.invoke(app, ["run", "-w", "my_typo_ws", "test prompt"])
+
+        assert result.exit_code != 0
+        assert "my_typo_ws" in result.output

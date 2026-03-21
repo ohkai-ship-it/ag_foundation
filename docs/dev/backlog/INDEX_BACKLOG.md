@@ -41,7 +41,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 5 | AF-0105 | P2 | READY | CLI defaults fix | CLI/QA | TBD | [🔗](items/AF0105_READY_cli_defaults_fix.md) |
 | 6 | AF-0106 | P2 | READY | V1Planner file pattern defaults | Planner/Skills | TBD | [🔗](items/AF0106_READY_planner_file_pattern_defaults.md) |
 | 7 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
-| 8 | AF-0111 | P1 | READY | --workspace flag must never create | CLI/Storage | TBD | [🔗](items/AF0111_READY_workspace_flag_no_create.md) |
+| 8 | AF-0111 | P1 | IN_PROGRESS | --workspace flag must never create | CLI/Storage | TBD | [🔗](items/AF0111_IN_PROGRESS_workspace_flag_no_create.md) |
 
 ### Sprint 11 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

@@ -171,6 +171,19 @@ def _resolve_workspace_with_default(resolved_workspace: str | None, command_name
     raise typer.Exit(code=1)
 
 
+def _guard_workspace_exists(workspace_id: str) -> None:
+    """Fail if *workspace_id* does not exist on disk (AF-0111)."""
+    from ag.storage import Workspace
+
+    ws = Workspace(workspace_id, get_workspace_dir())
+    if not ws.exists():
+        err_console.print(
+            f"[bold red]Error:[/bold red] Workspace '{workspace_id}' does not exist."
+        )
+        err_console.print(f"Create it first: [cyan]ag ws create {workspace_id}[/cyan]")
+        raise typer.Exit(code=1)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Label extraction helpers (truthful UX)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -962,6 +975,9 @@ def runs_list(
     # AF-0097: Use default workspace if not specified
     resolved_workspace = _resolve_workspace_with_default(resolved_workspace, "runs list")
 
+    # AF-0111: Guard against non-existent workspace
+    _guard_workspace_exists(resolved_workspace)
+
     run_store = _get_run_store()
 
     try:
@@ -1535,6 +1551,9 @@ def plan_list(
     if not resolved_workspace:
         err_console.print("[bold red]Error:[/bold red] --workspace is required")
         raise typer.Exit(code=1)
+
+    # AF-0111: Guard against non-existent workspace
+    _guard_workspace_exists(resolved_workspace)
 
     plan_store = _get_plan_store()
     plans = plan_store.list(resolved_workspace, include_expired=all_plans)
