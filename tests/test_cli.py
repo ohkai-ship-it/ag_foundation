@@ -169,8 +169,8 @@ class TestRunCommand:
 
     def test_run_with_prompt(self, monkeypatch, tmp_path):
         """ag run with a prompt should work and show run summary."""
-        monkeypatch.delenv(DEV_ENV_VAR, raising=False)
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv(DEV_ENV_VAR, "1")
 
         # Create workspace first
         from ag.storage import Workspace
@@ -180,8 +180,8 @@ class TestRunCommand:
 
         result = runner.invoke(
             app,
-            ["run", "--workspace", "test-ws", "Hello world"],
-            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+            ["run", "--mode", "manual", "--workspace", "test-ws", "Hello world"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path), DEV_ENV_VAR: "1"},
         )
 
         assert result.exit_code == 0
@@ -357,16 +357,21 @@ class TestWorkspaceLifecycle:
     def test_multiple_runs_same_workspace_reuse_db(self, monkeypatch, tmp_path):
         """Multiple runs in same workspace should reuse the same DB file."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
-        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+        monkeypatch.setenv(DEV_ENV_VAR, "1")
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), DEV_ENV_VAR: "1"}
 
         # Create workspace
         runner.invoke(app, ["ws", "create", "multi-run-ws"], env=env)
 
-        # Run twice in same workspace
-        result1 = runner.invoke(app, ["run", "--workspace", "multi-run-ws", "First run"], env=env)
+        # Run twice in same workspace (manual mode to bypass V1Planner)
+        result1 = runner.invoke(
+            app, ["run", "--mode", "manual", "--workspace", "multi-run-ws", "First run"], env=env
+        )
         assert result1.exit_code == 0
 
-        result2 = runner.invoke(app, ["run", "--workspace", "multi-run-ws", "Second run"], env=env)
+        result2 = runner.invoke(
+            app, ["run", "--mode", "manual", "--workspace", "multi-run-ws", "Second run"], env=env
+        )
         assert result2.exit_code == 0
 
         # Verify both runs are in the same workspace
@@ -539,18 +544,19 @@ class TestWorkspaceSelectionPolicy:
     def test_repeated_runs_reuse_workspace(self, monkeypatch, tmp_path):
         """Repeated ag run with same workspace reuse same DB."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
-        env = {"AG_WORKSPACE_DIR": str(tmp_path)}
+        monkeypatch.setenv(DEV_ENV_VAR, "1")
+        env = {"AG_WORKSPACE_DIR": str(tmp_path), DEV_ENV_VAR: "1"}
 
         # Create workspace explicitly
         from ag.storage import SQLiteRunStore, Workspace
 
         Workspace("stable-ws", tmp_path).ensure_exists()
 
-        # Run multiple times
+        # Run multiple times (manual mode to bypass V1Planner)
         for i in range(3):
             result = runner.invoke(
                 app,
-                ["run", "--workspace", "stable-ws", f"Run {i}"],
+                ["run", "--mode", "manual", "--workspace", "stable-ws", f"Run {i}"],
                 env=env,
             )
             assert result.exit_code == 0

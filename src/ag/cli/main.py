@@ -371,6 +371,9 @@ def run(
         None, "--reasoning", "-r", help="Override reasoning mode."
     ),
     yes: bool = typer.Option(False, "--yes", "-y", help="Skip all confirmation prompts (AF-0100)."),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Show plan summary and exit without executing (AF-0112)."
+    ),
     json_output: bool = typer.Option(False, "--json", help="Output machine-readable JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Reduce output."),
     verbose: bool = typer.Option(
@@ -381,10 +384,11 @@ def run(
     Execute a task.
 
     Example:
-        ag run "Draft a project plan"
-        ag run --mode manual "Test the pipeline"
-        ag run --plan plan_abc123  # Execute a saved plan (AF-0099)
-        ag run --plan plan_abc123 --yes  # Skip confirmations (AF-0100)
+        ag run "Research Tokyo trends"          # plan → confirm → execute
+        ag run -y "Research Tokyo trends"       # plan → execute (no prompt)
+        ag run --dry-run "Research Tokyo trends" # plan → show → exit
+        ag run --plan plan_abc123               # execute a saved plan (AF-0099)
+        ag run --skill zero_skill "test"        # direct skill execution
     """
     # Resolve global options with precedence: local > global > default
     cli_ctx = get_cli_ctx(ctx)
@@ -406,6 +410,11 @@ def run(
             raise typer.Exit(code=1)
         if skill:
             err_console.print("[bold red]Error:[/bold red] --plan cannot be combined with --skill")
+            raise typer.Exit(code=1)
+        if dry_run:
+            err_console.print(
+                "[bold red]Error:[/bold red] --dry-run cannot be combined with --plan"
+            )
             raise typer.Exit(code=1)
     elif not prompt:
         err_console.print("[bold red]Error:[/bold red] prompt argument is required")
@@ -871,7 +880,191 @@ def run(
 
         return
 
-    # Create and execute runtime
+    # AF-0112: Default path — inline plan preview and confirm
+    # When no --plan, --skill, or --playbook is given, use V1Planner to generate
+    # a plan, display it, and ask for confirmation before executing.
+    # Manual mode bypasses planning (no LLM available).
+    if not playbook and mode != ExecutionMode.MANUAL:
+        import uuid
+
+        from ag.core import (
+            PlannerError,
+            TaskSpec,
+            V1Planner,
+            create_execution_plan,
+        )
+        from ag.providers import ProviderConfig, get_provider
+
+        task_spec = TaskSpec(
+            prompt=prompt,
+            workspace_id=resolved_workspace,
+            mode=ExecutionMode.SUPERVISED,
+        )
+
+        try:
+            provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
+            provider = get_provider(provider_config)
+            registry = get_default_registry()
+            planner = V1Planner(provider, registry)
+
+            if not resolved_quiet and not resolved_json:
+                console.print("[dim]Planning...[/dim]")
+
+            generated_playbook = planner.plan(task_spec)
+            confidence = generated_playbook.metadata.get("confidence", 0.0)
+            warnings = generated_playbook.metadata.get("warnings", [])
+
+        except PlannerError as e:
+            if resolved_json:
+                console.print(json.dumps({"error": str(e)}, indent=2))
+            else:
+                err_console.print(f"[bold red]Planning failed:[/bold red] {e}")
+            raise typer.Exit(code=1)
+        except Exception as e:
+            if resolved_json:
+                console.print(json.dumps({"error": f"Unexpected error: {e}"}, indent=2))
+            else:
+                err_console.print(f"[bold red]Error:[/bold red] {e}")
+            raise typer.Exit(code=1)
+
+        # Build ExecutionPlan for display and storage
+        inline_plan_id = f"plan_{uuid.uuid4().hex[:12]}"
+        skill_flags = _get_skill_policy_flags()
+
+        inline_plan = create_execution_plan(
+            plan_id=inline_plan_id,
+            workspace_id=resolved_workspace,
+            task_prompt=prompt,
+            playbook=generated_playbook,
+            confidence=confidence,
+            warnings=warnings,
+            ttl_seconds=3600,
+            skill_policy_flags=skill_flags,
+        )
+
+        # Display plan summary
+        if resolved_json:
+            plan_data = json.loads(inline_plan.to_json())
+            if dry_run:
+                plan_data["dry_run"] = True
+                print(json.dumps(plan_data, indent=2))
+                raise typer.Exit(code=0)
+            # JSON mode auto-approves (no interactive prompt)
+        else:
+            _display_plan(inline_plan)
+
+        # --dry-run: show plan and exit
+        if dry_run:
+            raise typer.Exit(code=0)
+
+        # Confirmation gate (unless --yes or --json)
+        if not yes and not resolved_json:
+            console.print()
+            try:
+                answer = console.input("[bold]Execute this plan? [Y/n][/bold] ")
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[dim]Aborted.[/dim]")
+                raise typer.Exit(code=0)
+
+            if answer.strip().lower() in ("n", "no"):
+                console.print("[dim]Plan discarded.[/dim]")
+                raise typer.Exit(code=0)
+
+        # Execute the plan
+        run_store = _get_run_store()
+        artifact_store = _get_artifact_store()
+
+        try:
+            runtime = create_runtime(
+                run_store=run_store,
+                artifact_store=artifact_store,
+            )
+
+            trace = runtime.execute(
+                prompt=prompt,
+                workspace=resolved_workspace,
+                mode=mode,
+                workspace_source=workspace_source,
+                playbook_object=generated_playbook,
+            )
+
+            # Set autonomy metadata (guided mode — user confirmed inline plan)
+            trace.plan_id = inline_plan_id
+            trace.autonomy = AutonomyMetadata(
+                mode=AutonomyMode.GUIDED,
+                plan_id=inline_plan_id,
+                confirmation_enabled=not yes,
+                confirmation_flags=[],
+            )
+            run_store.save(trace)
+
+            # Store plan as run artifact (AF-0110 layout)
+            from datetime import UTC, datetime
+
+            from ag.core import Artifact
+            from ag.core.execution_plan import PlanStatus
+
+            inline_plan.status = PlanStatus.EXECUTED
+            inline_plan.executed_at = datetime.now(UTC)
+            inline_plan.run_id = trace.run_id
+
+            plan_json_bytes = inline_plan.to_json().encode("utf-8")
+            plan_artifact = Artifact(
+                artifact_id=f"{trace.run_id}-plan",
+                path="plan.json",
+                artifact_type="application/json",
+                size_bytes=len(plan_json_bytes),
+            )
+            artifact_store.save(resolved_workspace, trace.run_id, plan_artifact, plan_json_bytes)
+
+            # Output results
+            if resolved_json:
+                output = json.loads(trace.to_json())
+                output["plan_id"] = inline_plan_id
+                output["plan_executed"] = True
+                print(json.dumps(output, indent=2))
+            else:
+                labels = extract_labels(trace)
+
+                if not resolved_quiet:
+                    console.print()
+                    console.print("[bold]Run completed[/bold]")
+                    console.print(f"  Plan ID: {inline_plan_id}")
+                    console.print(f"  Run ID: {labels['run_id']}")
+                    console.print(f"  Workspace: {labels['workspace_id']}")
+                    console.print("  Autonomy: [yellow]guided[/yellow] (inline plan)")
+                    console.print(f"  Status: {format_status(trace.final)}")
+                    console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                    console.print(f"  Duration: {labels['duration']}")
+                    console.print(f"  Playbook: {labels['playbook']}")
+
+                    if resolved_verbose:
+                        console.print()
+                        console.print(f"  Steps: {len(trace.steps)}")
+                        for step in trace.steps:
+                            status_mark = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
+                            skill_name = step.skill_name or "reasoning"
+                            console.print(f"    {status_mark} {step.step_number}: {skill_name}")
+
+                    if trace.error:
+                        console.print()
+                        console.print(f"[red]Error: {trace.error}[/red]")
+
+            if trace.final != FinalStatus.SUCCESS:
+                raise typer.Exit(code=1)
+
+        except typer.Exit:
+            raise
+        except Exception as e:
+            err_console.print(f"[bold red]Error executing plan:[/bold red] {e}")
+            raise typer.Exit(code=1)
+        finally:
+            run_store.close()
+            artifact_store.close()
+
+        return
+
+    # Explicit --playbook or manual mode: direct execution (no planning)
     run_store = _get_run_store()
     artifact_store = _get_artifact_store()
 
@@ -896,7 +1089,6 @@ def run(
             confirmation_enabled=not yes,
             confirmation_flags=[],
         )
-        # Re-save trace with autonomy metadata
         run_store.save(trace)
 
         # Output results
@@ -911,7 +1103,6 @@ def run(
                 console.print(f"  Run ID: {labels['run_id']}")
                 console.print(f"  Workspace: {labels['workspace_id']}")
                 console.print(f"  Mode: {labels['mode']}")
-                # AF-0101: Show autonomy mode
                 if trace.autonomy:
                     is_playbook = trace.autonomy.mode == AutonomyMode.PLAYBOOK
                     a_color = "[blue]" if is_playbook else "[yellow]"
@@ -926,14 +1117,13 @@ def run(
                     console.print(f"  Steps: {len(trace.steps)}")
                     for step in trace.steps:
                         status_mark = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
-                        skill = step.skill_name or "reasoning"
-                        console.print(f"    {status_mark} {step.step_number}: {skill}")
+                        skill_name = step.skill_name or "reasoning"
+                        console.print(f"    {status_mark} {step.step_number}: {skill_name}")
 
                 if trace.error:
                     console.print()
                     console.print(f"[red]Error: {trace.error}[/red]")
 
-        # Exit with error code if run failed
         if trace.final != FinalStatus.SUCCESS:
             raise typer.Exit(code=1)
 

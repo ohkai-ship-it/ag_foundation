@@ -1002,3 +1002,225 @@ class TestAccumulatedChaining:
         assert accumulated["source_count"] == 5
         # Plus the emit metadata
         assert accumulated["artifact_id"] == "art-abc123"
+
+
+# ---------------------------------------------------------------------------
+# AF-0112: Inline plan preview and confirm in ag run
+# ---------------------------------------------------------------------------
+
+
+class TestInlinePlanConfirmRun:
+    """Contract: ag run "prompt" generates a plan inline, confirms, then executes.
+
+    The default `ag run "prompt"` path must call V1Planner, display the plan,
+    prompt for confirmation, and only execute on approval. --yes auto-approves,
+    --dry-run shows the plan and exits, --json auto-approves with JSON output.
+    """
+
+    @pytest.fixture
+    def _workspace(self, tmp_path, monkeypatch):
+        """Create workspace and patch env."""
+        ws_root = tmp_path / "workspaces"
+        ws_root.mkdir()
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(ws_root))
+        monkeypatch.setenv("AG_DEV", "1")
+        from ag.storage import Workspace
+
+        ws = Workspace("test-ws", ws_root)
+        ws.ensure_exists()
+
+    def _mock_playbook(self):
+        return Playbook(
+            name="v1plan_test",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="step-1",
+                    name="web_search",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="web_search",
+                    parameters={"query": "test"},
+                ),
+                PlaybookStep(
+                    step_id="step-2",
+                    name="emit_result",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                    parameters={"artifact_name": "report.md"},
+                ),
+            ],
+            metadata={"confidence": 0.85, "warnings": [], "estimated_tokens": 3000},
+        )
+
+    def test_dry_run_shows_plan_and_exits(self, _workspace) -> None:
+        """ag run --dry-run shows plan summary and exits with code 0."""
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
+            mock_provider = MagicMock()
+            mock_get_provider.return_value = mock_provider
+            mock_planner = MagicMock()
+            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner_cls.return_value = mock_planner
+
+            result = runner.invoke(app, ["run", "--dry-run", "-w", "test-ws", "Research test"])
+
+        assert result.exit_code == 0
+        assert "plan_" in result.output
+        assert "web_search" in result.output
+        assert "emit_result" in result.output
+
+    def test_dry_run_json_outputs_plan(self, _workspace) -> None:
+        """ag run --dry-run --json outputs plan as JSON with dry_run flag."""
+        import json
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
+            mock_provider = MagicMock()
+            mock_get_provider.return_value = mock_provider
+            mock_planner = MagicMock()
+            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner_cls.return_value = mock_planner
+
+            result = runner.invoke(
+                app, ["run", "--dry-run", "--json", "-w", "test-ws", "Research test"]
+            )
+
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["dry_run"] is True
+        assert "plan_id" in data
+
+    def test_user_rejects_plan(self, _workspace) -> None:
+        """ag run with 'n' at confirmation discards and exits 0."""
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+        ):
+            mock_provider = MagicMock()
+            mock_get_provider.return_value = mock_provider
+            mock_planner = MagicMock()
+            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner_cls.return_value = mock_planner
+
+            result = runner.invoke(app, ["run", "-w", "test-ws", "Research test"], input="n\n")
+
+        assert result.exit_code == 0
+        assert "discarded" in result.output.lower()
+
+    def test_yes_flag_skips_confirmation(self, _workspace) -> None:
+        """ag run -y auto-approves and executes without prompting."""
+        from unittest.mock import MagicMock, patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+        mock_trace = MagicMock()
+        mock_trace.run_id = "test-run-id"
+        mock_trace.final = FinalStatus.SUCCESS
+        mock_trace.plan_id = None
+        mock_trace.autonomy = None
+        mock_trace.to_json.return_value = "{}"
+        mock_trace.steps = []
+        mock_trace.error = None
+
+        with (
+            patch("ag.providers.registry.get_provider") as mock_get_provider,
+            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.cli.main.create_runtime") as mock_create_rt,
+            patch("ag.cli.main._get_run_store") as mock_get_rs,
+            patch("ag.cli.main._get_artifact_store") as mock_get_as,
+        ):
+            mock_provider = MagicMock()
+            mock_get_provider.return_value = mock_provider
+            mock_planner = MagicMock()
+            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner_cls.return_value = mock_planner
+
+            mock_runtime = MagicMock()
+            mock_runtime.execute.return_value = mock_trace
+            mock_create_rt.return_value = mock_runtime
+
+            mock_get_rs.return_value = MagicMock()
+            mock_get_as.return_value = MagicMock()
+
+            result = runner.invoke(app, ["run", "-y", "-w", "test-ws", "Research test"])
+
+        # Should execute without asking for confirmation
+        assert result.exit_code == 0, (
+            f"Expected exit 0, got {result.exit_code}. Output: {result.output}"
+        )
+        mock_runtime.execute.assert_called_once()
+        call_kwargs = mock_runtime.execute.call_args
+        assert call_kwargs.kwargs.get("playbook_object") is not None
+
+    def test_plan_flag_unchanged(self, _workspace) -> None:
+        """ag run --plan still works (backward compatible)."""
+        from unittest.mock import patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+
+        # The --plan path should NOT invoke V1Planner
+        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
+            result = runner.invoke(app, ["run", "--plan", "plan_nonexistent", "-w", "test-ws"])
+            # It should fail because plan doesn't exist, but should NOT call V1Planner
+            mock_planner_cls.assert_not_called()
+            assert result.exit_code != 0
+
+    def test_dry_run_with_plan_is_error(self, _workspace) -> None:
+        """--dry-run cannot be combined with --plan."""
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+        result = runner.invoke(app, ["run", "--dry-run", "--plan", "plan_abc", "-w", "test-ws"])
+        assert result.exit_code != 0
+        assert "cannot be combined" in result.output.lower()
+
+    def test_playbook_flag_bypasses_planner(self, _workspace) -> None:
+        """ag run --playbook uses explicit playbook, does not invoke V1Planner."""
+        from unittest.mock import patch
+
+        from typer.testing import CliRunner
+
+        from ag.cli.main import app
+
+        runner = CliRunner()
+
+        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
+            # Will fail because playbook doesn't exist, but verifies V1Planner not called
+            runner.invoke(app, ["run", "--playbook", "nonexistent", "-w", "test-ws", "test"])
+            mock_planner_cls.assert_not_called()
