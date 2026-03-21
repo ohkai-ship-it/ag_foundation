@@ -856,3 +856,37 @@ class TestWorkspaceGuardContract:
 
         assert result.exit_code != 0
         assert "my_typo_ws" in result.output
+
+
+# ---------------------------------------------------------------------------
+# BUG-0016: previous_step placeholder stripping
+# ---------------------------------------------------------------------------
+
+
+class TestPreviousStepPlaceholderStripping:
+    """Contract: runtime must strip 'previous_step.*' placeholder strings.
+
+    The LLM planner may generate params like {"key_points": "previous_step.key_findings"}.
+    The runtime never resolves these; actual values come from chained output.
+    Placeholder strings must be stripped so they don't override real chained data.
+    """
+
+    def test_placeholder_strings_stripped_from_step_params(self) -> None:
+        """Params with 'previous_step.*' values are removed before skill execution."""
+        raw_params = {
+            "artifact_name": "report.md",
+            "key_points": "previous_step.key_findings",
+            "sources": "previous_step.sources_used",
+            "document_summary": "previous_step.report",
+        }
+
+        filtered = {
+            k: v
+            for k, v in raw_params.items()
+            if not (isinstance(v, str) and v.startswith("previous_step."))
+        }
+
+        assert filtered == {"artifact_name": "report.md"}
+        assert "key_points" not in filtered
+        assert "sources" not in filtered
+        assert "document_summary" not in filtered

@@ -459,7 +459,10 @@ class TestRunsStats:
         assert "by_mode" in stats
         assert "avg_duration_ms" in stats
 
-    def test_stats_requires_workspace(self) -> None:
-        """ag runs stats requires --workspace flag."""
+    def test_stats_requires_workspace(self, monkeypatch) -> None:
+        """ag runs stats fails when no workspace and no default available."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(Path(__file__).parent / "_no_ws_"))
+        monkeypatch.delenv("AG_WORKSPACE", raising=False)
+        monkeypatch.setattr("ag.config.get_persisted_default_workspace", lambda: None)
         result = runner.invoke(app, ["runs", "stats"])
         assert result.exit_code == 1  # Should fail without workspace

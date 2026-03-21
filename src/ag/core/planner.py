@@ -215,7 +215,10 @@ execution plans by composing available skills into a sequence of steps.
 Rules:
 1. Only use skills from the provided catalog — no hallucinated capabilities
 2. Order steps logically — later steps may depend on earlier outputs
-3. The runtime automatically chains step outputs (no placeholder syntax needed)
+3. The runtime automatically chains step outputs to the next step's input — do NOT
+   use "previous_step.X" references in params. Only include static configuration
+   values that the skill needs (e.g. artifact_name, output_format). Omit fields
+   that come from the previous step's output.
 4. Minimize steps while ensuring task completion
 5. Provide clear rationale for each step
 6. For load_documents: prefer the default patterns (["**/*.md"]) unless the task

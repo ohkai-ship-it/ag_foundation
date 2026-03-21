@@ -393,10 +393,18 @@ class V0Orchestrator:
                                 for doc in chained_result["documents"]
                             ],
                         }
+                    # Strip "previous_step.*" placeholder strings from plan
+                    # parameters — these are LLM-generated references that the
+                    # runtime never resolves; actual values come from chained_result.
+                    step_params = {
+                        k: v
+                        for k, v in playbook_step.parameters.items()
+                        if not (isinstance(v, str) and v.startswith("previous_step."))
+                    }
                     skill_params = {
                         "prompt": task.prompt,
                         "step": i,
-                        **playbook_step.parameters,
+                        **step_params,
                         **chained_result,  # Chain previous step output
                     }
                     # AF-0019: Pass subtasks context to execute_subtask skills
