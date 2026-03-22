@@ -24,11 +24,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint13
 - **Name:** intelligent_pipeline
-- **Dates:** 2026-03-21 → TBD
+- **Dates:** 2026-03-21 → 2026-03-22
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Ready
+- **State:** Closed
 
 ---
 
@@ -98,12 +98,12 @@ building a V1 Orchestrator that handles mixed skill+playbook plans.
 ---
 
 ## 6) Definition of Done (Sprint-level)
-- [ ] All P0 items are merged
-- [ ] Each merged AF has its completion section filled
-- [ ] Evidence captured for behavior changes (tests + RunTrace ID(s))
-- [ ] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS)
-- [ ] Repo hygiene executed (per checklist)
-- [ ] Indices updated and consistent
+- [x] All P0 items are merged
+- [x] Each merged AF has its completion section filled
+- [x] Evidence captured for behavior changes (tests + RunTrace ID(s))
+- [x] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS)
+- [x] Repo hygiene executed (per checklist)
+- [x] Indices updated and consistent
 
 ---
 
@@ -132,19 +132,26 @@ building a V1 Orchestrator that handles mixed skill+playbook plans.
 
 ## 9) Outcome summary
 - Shipped:
-  - ...
+  - AF-0114: Extracted V0 pipeline components to dedicated files
+  - AF-0115: V1Verifier with step-aware verification (BUG-0017 fix)
+  - AF-0103: V2Planner with playbook awareness (now default planner)
+  - AF-0117 (partial): V1Orchestrator for mixed skill+playbook plans (now default orchestrator)
 - Not shipped:
-  - ...
+  - None (all P0 items completed)
 
 ---
 
 ## 10) Completed work
 - ✅ AF-0112 — Inline plan preview and confirm in ag run (pre-sprint)
+- ✅ AF-0114 — Extract V0 classes to dedicated files
+- ✅ AF-0115 — V1Verifier step-aware verification
+- ✅ AF-0103 — V2Planner playbook-aware planner
+- ✅ AF-0117 (partial) — V1Orchestrator mixed plan support
 
 ---
 
 ## 11) Not completed / carried over
-- ⏭️ (none yet)
+- ⏭️ AF-0117 remainder — Per-step verification wiring (Sprint 14)
 
 ---
 
@@ -152,15 +159,22 @@ building a V1 Orchestrator that handles mixed skill+playbook plans.
 - Review file(s):
   - `S13_REVIEW_01.md`
 - Representative RunTrace IDs:
-  - (TBD)
+  - `883779d3-aa89-430d-85dc-0b72d687236c` (happy path manual mode)
+  - `19eb2092-c433-4727-ab6f-80accdaa565c` (V2Planner + V1Orchestrator playbook expansion)
 - Test summary:
-  - (TBD)
+  - 719 passed, 3 deselected
+  - ruff check: All checks passed
+  - ruff format: All formatted
 
 ---
 
 ## 13) Learnings
 - What worked:
+  - Incremental extraction (V0 → V1) provides safe migration path
+  - Contract tests caught mock path issues when switching V1→V2 planner
 - What to improve:
+  - BUG-0018: V2Planner can misclassify playbooks as skills (LLM confusion)
+  - BUG-0019: Orchestrator may drop required flag during playbook expansion
 
 ---
 

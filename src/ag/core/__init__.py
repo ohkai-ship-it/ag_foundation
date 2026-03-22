@@ -30,12 +30,14 @@ from .interfaces import (
 from .orchestrator import (
     TrackingLLMProvider,
     V0Orchestrator,
+    V1Orchestrator,
     _adapt_document_to_source,
 )
 from .planner import (
     PlannerError,
     V0Planner,
     V1Planner,
+    V2Planner,
 )
 from .playbook import (
     Playbook,
@@ -137,6 +139,7 @@ __all__ = [
     "V0Normalizer",
     "V0Planner",
     "V0Orchestrator",
+    "V1Orchestrator",
     "V0Executor",
     "V0Verifier",
     "V1Verifier",
@@ -146,6 +149,7 @@ __all__ = [
     "create_runtime",
     # planner (AF-0102)
     "V1Planner",
+    "V2Planner",
     "PlannerError",
     # execution_plan (AF-0098)
     "ExecutionPlan",

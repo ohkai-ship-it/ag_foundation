@@ -11,7 +11,12 @@ Wires pipeline components together. Implementations live in dedicated files:
 from __future__ import annotations
 
 from ag.core.executor import V0Executor
-from ag.core.orchestrator import TrackingLLMProvider, V0Orchestrator, _adapt_document_to_source
+from ag.core.orchestrator import (
+    TrackingLLMProvider,
+    V0Orchestrator,
+    V1Orchestrator,
+    _adapt_document_to_source,
+)
 from ag.core.planner import V0Planner
 from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
@@ -161,7 +166,7 @@ def create_runtime(
     executor = V0Executor(registry)
     recorder = V0Recorder(run_store, artifact_store)
     verifier = V1Verifier()
-    orchestrator = V0Orchestrator(executor, verifier, recorder)
+    orchestrator = V1Orchestrator(executor, verifier, recorder)
 
     return Runtime(
         normalizer=V0Normalizer(),
@@ -181,6 +186,7 @@ __all__ = [
     "V1Verifier",
     "V0Recorder",
     "V0Orchestrator",
+    "V1Orchestrator",
     "TrackingLLMProvider",
     "_adapt_document_to_source",
     "create_runtime",

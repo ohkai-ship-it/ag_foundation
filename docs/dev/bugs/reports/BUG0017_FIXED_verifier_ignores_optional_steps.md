@@ -16,14 +16,15 @@
 
 ## Metadata
 - **ID:** BUG-0017
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P1
 - **Area:** Core Runtime / Verifier
 - **Reported by:** Kai
 - **Date:** 2026-03-21
-- **Related backlog item(s):** AF-0113 (per-step output verification)
+- **Fixed in:** Sprint 13 (AF-0115)
+- **Related backlog item(s):** AF-0115 (V1 Verifier: step-aware verification), AF-0113 (superseded)
 - **Related ADR(s):** —
-- **Related PR(s):** —
+- **Related PR(s):** feat/sprint13-intelligent-pipeline
 
 ---
 
@@ -167,3 +168,4 @@ If `final_status == SUCCESS`, skip the step-error scan entirely.
 
 ## Status log
 - 2026-03-21 — Opened by Kai (reproduced with run `a4311fc6-c216-43d7-91c6-c6c4321eb982`)
+- 2026-03-22 — FIXED in Sprint 13 via AF-0115: V1Verifier implements Option B (`required` field on Step model + step-aware verification). V1Verifier now tracks required vs optional steps; only required failures trigger verifier `failed`. 9 contract tests added. Evidence: happy_trace.json shows `required_passed`, `optional_skipped` fields.

@@ -41,7 +41,8 @@ Each sprint folder:
 | Sprint 10 | Closed | [Sprint10_gate_b_readiness](documentation/Sprint10_gate_b_readiness/) |
 | Sprint 11 | Closed | [Sprint11_guided_autonomy_enablement](documentation/Sprint11_guided_autonomy_enablement/) |
 | Sprint 12 | Closed | [Sprint12_autonomy_boundaries](documentation/Sprint12_autonomy_boundaries/) |
-| Sprint 13 | In Progress | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
+| Sprint 13 | Closed | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
+| Sprint 14 | Ready | [Sprint14_pipeline_trace_hardening](documentation/Sprint14_pipeline_trace_hardening/) |
 
 ---
 

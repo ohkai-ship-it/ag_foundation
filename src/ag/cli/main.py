@@ -881,7 +881,7 @@ def run(
         return
 
     # AF-0112: Default path — inline plan preview and confirm
-    # When no --plan, --skill, or --playbook is given, use V1Planner to generate
+    # When no --plan, --skill, or --playbook is given, use V2Planner to generate
     # a plan, display it, and ask for confirmation before executing.
     # Manual mode bypasses planning (no LLM available).
     if not playbook and mode != ExecutionMode.MANUAL:
@@ -890,7 +890,7 @@ def run(
         from ag.core import (
             PlannerError,
             TaskSpec,
-            V1Planner,
+            V2Planner,
             create_execution_plan,
         )
         from ag.providers import ProviderConfig, get_provider
@@ -905,7 +905,7 @@ def run(
             provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
             provider = get_provider(provider_config)
             registry = get_default_registry()
-            planner = V1Planner(provider, registry)
+            planner = V2Planner(provider, registry)
 
             if not resolved_quiet and not resolved_json:
                 console.print("[dim]Planning...[/dim]")
@@ -1503,7 +1503,7 @@ def plan_generate(
         ExecutionMode,
         PlannerError,
         TaskSpec,
-        V1Planner,
+        V2Planner,
         create_execution_plan,
     )
     from ag.providers import ProviderConfig, get_provider
@@ -1524,12 +1524,12 @@ def plan_generate(
         mode=ExecutionMode.SUPERVISED,
     )
 
-    # Generate plan using V1Planner
+    # Generate plan using V2Planner (playbook-aware)
     try:
         provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
         provider = get_provider(provider_config)
         registry = get_default_registry()
-        planner = V1Planner(provider, registry)
+        planner = V2Planner(provider, registry)
 
         if not resolved_json:
             console.print(f"[dim]Generating plan for workspace '{resolved_workspace}'...[/dim]")

@@ -1012,7 +1012,7 @@ class TestAccumulatedChaining:
 class TestInlinePlanConfirmRun:
     """Contract: ag run "prompt" generates a plan inline, confirms, then executes.
 
-    The default `ag run "prompt"` path must call V1Planner, display the plan,
+    The default `ag run "prompt"` path must call V2Planner, display the plan,
     prompt for confirmation, and only execute on approval. --yes auto-approves,
     --dry-run shows the plan and exits, --json auto-approves with JSON output.
     """
@@ -1064,7 +1064,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1092,7 +1092,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1121,7 +1121,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1154,7 +1154,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
             patch("ag.cli.main.create_runtime") as mock_create_rt,
             patch("ag.cli.main._get_run_store") as mock_get_rs,
             patch("ag.cli.main._get_artifact_store") as mock_get_as,
@@ -1192,10 +1192,10 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        # The --plan path should NOT invoke V1Planner
-        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        # The --plan path should NOT invoke V2Planner
+        with patch("ag.core.V2Planner") as mock_planner_cls:
             result = runner.invoke(app, ["run", "--plan", "plan_nonexistent", "-w", "test-ws"])
-            # It should fail because plan doesn't exist, but should NOT call V1Planner
+            # It should fail because plan doesn't exist, but should NOT call V2Planner
             mock_planner_cls.assert_not_called()
             assert result.exit_code != 0
 
@@ -1211,7 +1211,7 @@ class TestInlinePlanConfirmRun:
         assert "cannot be combined" in result.output.lower()
 
     def test_playbook_flag_bypasses_planner(self, _workspace) -> None:
-        """ag run --playbook uses explicit playbook, does not invoke V1Planner."""
+        """ag run --playbook uses explicit playbook, does not invoke V2Planner."""
         from unittest.mock import patch
 
         from typer.testing import CliRunner
@@ -1220,8 +1220,8 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
-            # Will fail because playbook doesn't exist, but verifies V1Planner not called
+        with patch("ag.core.V2Planner") as mock_planner_cls:
+            # Will fail because playbook doesn't exist, but verifies V2Planner not called
             runner.invoke(app, ["run", "--playbook", "nonexistent", "-w", "test-ws", "test"])
             mock_planner_cls.assert_not_called()
 

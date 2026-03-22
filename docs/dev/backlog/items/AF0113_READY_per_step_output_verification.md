@@ -1,7 +1,7 @@
 # AF-0113 — Per-step skill output verification
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: PROPOSED (superseded)
+# Status: READY
 # Priority: P1
 # Area: Core Runtime/Verifier/Skills
 
