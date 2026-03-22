@@ -306,14 +306,14 @@ class TestResponseParsing:
         with pytest.raises(PlannerError, match="Invalid JSON"):
             planner._parse_response("not valid json {")
 
-    def test_parse_missing_steps_raises_error(
+    def test_parse_missing_steps_returns_empty(
         self, mock_provider: MagicMock, mock_registry: SkillRegistry
     ) -> None:
-        """Parser raises PlannerError when steps are missing."""
+        """Parser accepts missing/empty steps (validation happens in _validate_skills)."""
         planner = V1Planner(mock_provider, mock_registry)
 
-        with pytest.raises(PlannerError, match="doesn't match schema"):
-            planner._parse_response('{"estimated_tokens": 100}')  # Missing steps
+        result = planner._parse_response('{"estimated_tokens": 100}')  # Missing steps key
+        assert result.steps == []
 
     def test_parse_trailing_comma_tolerance(
         self, mock_provider: MagicMock, mock_registry: SkillRegistry
@@ -419,6 +419,26 @@ class TestErrorHandling:
         planner = V1Planner(mock_provider, empty_registry)
 
         with pytest.raises(PlannerError, match="No skills available"):
+            planner.plan(task_spec)
+
+    def test_empty_steps_raises_friendly_error(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """LLM returning empty steps raises a user-friendly PlannerError, not a schema crash."""
+        from ag.providers.base import ChatResponse
+
+        mock_provider.chat.return_value = ChatResponse(
+            content='{"steps": [], "confidence": 0.0, "warnings": ["No applicable skills"]}',
+            model="mock-model",
+            provider="mock",
+            tokens_used=10,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+        planner = V1Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="cannot be completed"):
             planner.plan(task_spec)
 
 

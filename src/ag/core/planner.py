@@ -69,7 +69,7 @@ class PlannedStep(BaseModel):
 class LLMPlanResponse(BaseModel):
     """Schema for LLM's JSON response."""
 
-    steps: list[PlannedStep] = Field(..., min_length=1, description="Ordered skill steps")
+    steps: list[PlannedStep] = Field(default_factory=list, description="Ordered skill steps")
     estimated_tokens: int = Field(default=0, ge=0, description="Estimated total tokens")
     confidence: float = Field(default=0.5, ge=0.0, le=1.0, description="Plan confidence")
     warnings: list[str] = Field(default_factory=list, description="Any warnings or caveats")
@@ -478,6 +478,12 @@ Respond with a JSON plan."""
 
     def _validate_skills(self, plan: LLMPlanResponse) -> None:
         """Validate that all referenced skills exist."""
+        if not plan.steps:
+            raise PlannerError(
+                "The task cannot be completed with the available skills. "
+                "No steps were generated. Try rephrasing or check that the "
+                "required capabilities exist."
+            )
         for step in plan.steps:
             if not self.skill_registry.has(step.skill):
                 raise PlannerError(
