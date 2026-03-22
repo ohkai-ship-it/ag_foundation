@@ -826,6 +826,106 @@ class TestV2PlannerPlaybookAwareness:
         with pytest.raises(PlannerError, match="Invalid playbook"):
             planner.plan(task_spec)
 
+    def test_v2_planner_autocorrects_playbook_misclassified_as_skill_bug0018(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """BUG-0018: V2Planner auto-corrects when LLM classifies playbook as skill.
+
+        When LLM returns type=skill but the name exists only as a playbook,
+        auto-correct to type=playbook and log a warning.
+        """
+        from ag.core.planner import V2Planner
+
+        # LLM incorrectly classifies research_v0 (a playbook) as a skill
+        plan_json = (
+            '{"steps": [{"type": "skill", "skill": "research_v0", '
+            '"params": {"query": "test"}, "rationale": "Research"}], '
+            '"estimated_tokens": 100, "confidence": 0.8}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+
+        # Should NOT raise, should auto-correct
+        result = planner.plan(task_spec)
+
+        # Step should be corrected to PLAYBOOK type
+        assert len(result.steps) == 1
+        assert result.steps[0].step_type == PlaybookStepType.PLAYBOOK
+        assert result.steps[0].skill_name == "research_v0"
+
+    def test_v2_planner_autocorrects_skill_misclassified_as_playbook_bug0018(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """BUG-0018: V2Planner auto-corrects when LLM classifies skill as playbook.
+
+        When LLM returns type=playbook but the name exists only as a skill,
+        auto-correct to type=skill and log a warning.
+        """
+        from ag.core.planner import V2Planner
+
+        # LLM incorrectly classifies mock_skill (a skill in mock_registry) as a playbook
+        plan_json = (
+            '{"steps": [{"type": "playbook", "playbook": "mock_skill", '
+            '"params": {"input": "test"}, "rationale": "Test"}], '
+            '"estimated_tokens": 100, "confidence": 0.8}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+
+        # Should NOT raise, should auto-correct
+        result = planner.plan(task_spec)
+
+        # Step should be corrected to SKILL type
+        assert len(result.steps) == 1
+        assert result.steps[0].step_type == PlaybookStepType.SKILL
+        assert result.steps[0].skill_name == "mock_skill"
+
+    def test_v2_planner_raises_for_unknown_name_in_both_namespaces(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """BUG-0018: V2Planner raises error when name doesn't exist in either namespace."""
+        from ag.core.planner import V2Planner
+
+        # LLM references a name that doesn't exist as skill OR playbook
+        plan_json = (
+            '{"steps": [{"type": "skill", "skill": "completely_unknown", '
+            '"params": {}, "rationale": "Bad"}], '
+            '"estimated_tokens": 100, "confidence": 0.5}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+
+        # Should raise with both available skills AND playbooks listed
+        with pytest.raises(PlannerError, match="Invalid skill.*Available skills.*Available playbooks"):
+            planner.plan(task_spec)
+
 
 # ---------------------------------------------------------------------------
 # V1Orchestrator Tests (AF-0117)

@@ -38,7 +38,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 3 | AF-0118 | P2 | READY | V1 Recorder: verification evidence | Core Runtime/Recorder | TBD | [🔗](items/AF0118_READY_v1_recorder_verification_evidence.md) |
 | 4 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
 | 5 | AF-0104 | P2 | READY | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_READY_llm_planner_v3_feasibility.md) |
-| 6 | BUG-0018 | P1 | OPEN | V2Planner misclassifies playbook as skill | Core Runtime/Planner | TBD | [🔗](../bugs/reports/BUG0018_OPEN_v2planner_misclassifies_playbook.md) |
+| 6 | BUG-0018 | P1 | FIXED | V2Planner misclassifies playbook as skill | Core Runtime/Planner | Jacob | [✅](../bugs/reports/BUG0018_FIXED_v2planner_misclassifies_playbook.md) |
 | 7 | BUG-0019 | P1 | FIXED | V1Orchestrator drops required flag on expansion | Core Runtime/Orchestrator | Jacob | [✅](../bugs/reports/BUG0019_FIXED_orchestrator_drops_required_flag.md) |
 | 8 | AF-0119 | P1 | READY | Planner trace + per-step LLM attribution | Core Runtime/Planner/Recorder | TBD | [🔗](items/AF0119_READY_planner_trace_llm_attribution.md) |
 | 9 | AF-0120 | P2 | READY | Component manifest in RunTrace | Core Runtime/Recorder | TBD | [🔗](items/AF0120_READY_component_manifest_trace.md) |

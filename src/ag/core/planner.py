@@ -592,28 +592,69 @@ Strategy:
 Respond with a JSON plan."""
 
     def _validate_v2_steps(self, plan: LLMPlanResponse) -> None:
-        """Validate skill and playbook references in V2 plan."""
+        """Validate skill and playbook references in V2 plan.
+
+        Performs cross-check validation and auto-correction (BUG-0018):
+        - If type=skill but name exists only as playbook → correct to playbook, warn
+        - If type=playbook but name exists only as skill → correct to skill, warn
+        - If name exists in neither → raise PlannerError
+        - If name exists in both → trust declared type
+        """
         from ag.playbooks import get_playbook as get_pb
+        from ag.playbooks import list_playbooks as list_pbs
 
         for step in plan.steps:
             step_type = step.type
             if step_type == "skill":
                 if not step.skill:
                     raise PlannerError("Skill step missing 'skill' field")
-                if not self.skill_registry.has(step.skill):
+
+                skill_exists = self.skill_registry.has(step.skill)
+                playbook_exists = get_pb(step.skill) is not None
+
+                if skill_exists:
+                    # Skill found, all good
+                    pass
+                elif playbook_exists:
+                    # BUG-0018: LLM misclassified playbook as skill — auto-correct
+                    logger.warning(
+                        f"Auto-correcting step type: '{step.skill}' is a playbook, "
+                        f"not a skill (LLM misclassified)"
+                    )
+                    step.type = "playbook"
+                    step.playbook = step.skill
+                    step.skill = None
+                else:
                     raise PlannerError(
                         f"Invalid skill '{step.skill}' in plan. "
-                        f"Available: {', '.join(self.skill_registry.list_skills())}"
+                        f"Available skills: {', '.join(self.skill_registry.list_skills())}. "
+                        f"Available playbooks: {', '.join(list_pbs())}"
                     )
+
             elif step_type == "playbook":
                 if not step.playbook:
                     raise PlannerError("Playbook step missing 'playbook' field")
-                if get_pb(step.playbook) is None:
-                    from ag.playbooks import list_playbooks as list_pbs
 
+                playbook_exists = get_pb(step.playbook) is not None
+                skill_exists = self.skill_registry.has(step.playbook)
+
+                if playbook_exists:
+                    # Playbook found, all good
+                    pass
+                elif skill_exists:
+                    # BUG-0018: LLM misclassified skill as playbook — auto-correct
+                    logger.warning(
+                        f"Auto-correcting step type: '{step.playbook}' is a skill, "
+                        f"not a playbook (LLM misclassified)"
+                    )
+                    step.type = "skill"
+                    step.skill = step.playbook
+                    step.playbook = None
+                else:
                     raise PlannerError(
                         f"Invalid playbook '{step.playbook}' in plan. "
-                        f"Available: {', '.join(list_pbs())}"
+                        f"Available playbooks: {', '.join(list_pbs())}. "
+                        f"Available skills: {', '.join(self.skill_registry.list_skills())}"
                     )
             else:
                 raise PlannerError(
