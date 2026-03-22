@@ -648,3 +648,339 @@ class TestV1PlannerWorkspaceDetection:
         result = planner._detect_workspace_files("no-such-ws")
 
         assert result == ""
+
+
+# ---------------------------------------------------------------------------
+# V2Planner Tests (AF-0103)
+# ---------------------------------------------------------------------------
+
+
+class TestV2PlannerPlaybookAwareness:
+    """AF-0103: V2Planner playbook awareness tests."""
+
+    def test_v2_planner_extends_v1(self) -> None:
+        """V2Planner extends V1Planner."""
+        from ag.core.planner import V2Planner
+
+        assert issubclass(V2Planner, V1Planner)
+
+    def test_v2_planner_gets_playbook_catalog(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry
+    ) -> None:
+        """V2Planner extracts playbook catalog."""
+        from ag.core.planner import V2Planner
+
+        planner = V2Planner(mock_provider, mock_registry)
+        catalog = planner._get_playbook_catalog()
+
+        # Should return a list (may include built-in playbooks)
+        assert isinstance(catalog, list)
+        # Each entry should have expected keys
+        for entry in catalog:
+            assert "name" in entry
+            assert "description" in entry
+            assert "steps" in entry
+
+    def test_v2_planner_prompt_includes_playbooks(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner prompt includes playbook catalog."""
+        from ag.core.planner import V2Planner
+
+        # Mock LLM response with skill step
+        plan_json = (
+            '{"steps": [{"type": "skill", "skill": "mock_skill", "params": {}, '
+            '"rationale": "test"}], "estimated_tokens": 100, "confidence": 0.8}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+        planner.plan(task_spec)
+
+        # Check the LLM prompt includes playbook section
+        call_args = mock_provider.chat.call_args
+        messages = call_args.kwargs["messages"]
+        user_message = messages[1].content
+
+        assert "playbook" in user_message.lower()
+
+    def test_v2_planner_skill_step(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner handles skill steps."""
+        from ag.core.planner import V2Planner
+
+        plan_json = (
+            '{"steps": [{"type": "skill", "skill": "mock_skill", "params": {}, '
+            '"rationale": "Direct skill usage"}], "estimated_tokens": 100, "confidence": 0.9}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert len(result.steps) == 1
+        assert result.steps[0].skill_name == "mock_skill"
+        assert result.steps[0].step_type == PlaybookStepType.SKILL
+
+    def test_v2_planner_playbook_step(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner handles playbook steps."""
+        from ag.core.planner import V2Planner
+
+        plan_json = (
+            '{"steps": [{"type": "playbook", "playbook": "research_v0", "params": {}, '
+            '"rationale": "Use research playbook"}], "estimated_tokens": 5000, "confidence": 0.85}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert len(result.steps) == 1
+        assert result.steps[0].skill_name == "research_v0"  # playbook name in skill_name
+        assert result.steps[0].step_type == PlaybookStepType.PLAYBOOK
+
+    def test_v2_planner_mixed_plan(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner handles mixed skill+playbook plans."""
+        from ag.core.planner import V2Planner
+
+        plan_json = """{
+            "steps": [
+                {"type": "playbook", "playbook": "research_v0", "params": {},
+                 "rationale": "Research first"},
+                {"type": "skill", "skill": "mock_skill", "params": {"query": "extra"},
+                 "rationale": "Additional processing"}
+            ],
+            "estimated_tokens": 6000,
+            "confidence": 0.8,
+            "warnings": []
+        }"""
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=100,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert len(result.steps) == 2
+        assert result.steps[0].step_type == PlaybookStepType.PLAYBOOK
+        assert result.steps[1].step_type == PlaybookStepType.SKILL
+
+    def test_v2_planner_invalid_playbook_raises(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner raises error for invalid playbook reference."""
+        from ag.core.planner import V2Planner
+
+        plan_json = (
+            '{"steps": [{"type": "playbook", "playbook": "nonexistent_playbook", '
+            '"params": {}, "rationale": "Bad ref"}], '
+            '"estimated_tokens": 100, "confidence": 0.5}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="Invalid playbook"):
+            planner.plan(task_spec)
+
+
+# ---------------------------------------------------------------------------
+# V1Orchestrator Tests (AF-0117)
+# ---------------------------------------------------------------------------
+
+
+class TestV1OrchestratorMixedPlans:
+    """AF-0117: V1Orchestrator mixed plan support tests."""
+
+    def test_v1_orchestrator_extends_v0(self) -> None:
+        """V1Orchestrator extends V0Orchestrator."""
+        from ag.core.orchestrator import V0Orchestrator, V1Orchestrator
+
+        assert issubclass(V1Orchestrator, V0Orchestrator)
+
+    def test_v1_orchestrator_expand_skill_steps(self) -> None:
+        """V1Orchestrator passes through SKILL steps unchanged."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        playbook = Playbook(
+            name="test",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Skill Step",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        assert len(expanded) == 1
+        assert expanded[0].skill_name == "emit_result"
+        assert expanded[0].step_type == PlaybookStepType.SKILL
+
+    def test_v1_orchestrator_expand_playbook_steps(self) -> None:
+        """V1Orchestrator expands PLAYBOOK steps to their skill sequences."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        # Create a plan that references research_v0 playbook
+        playbook = Playbook(
+            name="mixed-plan",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="pb1",
+                    name="Research Step",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name="research_v0",  # playbook name stored here
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        # research_v0 has multiple skills, so expansion should produce more steps
+        assert len(expanded) > 1
+        # All expanded steps should be SKILL type
+        for step in expanded:
+            assert step.step_type == PlaybookStepType.SKILL
+
+    def test_v1_orchestrator_expand_mixed_plan(self) -> None:
+        """V1Orchestrator expands mixed skill+playbook plans correctly."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        playbook = Playbook(
+            name="mixed-plan",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Direct Skill",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+                PlaybookStep(
+                    step_id="pb1",
+                    name="Research Playbook",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name="research_v0",
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        # First step should be emit_result
+        assert expanded[0].skill_name == "emit_result"
+        # Remaining steps should be from research_v0
+        assert len(expanded) > 2  # 1 skill + research_v0 skills
+
+    def test_v1_orchestrator_inherits_required_flag(self) -> None:
+        """V1Orchestrator expanded steps inherit parent's required flag."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        playbook = Playbook(
+            name="test",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="pb1",
+                    name="Optional Research",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name="research_v0",
+                    required=False,  # Parent is optional
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        # All expanded steps should inherit required=False
+        for step in expanded:
+            assert step.required is False
+
+    def test_v1_orchestrator_merges_parameters(self) -> None:
+        """V1Orchestrator merges parent step params into expanded steps."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        playbook = Playbook(
+            name="test",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="pb1",
+                    name="Research with params",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name="research_v0",
+                    parameters={"custom_param": "from_parent"},
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        # At least some expanded steps should have the parent's param merged
+        params_found = any(
+            step.parameters.get("custom_param") == "from_parent" for step in expanded
+        )
+        assert params_found

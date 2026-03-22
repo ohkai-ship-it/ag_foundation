@@ -1,19 +1,14 @@
-"""V1Planner — LLM-based skill composition planner (AF0102).
+"""V0/V1/V2 Planners — skill and playbook composition (AF-0102, AF-0103).
 
-This module implements V1Planner, which uses an LLM to compose execution plans
-from the available skill catalog. V1Planner is a pure function — it returns an
-in-memory Playbook object with zero disk I/O.
-
-Design Principles:
-- Pure function: plan(task) -> Playbook (no side effects)
-- Implements Planner Protocol from interfaces.py
-- Orchestrator handles param chaining at runtime (no placeholder syntax)
-- Graceful degradation on LLM errors
+This module implements:
+- V0Planner: Registry lookup, requires --playbook flag
+- V1Planner: LLM composes skill sequences from task description
+- V2Planner: LLM composes mixed skill+playbook plans (AF-0103)
 
 Architecture Position:
 - V0Planner: Registry lookup, requires --playbook flag
-- V1Planner: LLM composes skill sequence from task description (this module)
-- V2Planner: Uses skills AND playbooks as building blocks (future)
+- V1Planner: LLM composes skill sequence from task description
+- V2Planner: Uses skills AND playbooks as building blocks (this module)
 - V3Planner: Judges feasibility, identifies capability gaps (future)
 
 Usage:
@@ -62,7 +57,9 @@ logger = logging.getLogger(__name__)
 class PlannedStep(BaseModel):
     """A single step in the LLM-generated plan."""
 
-    skill: str = Field(..., description="Skill name from catalog")
+    type: str = Field(default="skill", description="Step type: 'skill' or 'playbook'")
+    skill: str | None = Field(default=None, description="Skill name (for type='skill')")
+    playbook: str | None = Field(default=None, description="Playbook name (for type='playbook')")
     params: dict[str, Any] = Field(default_factory=dict, description="Initial parameters")
     rationale: str = Field(default="", description="Why this step is needed")
 
@@ -430,3 +427,249 @@ Respond with a JSON plan."""
         )
 
         return playbook
+
+
+# ---------------------------------------------------------------------------
+# V2Planner Implementation (AF-0103)
+# ---------------------------------------------------------------------------
+
+
+class V2Planner(V1Planner):
+    """LLM-based planner that composes mixed skill+playbook plans (AF-0103).
+
+    Extends V1Planner by adding playbook awareness: the LLM can use both
+    individual skills and existing playbooks as building blocks.
+
+    Implements Planner Protocol: plan(task) -> Playbook
+    """
+
+    def plan(self, task: TaskSpec) -> Playbook:
+        """Generate a mixed skill+playbook plan from the task."""
+        catalog = self._get_skill_catalog()
+        if not catalog:
+            raise PlannerError("No skills available in registry")
+
+        playbook_catalog = self._get_playbook_catalog()
+
+        prompt = self._build_v2_prompt(task, catalog, playbook_catalog)
+
+        try:
+            response = self.provider.chat(
+                messages=[
+                    ChatMessage(role=MessageRole.SYSTEM, content=self._get_v2_system_prompt()),
+                    ChatMessage(role=MessageRole.USER, content=prompt),
+                ],
+            )
+        except Exception as e:
+            logger.error(f"LLM call failed: {e}")
+            raise PlannerError(f"LLM call failed: {e}") from e
+
+        try:
+            plan_response = self._parse_response(response.content)
+        except Exception as e:
+            logger.error(f"Failed to parse LLM response: {e}")
+            raise PlannerError(f"Failed to parse LLM response: {e}") from e
+
+        self._validate_v2_steps(plan_response)
+        playbook = self._build_v2_playbook(task, plan_response)
+
+        logger.info(
+            f"V2Planner generated plan with {len(playbook.steps)} steps "
+            f"(confidence: {plan_response.confidence:.2f})"
+        )
+        return playbook
+
+    def _get_playbook_catalog(self) -> list[dict[str, Any]]:
+        """Extract playbook metadata for LLM context."""
+        from ag.playbooks import list_playbooks
+        from ag.playbooks.registry import get_playbook_entry
+
+        catalog = []
+        for name in list_playbooks():
+            entry = get_playbook_entry(name)
+            if entry is None:
+                continue
+            pb = entry.playbook
+            skill_sequence = [
+                s.skill_name for s in pb.steps if s.skill_name
+            ]
+            catalog.append({
+                "name": pb.name,
+                "description": pb.description,
+                "steps": skill_sequence,
+            })
+        return catalog
+
+    def _get_v2_system_prompt(self) -> str:
+        """System prompt that includes playbook awareness."""
+        return """You are an execution planner for an agent system. Your job is to create
+execution plans by composing available skills AND playbooks into a sequence of steps.
+
+A playbook is a pre-validated, tested sequence of skills for a specific task pattern.
+When a playbook matches the user's need, prefer it over composing individual skills.
+
+Rules:
+1. Only use skills and playbooks from the provided catalogs
+2. Order steps logically — later steps may depend on earlier outputs
+3. The runtime automatically chains step outputs to the next step's input — do NOT
+   use "previous_step.X" references in params. Only include static configuration
+   values. Omit fields that come from the previous step's output.
+4. Prefer playbooks when the task closely matches a playbook's use case
+5. Use individual skills when playbooks don't fit or for additional steps
+6. You can mix playbooks and skills in a single plan
+
+Respond with valid JSON matching this schema:
+{
+  "steps": [
+    {"type": "skill", "skill": "skill_name", "params": {...}, "rationale": "..."},
+    {"type": "playbook", "playbook": "playbook_name", "params": {...}, "rationale": "..."}
+  ],
+  "estimated_tokens": 5000,
+  "confidence": 0.85,
+  "warnings": ["optional warnings"]
+}"""
+
+    def _build_v2_prompt(
+        self,
+        task: TaskSpec,
+        skill_catalog: list[dict[str, Any]],
+        playbook_catalog: list[dict[str, Any]],
+    ) -> str:
+        """Build user prompt with both skill and playbook catalogs."""
+        # Format playbooks
+        playbook_lines = []
+        for pb in playbook_catalog:
+            steps_str = " → ".join(pb["steps"]) if pb["steps"] else "(no skills)"
+            playbook_lines.append(
+                f"- **{pb['name']}**: {pb['description']}\n  Steps: {steps_str}"
+            )
+        playbooks_str = "\n".join(playbook_lines) if playbook_lines else "(none)"
+
+        # Format skills (reuse V1 logic)
+        skills_text = []
+        for skill in skill_catalog:
+            skill_line = f"- **{skill['name']}**: {skill['description']}"
+            if skill["input"]:
+                inputs = ", ".join(f"{k}: {v}" for k, v in skill["input"].items())
+                skill_line += f"\n  Input: {{{inputs}}}"
+            if skill["output"]:
+                outputs = ", ".join(f"{k}: {v}" for k, v in skill["output"].items())
+                skill_line += f"\n  Output: {{{outputs}}}"
+            if skill["requires_llm"]:
+                skill_line += "\n  [Requires LLM]"
+            skills_text.append(skill_line)
+        catalog_str = "\n".join(skills_text)
+
+        constraints = []
+        if task.budgets.max_steps:
+            constraints.append(f"- Maximum {task.budgets.max_steps} steps")
+        if task.constraints.allowed_skills:
+            constraints.append(f"- Only use: {', '.join(task.constraints.allowed_skills)}")
+        if task.constraints.blocked_skills:
+            constraints.append(f"- Do not use: {', '.join(task.constraints.blocked_skills)}")
+        constraints_str = "\n".join(constraints) if constraints else "None"
+
+        files_hint = self._detect_workspace_files(task.workspace_id)
+
+        return f"""Create an execution plan for this task:
+
+**Task:** {task.prompt}
+
+**Available Playbooks (pre-built sequences):**
+{playbooks_str}
+
+**Available Skills (for custom composition):**
+{catalog_str}
+{files_hint}
+**Constraints:**
+{constraints_str}
+
+**Maximum steps:** {self.max_steps}
+
+Strategy:
+1. Prefer playbooks when the task closely matches a playbook's use case
+2. Use individual skills when playbooks don't fit or for additional steps
+3. You can mix playbooks and skills in a single plan
+
+Respond with a JSON plan."""
+
+    def _validate_v2_steps(self, plan: LLMPlanResponse) -> None:
+        """Validate skill and playbook references in V2 plan."""
+        from ag.playbooks import get_playbook as get_pb
+
+        for step in plan.steps:
+            step_type = step.type
+            if step_type == "skill":
+                if not step.skill:
+                    raise PlannerError("Skill step missing 'skill' field")
+                if not self.skill_registry.has(step.skill):
+                    raise PlannerError(
+                        f"Invalid skill '{step.skill}' in plan. "
+                        f"Available: {', '.join(self.skill_registry.list_skills())}"
+                    )
+            elif step_type == "playbook":
+                if not step.playbook:
+                    raise PlannerError("Playbook step missing 'playbook' field")
+                if get_pb(step.playbook) is None:
+                    from ag.playbooks import list_playbooks as list_pbs
+
+                    raise PlannerError(
+                        f"Invalid playbook '{step.playbook}' in plan. "
+                        f"Available: {', '.join(list_pbs())}"
+                    )
+            else:
+                raise PlannerError(
+                    f"Unknown step type '{step_type}', expected 'skill' or 'playbook'"
+                )
+
+    def _build_v2_playbook(self, task: TaskSpec, plan: LLMPlanResponse) -> Playbook:
+        """Convert V2 plan response to Playbook with mixed step types."""
+        plan_id = f"v2plan_{uuid4().hex[:8]}"
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+
+        steps = []
+        for i, planned_step in enumerate(plan.steps):
+            if planned_step.type == "playbook":
+                step = PlaybookStep(
+                    step_id=f"step_{i}",
+                    name=f"{planned_step.playbook}_{i}",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name=planned_step.playbook,  # reuse skill_name field for playbook name
+                    description=planned_step.rationale,
+                    required=True,
+                    retry_count=0,
+                    parameters=planned_step.params,
+                )
+            else:
+                step = PlaybookStep(
+                    step_id=f"step_{i}",
+                    name=f"{planned_step.skill}_{i}",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name=planned_step.skill,
+                    description=planned_step.rationale,
+                    required=True,
+                    retry_count=1,
+                    parameters=planned_step.params,
+                )
+            steps.append(step)
+
+        return Playbook(
+            playbook_version="0.1",
+            name=plan_id,
+            version="1.0.0",
+            description=f"V2Planner generated plan for: {task.prompt[:100]}",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(
+                max_steps=len(steps) + 2,
+                max_tokens=plan.estimated_tokens or self.DEFAULT_MAX_TOKENS,
+                max_duration_seconds=self.DEFAULT_TIMEOUT_SECONDS,
+            ),
+            steps=steps,
+            metadata={
+                "generated_by": "V2Planner",
+                "generated_at": timestamp,
+                "confidence": plan.confidence,
+                "warnings": plan.warnings,
+                "original_task": task.prompt,
+            },
+        )

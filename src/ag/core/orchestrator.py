@@ -15,7 +15,7 @@ from typing import Any
 from uuid import uuid4
 
 from ag.core.executor import V0Executor
-from ag.core.playbook import Playbook
+from ag.core.playbook import Playbook, PlaybookStep
 from ag.core.recorder import V0Recorder
 from ag.core.run_trace import (
     Artifact,
@@ -483,3 +483,79 @@ class V0Orchestrator:
     ) -> None:
         """Context manager exit - ensures storage is closed."""
         self.close()
+
+
+# ---------------------------------------------------------------------------
+# V1 Orchestrator — mixed skill+playbook plans (AF-0103, partial AF-0117)
+# ---------------------------------------------------------------------------
+
+
+class V1Orchestrator(V0Orchestrator):
+    """Orchestrator that handles mixed skill+playbook plans.
+
+    For SKILL steps: delegates to executor (same as V0).
+    For PLAYBOOK steps: loads the referenced playbook and executes its
+    skill sequence inline, flattening into the step trace.
+    """
+
+    def _expand_steps(self, playbook: Playbook) -> list[PlaybookStep]:
+        """Expand PLAYBOOK steps into their constituent skill steps.
+
+        Returns a flat list of PlaybookSteps where all PLAYBOOK-type steps
+        are replaced by the skills from the referenced playbook.
+        """
+        from ag.core.playbook import PlaybookStepType
+        from ag.playbooks import get_playbook as get_pb
+
+        expanded: list[PlaybookStep] = []
+        for step in playbook.steps:
+            if step.step_type == PlaybookStepType.PLAYBOOK:
+                # Load the referenced playbook and inline its steps
+                referenced_name = step.skill_name  # playbook name stored in skill_name
+                if not referenced_name:
+                    # No playbook referenced — skip
+                    expanded.append(step)
+                    continue
+
+                referenced_playbook = get_pb(referenced_name)
+                if referenced_playbook is None:
+                    # Playbook not found — keep original step, executor will fail
+                    expanded.append(step)
+                    continue
+
+                # Inline the playbook's skill steps, inheriting parameters
+                for sub_step in referenced_playbook.steps:
+                    # Merge parent step params into sub-step params (parent overrides)
+                    merged_params = {**sub_step.parameters, **step.parameters}
+                    inlined = PlaybookStep(
+                        step_id=f"{step.step_id}_{sub_step.step_id}",
+                        name=f"{referenced_name}/{sub_step.name}",
+                        step_type=sub_step.step_type,
+                        skill_name=sub_step.skill_name,
+                        description=sub_step.description,
+                        required=step.required,  # inherit parent's required flag
+                        retry_count=sub_step.retry_count,
+                        timeout_seconds=sub_step.timeout_seconds,
+                        parameters=merged_params,
+                    )
+                    expanded.append(inlined)
+            else:
+                expanded.append(step)
+        return expanded
+
+    def run(
+        self, task: TaskSpec, playbook: Playbook, workspace_source: str | None = None
+    ) -> RunTrace:
+        """Execute a playbook, expanding PLAYBOOK steps inline first."""
+        # Expand PLAYBOOK steps to skill steps, then delegate to V0
+        expanded_playbook = Playbook(
+            playbook_version=playbook.playbook_version,
+            name=playbook.name,
+            version=playbook.version,
+            description=playbook.description,
+            reasoning_modes=playbook.reasoning_modes,
+            budgets=playbook.budgets,
+            steps=self._expand_steps(playbook),
+            metadata=playbook.metadata,
+        )
+        return super().run(task, expanded_playbook, workspace_source=workspace_source)

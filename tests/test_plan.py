@@ -531,6 +531,14 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.9, "warnings": []},
         )
 
@@ -568,6 +576,14 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.75, "warnings": []},
         )
 
@@ -613,6 +629,14 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.8, "warnings": []},
         )
 
