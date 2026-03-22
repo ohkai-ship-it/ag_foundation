@@ -19,6 +19,8 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0023 | P2 | OPEN | V2 pipeline evidence hidden | Core Runtime / Executor / Verifier / CLI | [🔗](reports/BUG0023_OPEN_v2_pipeline_evidence_hidden.md) |
+| BUG-0024 | P2 | OPEN | Planner duplicates emit_result | Core Runtime / Planner | [🔗](reports/BUG0024_OPEN_planner_duplicates_emit_result.md) |
 | BUG-0021 | P2 | OPEN | ddgs/primp SSL socket GC noise in tests | Testing / CI | [🔗](reports/BUG0021_OPEN_ddgs_primp_ssl_noise.md) |
 | BUG-0022 | P2 | OPEN | V3Planner CLI test flakiness | Testing / CI | [🔗](reports/BUG0022_OPEN_v3planner_cli_test_flakiness.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |

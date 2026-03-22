@@ -24,8 +24,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| *(empty)* | | | | | | |
-| 6 | AF-0125 | P1 | READY | Deterministic test provider | Testing / CI | Jacob | [🔗](items/AF0125_READY_deterministic_test_provider.md) 
+| AF-0126 | P1 | READY | Executor / verifier LLM trace | Core Runtime / Trace / CLI | Jacob | [🔗](items/AF0126_READY_executor_verifier_llm_trace.md) |
+| AF-0125 | P1 | READY | Deterministic test provider | Testing / CI | Jacob | [🔗](items/AF0125_READY_deterministic_test_provider.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
