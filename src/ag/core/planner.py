@@ -84,6 +84,36 @@ class PlannerError(Exception):
 
 
 # ---------------------------------------------------------------------------
+# AF-0119: Planning metadata for trace attribution
+# ---------------------------------------------------------------------------
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class PlanningResult:
+    """Result from a planner including metadata for trace attribution (AF-0119).
+
+    Wraps the generated Playbook plus timing, token usage, and validation info.
+    """
+
+    playbook: Playbook
+    planner_name: str
+    started_at: datetime
+    ended_at: datetime
+    duration_ms: int
+    # LLM call info (None for static planners like V0Planner)
+    model_used: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+    # Plan metadata
+    confidence: float | None = None
+    raw_steps: list[dict[str, Any]] = field(default_factory=list)
+    validation_corrections: list[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
 # V0 Planner Implementation (extracted from runtime.py, AF-0114)
 # ---------------------------------------------------------------------------
 
@@ -100,6 +130,21 @@ class V0Planner:
                 return playbook
 
         return DEFAULT_V0
+
+    def plan_with_metadata(self, task: TaskSpec) -> PlanningResult:
+        """Select playbook and return with metadata (AF-0119)."""
+        started_at = datetime.now(UTC)
+        playbook = self.plan(task)
+        ended_at = datetime.now(UTC)
+        duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+        return PlanningResult(
+            playbook=playbook,
+            planner_name="V0Planner",
+            started_at=started_at,
+            ended_at=ended_at,
+            duration_ms=duration_ms,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -136,6 +181,10 @@ class V1Planner:
         self.provider = provider
         self.skill_registry = skill_registry
         self.max_steps = max_steps
+        # AF-0119: Track last planning call metadata
+        self._last_response: Any = None
+        self._last_plan_response: LLMPlanResponse | None = None
+        self._last_validation_corrections: list[str] = []
 
     def plan(self, task: TaskSpec) -> Playbook:
         """Generate execution plan from task and skill catalog.
@@ -153,6 +202,11 @@ class V1Planner:
         Raises:
             PlannerError: If plan generation fails (LLM error, invalid response)
         """
+        # AF-0119: Reset last response tracking
+        self._last_response = None
+        self._last_plan_response = None
+        self._last_validation_corrections = []
+
         # Step 1: Build skill catalog for LLM context
         catalog = self._get_skill_catalog()
         if not catalog:
@@ -169,6 +223,7 @@ class V1Planner:
                     ChatMessage(role=MessageRole.USER, content=prompt),
                 ],
             )
+            self._last_response = response  # AF-0119: Track for metadata
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             raise PlannerError(f"LLM call failed: {e}") from e
@@ -176,6 +231,7 @@ class V1Planner:
         # Step 4: Parse and validate response
         try:
             plan_response = self._parse_response(response.content)
+            self._last_plan_response = plan_response  # AF-0119: Track for metadata
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             raise PlannerError(f"Failed to parse LLM response: {e}") from e
@@ -192,6 +248,52 @@ class V1Planner:
         )
 
         return playbook
+
+    def plan_with_metadata(self, task: TaskSpec) -> PlanningResult:
+        """Generate plan and return with timing/LLM metadata (AF-0119)."""
+        started_at = datetime.now(UTC)
+        playbook = self.plan(task)
+        ended_at = datetime.now(UTC)
+        duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+        # Extract LLM metadata from tracked response
+        model_used = None
+        input_tokens = None
+        output_tokens = None
+        total_tokens = None
+        if self._last_response is not None:
+            model_used = getattr(self._last_response, "model", None)
+            input_tokens = getattr(self._last_response, "input_tokens", None)
+            output_tokens = getattr(self._last_response, "output_tokens", None)
+            total_tokens = getattr(self._last_response, "tokens_used", None)
+
+        # Extract raw steps for trace
+        raw_steps: list[dict[str, Any]] = []
+        confidence: float | None = None
+        if self._last_plan_response is not None:
+            confidence = self._last_plan_response.confidence
+            for step in self._last_plan_response.steps:
+                raw_steps.append({
+                    "type": step.type,
+                    "skill": step.skill,
+                    "playbook": step.playbook,
+                    "rationale": step.rationale,
+                })
+
+        return PlanningResult(
+            playbook=playbook,
+            planner_name="V1Planner",
+            started_at=started_at,
+            ended_at=ended_at,
+            duration_ms=duration_ms,
+            model_used=model_used,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+            confidence=confidence,
+            raw_steps=raw_steps,
+            validation_corrections=self._last_validation_corrections,
+        )
 
     def _get_skill_catalog(self) -> list[dict[str, Any]]:
         """Extract skill metadata for LLM context."""
@@ -445,6 +547,11 @@ class V2Planner(V1Planner):
 
     def plan(self, task: TaskSpec) -> Playbook:
         """Generate a mixed skill+playbook plan from the task."""
+        # AF-0119: Reset metadata tracking
+        self._last_response = None
+        self._last_plan_response = None
+        self._last_validation_corrections = []
+
         catalog = self._get_skill_catalog()
         if not catalog:
             raise PlannerError("No skills available in registry")
@@ -460,12 +567,14 @@ class V2Planner(V1Planner):
                     ChatMessage(role=MessageRole.USER, content=prompt),
                 ],
             )
+            self._last_response = response  # AF-0119: Track for metadata
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
             raise PlannerError(f"LLM call failed: {e}") from e
 
         try:
             plan_response = self._parse_response(response.content)
+            self._last_plan_response = plan_response  # AF-0119: Track for metadata
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             raise PlannerError(f"Failed to parse LLM response: {e}") from e
@@ -617,10 +726,12 @@ Respond with a JSON plan."""
                     pass
                 elif playbook_exists:
                     # BUG-0018: LLM misclassified playbook as skill — auto-correct
-                    logger.warning(
-                        f"Auto-correcting step type: '{step.skill}' is a playbook, "
+                    correction = (
+                        f"Auto-corrected step type: '{step.skill}' is a playbook, "
                         f"not a skill (LLM misclassified)"
                     )
+                    logger.warning(correction)
+                    self._last_validation_corrections.append(correction)  # AF-0119
                     step.type = "playbook"
                     step.playbook = step.skill
                     step.skill = None
@@ -643,10 +754,12 @@ Respond with a JSON plan."""
                     pass
                 elif skill_exists:
                     # BUG-0018: LLM misclassified skill as playbook — auto-correct
-                    logger.warning(
-                        f"Auto-correcting step type: '{step.playbook}' is a skill, "
+                    correction = (
+                        f"Auto-corrected step type: '{step.playbook}' is a skill, "
                         f"not a playbook (LLM misclassified)"
                     )
+                    logger.warning(correction)
+                    self._last_validation_corrections.append(correction)  # AF-0119
                     step.type = "skill"
                     step.skill = step.playbook
                     step.playbook = None
@@ -711,4 +824,53 @@ Respond with a JSON plan."""
                 "warnings": plan.warnings,
                 "original_task": task.prompt,
             },
+        )
+
+    def plan_with_metadata(self, task: TaskSpec) -> PlanningResult:
+        """Generate plan and return with timing/LLM metadata (AF-0119).
+
+        Overrides V1Planner version to use V2Planner name.
+        """
+        started_at = datetime.now(UTC)
+        playbook = self.plan(task)
+        ended_at = datetime.now(UTC)
+        duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+        # Extract LLM metadata from tracked response
+        model_used = None
+        input_tokens = None
+        output_tokens = None
+        total_tokens = None
+        if self._last_response is not None:
+            model_used = getattr(self._last_response, "model", None)
+            input_tokens = getattr(self._last_response, "input_tokens", None)
+            output_tokens = getattr(self._last_response, "output_tokens", None)
+            total_tokens = getattr(self._last_response, "tokens_used", None)
+
+        # Extract raw steps for trace
+        raw_steps: list[dict[str, Any]] = []
+        confidence: float | None = None
+        if self._last_plan_response is not None:
+            confidence = self._last_plan_response.confidence
+            for step in self._last_plan_response.steps:
+                raw_steps.append({
+                    "type": step.type,
+                    "skill": step.skill,
+                    "playbook": step.playbook,
+                    "rationale": step.rationale,
+                })
+
+        return PlanningResult(
+            playbook=playbook,
+            planner_name="V2Planner",
+            started_at=started_at,
+            ended_at=ended_at,
+            duration_ms=duration_ms,
+            model_used=model_used,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+            confidence=confidence,
+            raw_steps=raw_steps,
+            validation_corrections=self._last_validation_corrections,
         )

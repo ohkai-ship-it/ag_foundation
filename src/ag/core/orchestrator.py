@@ -21,6 +21,7 @@ from ag.core.run_trace import (
     Artifact,
     FinalStatus,
     LLMExecution,
+    PlanningMetadata,
     PlaybookMetadata,
     RunTrace,
     Step,
@@ -587,7 +588,11 @@ class V1Orchestrator(V0Orchestrator):
         )
 
     def run(
-        self, task: TaskSpec, playbook: Playbook, workspace_source: str | None = None
+        self,
+        task: TaskSpec,
+        playbook: Playbook,
+        workspace_source: str | None = None,
+        planning: PlanningMetadata | None = None,
     ) -> RunTrace:
         """Execute a playbook with per-step verification (AF-0117).
 
@@ -600,6 +605,12 @@ class V1Orchestrator(V0Orchestrator):
            d. Record VERIFICATION step
            e. Stop if required step failed verification
         3. Run end-of-run verification summary
+
+        Args:
+            task: The task specification
+            playbook: The playbook to execute
+            workspace_source: How the workspace was resolved (AF-0030)
+            planning: Optional planning metadata (AF-0119)
         """
         # Expand PLAYBOOK steps to skill steps
         expanded_playbook = Playbook(
@@ -885,6 +896,7 @@ class V1Orchestrator(V0Orchestrator):
             workspace_source=ws_source_enum,
             mode=task.mode,
             playbook=PlaybookMetadata(name=expanded_playbook.name, version=expanded_playbook.version),
+            planning=planning,  # AF-0119: Include planning metadata
             started_at=started_at,
             ended_at=ended_at,
             duration_ms=duration_ms,

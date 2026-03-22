@@ -17,10 +17,10 @@ from ag.core.orchestrator import (
     V1Orchestrator,
     _adapt_document_to_source,
 )
-from ag.core.planner import V0Planner
+from ag.core.planner import PlanningResult, V0Planner
 from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
-from ag.core.run_trace import RunTrace
+from ag.core.run_trace import PlanningLLMCall, PlanningMetadata, RunTrace
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.core.verifier import V0Verifier, V1Verifier
 from ag.skills import SkillRegistry
@@ -120,13 +120,43 @@ class Runtime:
         )
 
         # Plan - skip if playbook_object provided (e.g., from ExecutionPlan)
+        planning_metadata: PlanningMetadata | None = None
         if playbook_object is not None:
             selected_playbook = playbook_object
+        elif hasattr(self._planner, "plan_with_metadata"):
+            # AF-0119: Use plan_with_metadata() to capture planning trace
+            result: PlanningResult = self._planner.plan_with_metadata(task)
+            selected_playbook = result.playbook
+            # Build PlanningMetadata from PlanningResult
+            llm_call: PlanningLLMCall | None = None
+            if result.model_used or result.total_tokens:
+                llm_call = PlanningLLMCall(
+                    model=result.model_used,
+                    input_tokens=result.input_tokens,
+                    output_tokens=result.output_tokens,
+                    total_tokens=result.total_tokens,
+                )
+            planning_metadata = PlanningMetadata(
+                planner=result.planner_name,
+                started_at=result.started_at,
+                ended_at=result.ended_at,
+                duration_ms=result.duration_ms,
+                llm_call=llm_call,
+                raw_plan_steps=result.raw_steps,
+                validation_corrections=result.validation_corrections,
+                confidence=result.confidence,
+            )
         else:
             selected_playbook = self._planner.plan(task)
 
-        # Execute
-        trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)
+        # Execute (pass planning metadata if orchestrator is V1 and supports it)
+        if isinstance(self._orchestrator, V1Orchestrator) and planning_metadata is not None:
+            # V1Orchestrator with planning support (AF-0119)
+            trace = self._orchestrator.run(
+                task, selected_playbook, workspace_source=workspace_source, planning=planning_metadata
+            )
+        else:
+            trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)
 
         return trace
 

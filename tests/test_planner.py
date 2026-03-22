@@ -1137,3 +1137,211 @@ class TestV1OrchestratorMixedPlans:
             step.parameters.get("custom_param") == "from_parent" for step in expanded
         )
         assert params_found
+
+
+# ---------------------------------------------------------------------------
+# AF-0119: plan_with_metadata() Tests
+# ---------------------------------------------------------------------------
+
+
+class TestPlanWithMetadata:
+    """AF-0119: Tests for plan_with_metadata() - planning trace + LLM attribution."""
+
+    @pytest.fixture
+    def mock_registry(self) -> SkillRegistry:
+        """Create a registry with mock skills."""
+        registry = SkillRegistry()
+        registry.register(MockSkill(), source="test-stub")
+        return registry
+
+    @pytest.fixture
+    def mock_provider(self) -> MagicMock:
+        """Create a mock LLM provider."""
+        provider = MagicMock(spec=LLMProvider)
+        type(provider).name = PropertyMock(return_value="mock-provider")
+        type(provider).is_stub = PropertyMock(return_value=False)
+        return provider
+
+    @pytest.fixture
+    def task_spec(self) -> TaskSpec:
+        """Basic task spec for testing."""
+        return TaskSpec(
+            prompt="Test task",
+            workspace_id="test-ws",
+            mode=ExecutionMode.SUPERVISED,
+            budgets=Budgets(),
+            constraints=Constraints(),
+        )
+
+    def test_v0_planner_plan_with_metadata_returns_result(self) -> None:
+        """V0Planner.plan_with_metadata() returns PlanningResult."""
+        from ag.core.planner import PlanningResult, V0Planner
+
+        planner = V0Planner()
+        task = TaskSpec(
+            prompt="Test",
+            workspace_id="ws-test",
+            mode=ExecutionMode.SUPERVISED,
+            budgets=Budgets(),
+            constraints=Constraints(),
+        )
+
+        result = planner.plan_with_metadata(task)
+
+        assert isinstance(result, PlanningResult)
+        assert result.playbook is not None
+        assert result.planner_name == "V0Planner"
+        assert result.started_at is not None
+        assert result.ended_at is not None
+        assert result.duration_ms >= 0
+
+    def test_v0_planner_plan_with_metadata_no_llm_tokens(self) -> None:
+        """V0Planner (static lookup) has no LLM token usage."""
+        from ag.core.planner import V0Planner
+
+        planner = V0Planner()
+        task = TaskSpec(
+            prompt="Test",
+            workspace_id="ws-test",
+            mode=ExecutionMode.SUPERVISED,
+            budgets=Budgets(),
+            constraints=Constraints(),
+        )
+
+        result = planner.plan_with_metadata(task)
+
+        # V0Planner doesn't use LLM, so no tokens
+        assert result.model_used is None
+        assert result.total_tokens is None
+        assert result.input_tokens is None
+        assert result.output_tokens is None
+
+    def test_v1_planner_plan_with_metadata_captures_tokens(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V1Planner.plan_with_metadata() captures LLM token usage."""
+        from ag.core.planner import PlanningResult, V1Planner
+
+        plan_json = (
+            '{"steps": [{"skill": "mock_skill", "params": {}, '
+            '"rationale": "Test"}], "estimated_tokens": 100, "confidence": 0.8}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="gpt-4o-mini",
+            provider="openai",
+            tokens_used=150,
+            input_tokens=100,
+            output_tokens=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V1Planner(mock_provider, mock_registry)
+
+        result = planner.plan_with_metadata(task_spec)
+
+        assert isinstance(result, PlanningResult)
+        assert result.planner_name == "V1Planner"
+        assert result.model_used == "gpt-4o-mini"
+        assert result.total_tokens == 150
+        assert result.input_tokens == 100
+        assert result.output_tokens == 50
+
+    def test_v1_planner_plan_with_metadata_captures_raw_steps(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V1Planner.plan_with_metadata() captures raw plan steps."""
+        from ag.core.planner import V1Planner
+
+        plan_json = (
+            '{"steps": ['
+            '{"skill": "mock_skill", "params": {"key": "value"}, "rationale": "Step 1"}'
+            '], "estimated_tokens": 100, "confidence": 0.9}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="gpt-4o-mini",
+            provider="openai",
+            tokens_used=150,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V1Planner(mock_provider, mock_registry)
+
+        result = planner.plan_with_metadata(task_spec)
+
+        assert len(result.raw_steps) == 1
+        assert result.raw_steps[0]["skill"] == "mock_skill"
+        assert result.raw_steps[0]["rationale"] == "Step 1"
+        assert result.confidence == 0.9
+
+    def test_v2_planner_plan_with_metadata_tracks_corrections(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """V2Planner.plan_with_metadata() tracks validation corrections."""
+        from ag.core.planner import V2Planner
+
+        # LLM misclassifies a playbook as a skill
+        plan_json = (
+            '{"steps": [{"type": "skill", "skill": "research_v0", '
+            '"params": {}, "rationale": "Research"}], '
+            '"estimated_tokens": 100, "confidence": 0.8}'
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="gpt-4o-mini",
+            provider="openai",
+            tokens_used=150,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, mock_registry)
+
+        result = planner.plan_with_metadata(task_spec)
+
+        # Should have recorded the auto-correction
+        assert result.planner_name == "V2Planner"
+        assert len(result.validation_corrections) > 0
+        assert "research_v0" in result.validation_corrections[0]
+        assert "playbook" in result.validation_corrections[0].lower()
+
+    def test_plan_with_metadata_timing_accurate(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """plan_with_metadata() timing reflects actual planning duration."""
+        import time
+
+        from ag.core.planner import V1Planner
+
+        # Simulate slow LLM response
+        def slow_chat(*args, **kwargs):
+            time.sleep(0.05)  # 50ms delay
+            return ChatResponse(
+                content=(
+                    '{"steps": [{"skill": "mock_skill", "params": {}, '
+                    '"rationale": "Test"}], "estimated_tokens": 100, "confidence": 0.8}'
+                ),
+                model="gpt-4o-mini",
+                provider="openai",
+                tokens_used=150,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            )
+
+        mock_provider.chat.side_effect = slow_chat
+
+        planner = V1Planner(mock_provider, mock_registry)
+
+        result = planner.plan_with_metadata(task_spec)
+
+        # Duration should be at least 50ms
+        assert result.duration_ms >= 50
+        # Started should be before ended
+        assert result.started_at < result.ended_at
