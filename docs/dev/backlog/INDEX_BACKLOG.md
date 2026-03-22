@@ -41,7 +41,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 6 | AF-0119 | P1 | DONE | Planner trace + per-step LLM attribution | Core Runtime/Planner/Recorder | S14 | [✅](items/AF0119_DONE_planner_trace_llm_attribution.md) |
 | 7 | AF-0113 | P1 | DONE | Per-step output verification | Core Runtime/Verifier/Skills | S14 | [✅](items/AF0113_DONE_per_step_output_verification.md) |
 | 8 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
-| 9 | AF-0104 | P2 | READY | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_READY_llm_planner_v3_feasibility.md) |
+| 9 | AF-0104 | P2 | DONE | LLM Planner V3 (feasibility) | Core Runtime/Planner | Jacob | [✅](items/AF0104_DONE_llm_planner_v3_feasibility.md) |
 | 10 | AF-0120 | P2 | READY | Component manifest in RunTrace | Core Runtime/Recorder | TBD | [🔗](items/AF0120_READY_component_manifest_trace.md) |
 
 ### Sprint 13 Scope (Closed)

@@ -26,6 +26,7 @@
 | ADR-0006 | PROPOSED | Workspace folder structure | [🔗](files/ADR006_PROPOSED_workspace_folder_structure.md) |
 | ADR-0007 | PROPOSED | Configuration state separation | [🔗](files/ADR007_PROPOSED_configuration_state_separation.md) |
 | ADR-0008 | ACCEPTED | CLI global flags | [🔗](files/ADR008_ACCEPTED_cli_global_flags.md) |
+| ADR-0009 | ACCEPTED | V3Planner feasibility design | [🔗](files/ADR009_ACCEPTED_v3planner_feasibility_design.md) |
 
 ---
 
