@@ -1,7 +1,7 @@
 # AF-0124 — V2Executor: LLM output repair
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: PROPOSED
+# Status: IN_PROGRESS
 # Priority: P2
 # Area: Core Runtime / Executor
 
@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0124
 - **Type:** Feature
-- **Status:** READY
+- **Status:** IN_PROGRESS
 - **Priority:** P2
 - **Area:** Core Runtime / Executor
 - **Owner:** —

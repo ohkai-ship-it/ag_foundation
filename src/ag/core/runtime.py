@@ -10,7 +10,7 @@ Wires pipeline components together. Implementations live in dedicated files:
 
 from __future__ import annotations
 
-from ag.core.executor import V0Executor
+from ag.core.executor import V0Executor, V2Executor
 from ag.core.orchestrator import (
     TrackingLLMProvider,
     V0Orchestrator,
@@ -216,7 +216,7 @@ def create_runtime(
     Returns:
         Configured Runtime instance
     """
-    executor = V0Executor(registry)
+    executor = V2Executor(registry, provider) if provider is not None else V0Executor(registry)
     recorder = V0Recorder(run_store, artifact_store)
     verifier = V2Verifier(provider) if provider is not None else V1Verifier()
     orchestrator = V1Orchestrator(executor, verifier, recorder)
@@ -235,6 +235,7 @@ __all__ = [
     "V0Normalizer",
     "V0Planner",
     "V0Executor",
+    "V2Executor",
     "V0Verifier",
     "V1Verifier",
     "V2Verifier",

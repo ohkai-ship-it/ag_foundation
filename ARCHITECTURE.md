@@ -113,7 +113,7 @@ All pipeline components have Protocol interfaces in `interfaces.py` and versione
 | TaskSpec | — (schema) | `TaskSpec` | — | `task_spec.py` |
 | Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` ✅ (AF-0121) | `planner.py` |
 | Orchestrator | `Orchestrator` | `V0Orchestrator` | `V1Orchestrator` ✅ | `orchestrator.py` |
-| Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116), `V2Executor` (AF-0124, Sprint 15) | `executor.py` |
+| Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116), `V2Executor` ✅ (AF-0124) | `executor.py` |
 | Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115), `V2Verifier` ✅ (AF-0123) | `verifier.py` |
 | Recorder | `Recorder` | `V0Recorder` | `V1Recorder` ✅ (AF-0118) | `recorder.py` |
 
@@ -128,7 +128,7 @@ src/ag/core/
 ├── task_spec.py         # TaskSpec schema
 ├── planner.py           # V0Planner + V1Planner + V2Planner + V3Planner
 ├── orchestrator.py      # V0/V1 Orchestrator
-├── executor.py          # V0/V1 Executor
+├── executor.py          # V0/V1/V2 Executor
 ├── verifier.py          # V0/V1/V2 Verifier
 ├── recorder.py          # V0/V1 Recorder
 ├── runtime.py           # Composition root: wire dependencies, create_runtime()

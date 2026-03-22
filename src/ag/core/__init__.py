@@ -16,7 +16,7 @@ from .execution_plan import (
     PolicyFlag,
     create_execution_plan,
 )
-from .executor import V0Executor
+from .executor import V0Executor, V2Executor
 from .interfaces import (
     Executor,
     Normalizer,
@@ -60,6 +60,7 @@ from .run_trace import (
     FinalStatus,
     LLMExecution,
     PlaybookMetadata,
+    RepairResult,
     RunTrace,
     RunTraceBuilder,
     SemanticVerification,
@@ -126,6 +127,8 @@ __all__ = [
     "CapabilityGap",
     # run_trace semantic verification (AF-0123)
     "SemanticVerification",
+    # run_trace repair (AF-0124)
+    "RepairResult",
     # playbook
     "Playbook",
     "PlaybookBuilder",
@@ -152,6 +155,7 @@ __all__ = [
     "V0Orchestrator",
     "V1Orchestrator",
     "V0Executor",
+    "V2Executor",
     "V0Verifier",
     "V1Verifier",
     "V2Verifier",

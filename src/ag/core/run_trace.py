@@ -51,6 +51,24 @@ class FeasibilityAssessment(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+class RepairResult(BaseModel):
+    """Result of an LLM output repair attempt (AF-0124).
+
+    Records the outcome of attempting to repair malformed skill output
+    via LLM, including which fields were changed and cost metrics.
+    """
+
+    repaired_output: dict[str, Any] | None = Field(
+        default=None, description="Repaired output dict, None if repair failed"
+    )
+    fields_changed: list[str] = Field(default_factory=list, description="Fields modified by repair")
+    repair_model: str = Field(default="", description="LLM model used for repair")
+    repair_tokens: int = Field(default=0, ge=0, description="Tokens consumed")
+    repair_ms: int = Field(default=0, ge=0, description="Repair duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
 class SemanticVerification(BaseModel):
     """LLM semantic verification result for a step (AF-0123).
 
