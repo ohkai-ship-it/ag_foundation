@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ID:** BUG-0023
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P2
 - **Area:** Core Runtime / Executor / Verifier / CLI
 - **Reported by:** Kai

@@ -1,7 +1,7 @@
 # AF-0126 — Executor / Verifier LLM trace
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: READY
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Trace / CLI
 

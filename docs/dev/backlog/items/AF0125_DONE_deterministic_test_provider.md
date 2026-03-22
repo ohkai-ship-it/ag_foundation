@@ -1,7 +1,7 @@
 # AF-0125 — Deterministic test provider
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: READY
+# Status: DONE
 # Priority: P1
 # Area: Testing / CI
 

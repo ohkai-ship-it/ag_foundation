@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ID:** BUG-0024
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P2
 - **Area:** Core Runtime / Planner
 - **Reported by:** Kai
