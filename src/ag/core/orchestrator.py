@@ -913,6 +913,16 @@ class V1Orchestrator(V0Orchestrator):
 
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
 
+        # AF-0126: Collect executor repair metadata
+        execution_metadata = None
+        if hasattr(self._executor, "get_execution_metadata"):
+            execution_metadata = self._executor.get_execution_metadata()
+
+        # AF-0126: Collect verifier LLM call metadata
+        verifier_llm_call = None
+        if hasattr(self._verifier, "get_llm_call"):
+            verifier_llm_call = self._verifier.get_llm_call()
+
         llm_execution: LLMExecution | None = None
         if provider_config is not None:
             usage = tracking_provider.get_usage() if tracking_provider else {}
@@ -945,10 +955,12 @@ class V1Orchestrator(V0Orchestrator):
                 checked_at=checked_at,
                 message=verify_message,
                 evidence=verify_evidence,
+                llm_call=verifier_llm_call,  # AF-0126
             ),
             final=final_status,
             error=error_message,
             llm=llm_execution,
+            execution=execution_metadata,  # AF-0126
         )
 
         self._recorder.record(trace)

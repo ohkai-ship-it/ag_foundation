@@ -55,12 +55,14 @@ from .run_trace import (
     AutonomyMode,
     CapabilityGap,
     EvidenceRef,
+    ExecutionMetadata,
     FeasibilityAssessment,
     FeasibilityLevel,
     FinalStatus,
     LLMExecution,
     PlaybookMetadata,
     RepairResult,
+    RepairSummary,
     RunTrace,
     RunTraceBuilder,
     SemanticVerification,
@@ -68,6 +70,7 @@ from .run_trace import (
     StepConfirmation,
     StepType,
     Verifier,
+    VerifierLLMCall,
     VerifierStatus,
     WorkspaceSource,
     infer_artifact_category,
@@ -129,6 +132,10 @@ __all__ = [
     "SemanticVerification",
     # run_trace repair (AF-0124)
     "RepairResult",
+    # run_trace executor/verifier LLM trace (AF-0126)
+    "ExecutionMetadata",
+    "RepairSummary",
+    "VerifierLLMCall",
     # playbook
     "Playbook",
     "PlaybookBuilder",

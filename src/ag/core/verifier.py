@@ -11,9 +11,12 @@ import json
 import logging
 import re
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ag.core.run_trace import FinalStatus, RunTrace, Step
+
+if TYPE_CHECKING:
+    from ag.core.run_trace import VerifierLLMCall
 
 
 class V0Verifier:
@@ -198,6 +201,7 @@ class V2Verifier(V1Verifier):
         self._relevance_threshold = relevance_threshold
         self._completeness_threshold = completeness_threshold
         self._consistency_threshold = consistency_threshold
+        self._last_llm_call: dict[str, Any] | None = None  # AF-0126
 
     def verify(self, trace: RunTrace) -> tuple[str, str | None]:
         """Verify with V1 mechanical checks, then LLM semantic checks."""
@@ -245,6 +249,8 @@ class V2Verifier(V1Verifier):
                     ChatMessage(role=MessageRole.USER, content=prompt),
                 ],
             )
+            # AF-0126: Store response metadata for get_llm_call()
+            self._last_semantic_response = response
         except Exception as e:
             logger.warning(f"Semantic verification LLM call failed: {e}")
             return None
@@ -396,6 +402,7 @@ Provide relevance, completeness, and consistency scores for each step."""
         if self._provider is None:
             return None
 
+        self._last_semantic_response = None  # Reset before checks
         start_ms = time.monotonic_ns() // 1_000_000
         results = self._run_semantic_checks(trace)
         elapsed_ms = (time.monotonic_ns() // 1_000_000) - start_ms
@@ -403,15 +410,28 @@ Provide relevance, completeness, and consistency scores for each step."""
         if results is None:
             return None
 
+        # AF-0126: Build LLM call metadata from the stored response
+        response = getattr(self, "_last_semantic_response", None)
+        llm_model = getattr(response, "model", "") if response else ""
+        llm_tokens = getattr(response, "tokens_used", 0) if response else 0
+
         # Aggregate scores across steps
         if not results:
-            return SemanticVerification(
+            sv = SemanticVerification(
                 relevance_score=1.0,
                 completeness_score=1.0,
                 consistency_score=1.0,
                 overall_pass=True,
+                llm_model=llm_model or "",
+                llm_tokens_used=llm_tokens or 0,
                 evaluation_ms=elapsed_ms,
-            ).model_dump()
+            )
+            self._last_llm_call = {
+                "model": llm_model,
+                "total_tokens": llm_tokens or 0,
+                "evaluation_ms": elapsed_ms,
+            }
+            return sv.model_dump()
 
         rel_scores = [r.get("relevance_score", 1.0) for r in results]
         comp_scores = [r.get("completeness_score", 1.0) for r in results]
@@ -436,6 +456,12 @@ Provide relevance, completeness, and consistency scores for each step."""
             and avg_cons >= self._consistency_threshold
         )
 
+        self._last_llm_call = {
+            "model": llm_model,
+            "total_tokens": llm_tokens or 0,
+            "evaluation_ms": elapsed_ms,
+        }
+
         return SemanticVerification(
             relevance_score=round(avg_rel, 3),
             relevance_reason="; ".join(reasons) if reasons else "",
@@ -444,5 +470,20 @@ Provide relevance, completeness, and consistency scores for each step."""
             consistency_score=round(avg_cons, 3),
             consistency_issues=all_issues,
             overall_pass=overall_pass,
+            llm_model=llm_model or "",
+            llm_tokens_used=llm_tokens or 0,
             evaluation_ms=elapsed_ms,
         ).model_dump()
+
+    def get_llm_call(self) -> "VerifierLLMCall | None":
+        """Return LLM call metadata from the last semantic check (AF-0126)."""
+        if self._last_llm_call is None:
+            return None
+
+        from ag.core.run_trace import VerifierLLMCall
+
+        return VerifierLLMCall(
+            model=self._last_llm_call.get("model"),
+            total_tokens=self._last_llm_call.get("total_tokens"),
+            evaluation_ms=self._last_llm_call.get("evaluation_ms", 0),
+        )

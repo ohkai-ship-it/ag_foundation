@@ -18,6 +18,7 @@ from ag.skills import SkillContext, SkillRegistry, get_default_registry
 from ag.skills.base import SkillOutput
 
 if TYPE_CHECKING:
+    from ag.core.run_trace import ExecutionMetadata
     from ag.providers.base import LLMProvider
 
 logger = logging.getLogger(__name__)
@@ -209,6 +210,7 @@ class V2Executor(V1Executor):
         super().__init__(registry, max_attempts=max_attempts)
         self._provider = provider
         self._last_repair_result: dict[str, Any] | None = None
+        self._repair_history: list[dict[str, Any]] = []  # AF-0126: track all repairs
 
     def execute(
         self,
@@ -225,7 +227,16 @@ class V2Executor(V1Executor):
             return success, summary, result
 
         # V1 failed after all retries — attempt LLM repair on last output
-        return self._attempt_repair(skill_name, result)
+        repair_result = self._attempt_repair(skill_name, result)
+
+        # AF-0126: record repair in history
+        step_num = context.step_number if context else len(self._repair_history)
+        if self._last_repair_result:
+            self._repair_history.append(
+                {"step_number": step_num, "skill_name": skill_name, **self._last_repair_result}
+            )
+
+        return repair_result
 
     def _attempt_repair(
         self,
@@ -244,7 +255,7 @@ class V2Executor(V1Executor):
         try:
             schema_dict = output_schema.model_json_schema()
         except Exception:
-            logger.warning(f"Cannot get schema for '{skill_name}', skipping repair")
+            logger.debug(f"Cannot get schema for '{skill_name}', skipping repair")
             return False, "Cannot extract schema for repair", last_result
 
         # Build repair prompt
@@ -273,7 +284,7 @@ class V2Executor(V1Executor):
         try:
             response = self._provider.chat(messages=messages)
         except Exception as exc:
-            logger.warning(f"LLM repair call failed for '{skill_name}': {exc}")
+            logger.debug(f"LLM repair call failed for '{skill_name}': {exc}")
             self._last_repair_result = {
                 "repair_attempted": True,
                 "repair_succeeded": False,
@@ -290,7 +301,7 @@ class V2Executor(V1Executor):
         try:
             repaired = json.loads(response.content)
         except (json.JSONDecodeError, TypeError) as exc:
-            logger.warning(f"LLM repair returned invalid JSON for '{skill_name}': {exc}")
+            logger.debug(f"LLM repair returned invalid JSON for '{skill_name}': {exc}")
             self._last_repair_result = {
                 "repair_attempted": True,
                 "repair_succeeded": False,
@@ -310,7 +321,7 @@ class V2Executor(V1Executor):
             validated = output_schema.model_validate(repaired)
         except ValidationError as exc:
             error_msgs = [str(e["msg"]) for e in exc.errors()]
-            logger.warning(f"LLM-repaired output still invalid for '{skill_name}': {error_msgs}")
+            logger.debug(f"LLM-repaired output still invalid for '{skill_name}': {error_msgs}")
             self._last_repair_result = {
                 "repair_attempted": True,
                 "repair_succeeded": False,
@@ -347,3 +358,34 @@ class V2Executor(V1Executor):
     def last_repair_result(self) -> dict[str, Any] | None:
         """Repair result from the last execute() call, or None if no repair attempted."""
         return self._last_repair_result
+
+    def get_execution_metadata(self) -> "ExecutionMetadata | None":
+        """Aggregate repair history into ExecutionMetadata (AF-0126).
+
+        Returns None if no repairs were attempted during this executor's lifetime.
+        """
+        if not self._repair_history:
+            return None
+
+        from ag.core.run_trace import ExecutionMetadata, RepairSummary
+
+        repairs = []
+        for entry in self._repair_history:
+            repairs.append(
+                RepairSummary(
+                    step_number=entry.get("step_number", 0),
+                    skill_name=entry.get("skill_name", ""),
+                    repair_attempted=entry.get("repair_attempted", True),
+                    repair_succeeded=entry.get("repair_succeeded", False),
+                    repair_tokens=entry.get("repair_tokens", 0),
+                    repair_ms=entry.get("repair_ms", 0),
+                    repair_model=entry.get("repair_model", ""),
+                )
+            )
+
+        return ExecutionMetadata(
+            total_repair_attempts=len(repairs),
+            total_repair_successes=sum(1 for r in repairs if r.repair_succeeded),
+            total_repair_tokens=sum(r.repair_tokens for r in repairs),
+            repairs=repairs,
+        )

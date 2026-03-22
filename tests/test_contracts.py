@@ -1178,6 +1178,9 @@ class TestInlinePlanConfirmRun:
         mock_trace.playbook.version = "1.0"
         mock_trace.verifier = MagicMock()
         mock_trace.verifier.status = VerifierStatus.PASSED
+        mock_trace.verifier.evidence = None
+        mock_trace.verifier.llm_call = None
+        mock_trace.execution = None
         mock_trace.workspace_source = None
 
         with (

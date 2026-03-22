@@ -230,6 +230,41 @@ def format_verifier(status: VerifierStatus) -> str:
     return f"[{colors.get(status, 'white')}]{status.value}[/{colors.get(status, 'white')}]"
 
 
+def _display_trace_extras(trace: "RunTrace", console: "Console") -> None:
+    """Display execution metadata and semantic scores from a trace (AF-0126, BUG-0023)."""
+    # AF-0126: Execution section (repairs)
+    if trace.execution and trace.execution.total_repair_attempts > 0:
+        em = trace.execution
+        repair_model = ""
+        if em.repairs:
+            models = {r.repair_model for r in em.repairs if r.repair_model}
+            repair_model = f" ({', '.join(models)})" if models else ""
+        console.print(
+            f"  Execution: {em.total_repair_attempts} repair(s), "
+            f"{em.total_repair_successes} succeeded, "
+            f"{em.total_repair_tokens} tokens{repair_model}"
+        )
+
+    # BUG-0023b: Semantic verification scores
+    semantic = trace.verifier.evidence.get("semantic") if trace.verifier.evidence else None
+    if semantic:
+        rel = semantic.get("relevance_score")
+        comp = semantic.get("completeness_score")
+        cons = semantic.get("consistency_score")
+        if rel is not None and comp is not None and cons is not None:
+            console.print(
+                f"  Semantic: relevance={rel:.2f}  completeness={comp:.2f}  consistency={cons:.2f}"
+            )
+
+    # AF-0126: Verifier LLM call
+    if trace.verifier.llm_call:
+        vlc = trace.verifier.llm_call
+        tokens = vlc.total_tokens or 0
+        model = vlc.model or "?"
+        ms = vlc.evaluation_ms
+        console.print(f"  Verifier LLM: {model} · {tokens} tokens · {ms} ms")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Global options
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1114,6 +1149,7 @@ def run(
                         console.print(f"  Pipeline: {arrow.join(parts)}")
                     console.print(f"  Status: {format_status(trace.final)}")
                     console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                    _display_trace_extras(trace, console)
                     console.print(f"  Duration: {labels['duration']}")
                     console.print(f"  Playbook: {labels['playbook']}")
 
@@ -1219,6 +1255,7 @@ def run(
                     console.print(f"  Pipeline: {arrow.join(parts)}")
                 console.print(f"  Status: {format_status(trace.final)}")
                 console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                _display_trace_extras(trace, console)
                 console.print(f"  Duration: {labels['duration']}")
                 console.print(f"  Playbook: {labels['playbook']}")
 
@@ -1451,6 +1488,39 @@ def runs_show(
                     console.print(f"  Verifier:     {trace.pipeline.verifier}")
                 if trace.pipeline.recorder:
                     console.print(f"  Recorder:     {trace.pipeline.recorder}")
+                console.print()
+
+            # AF-0126: Execution metadata section
+            if trace.execution:
+                console.print("[bold]Execution[/bold]")
+                console.print(f"  Repairs attempted: {trace.execution.total_repair_attempts}")
+                console.print(f"  Repairs succeeded: {trace.execution.total_repair_successes}")
+                if trace.execution.total_repair_tokens:
+                    console.print(f"  Repair tokens:     {trace.execution.total_repair_tokens}")
+                for r in trace.execution.repairs:
+                    status = "[green]✓[/green]" if r.repair_succeeded else "[red]✗[/red]"
+                    console.print(
+                        f"    {status} Step {r.step_number} ({r.skill_name})"
+                        f" — {r.repair_tokens} tokens, {r.repair_ms}ms"
+                    )
+                console.print()
+
+            # AF-0126: Semantic verification section
+            if (
+                trace.verifier
+                and trace.verifier.evidence
+                and trace.verifier.evidence.get("semantic")
+            ):
+                sem = trace.verifier.evidence["semantic"]
+                console.print("[bold]Semantic Verification[/bold]")
+                for key in ("relevance", "completeness", "consistency"):
+                    if key in sem:
+                        console.print(f"  {key.capitalize()}: {sem[key]}")
+                if trace.verifier.llm_call:
+                    lc = trace.verifier.llm_call
+                    console.print(
+                        f"  LLM: {lc.model} ({lc.total_tokens} tokens, {lc.evaluation_ms}ms)"
+                    )
                 console.print()
 
             # Steps - AF-0118: Display VERIFICATION steps distinctly

@@ -93,6 +93,45 @@ class SemanticVerification(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0126: Executor / Verifier LLM trace models
+class RepairSummary(BaseModel):
+    """Per-step repair attempt summary for executor trace (AF-0126)."""
+
+    step_number: int = Field(..., ge=0, description="Step index in the plan")
+    skill_name: str = Field(..., description="Skill that triggered repair")
+    repair_attempted: bool = Field(..., description="Whether repair was attempted")
+    repair_succeeded: bool = Field(default=False, description="Whether repair succeeded")
+    repair_tokens: int = Field(default=0, ge=0, description="Tokens consumed by repair call")
+    repair_ms: int = Field(default=0, ge=0, description="Repair duration in ms")
+    repair_model: str = Field(default="", description="LLM model used for repair")
+
+    model_config = {"extra": "forbid"}
+
+
+class ExecutionMetadata(BaseModel):
+    """Aggregate trace of LLM calls made by V2Executor during the run (AF-0126)."""
+
+    executor: str = Field(default="V2Executor", description="Executor class name")
+    total_repair_attempts: int = Field(default=0, ge=0, description="Total repair attempts")
+    total_repair_successes: int = Field(default=0, ge=0, description="Successful repairs")
+    total_repair_tokens: int = Field(default=0, ge=0, description="Total tokens on repairs")
+    repairs: list[RepairSummary] = Field(default_factory=list, description="Per-step repair data")
+
+    model_config = {"extra": "forbid"}
+
+
+class VerifierLLMCall(BaseModel):
+    """LLM call details for verifier semantic checks (AF-0126)."""
+
+    model: str | None = Field(default=None, description="Model used for semantic checks")
+    input_tokens: int | None = Field(default=None, ge=0, description="Input tokens")
+    output_tokens: int | None = Field(default=None, ge=0, description="Output tokens")
+    total_tokens: int | None = Field(default=None, ge=0, description="Total tokens")
+    evaluation_ms: int = Field(default=0, ge=0, description="Evaluation duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
 class VerifierStatus(str, Enum):
     """Status from the verifier module."""
 
@@ -376,6 +415,9 @@ class Verifier(BaseModel):
     checked_at: datetime | None = Field(default=None, description="Verification timestamp")
     message: str | None = Field(default=None, description="Verifier message")
     evidence: dict[str, Any] = Field(default_factory=dict, description="Verification evidence")
+    llm_call: VerifierLLMCall | None = Field(
+        default=None, description="Verifier LLM call details (AF-0126)"
+    )
 
     model_config = {"extra": "forbid"}
 
@@ -552,6 +594,10 @@ class RunTrace(BaseModel):
     # AF-0120: Pipeline component manifest (additive field)
     pipeline: PipelineManifest | None = Field(
         default=None, description="Pipeline component versions (AF-0120)"
+    )
+    # AF-0126: Executor LLM trace (additive field)
+    execution: ExecutionMetadata | None = Field(
+        default=None, description="Executor repair metadata (AF-0126)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 
