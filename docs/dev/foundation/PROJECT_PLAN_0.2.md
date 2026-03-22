@@ -328,7 +328,8 @@ Gate C target items addressed across Sprint 13-15:
 |------|---------|---------------------|--------|
 | Gate A: Reliability | Move from foundation to autonomy-ready execution | warning-clean tests, isolation stability, failure-path coverage, deterministic cleanup | ✅ Passed (Sprint 09) |
 | Gate B: Guided Autonomy | Enable guided planning behavior | policy enforcement present, verifier/failure rigor, trace-derived labels for all new behavior | ✅ Passed (Sprint 10) |
-| Gate C: Goals-Only Preparation | Prepare for dynamic composition | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | 🔄 In Progress (Sprint 13-15) |
+| Gate C: Goals-Only Preparation | Prepare for dynamic composition | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | ✅ Passed (Sprint 15) |
+| Gate D: Full Agent | Autonomous end-to-end execution | mature policy engine (budgets, risk scoring), adaptive mid-run replanning, broad skill catalog, RAG/retrieval interface, internal API layer | ⏳ Not started |
 
 Gate rule:
 No sprint may claim autonomy progression while a P0 gate condition is unmet.
@@ -380,9 +381,9 @@ Progression status:
 - ✅ Playbook: established and validated
 - ✅ Guided Agent: operational (Sprint 11; multi-output plans validated)
 - ✅ Guided Agent hardening: completed (Sprint 12)
-- 🔄 Intelligent Pipeline: Sprint 13-15 (Gate C track)
-- ⏳ Goals Only: requires Gate C (targeted Sprint 15)
-- ⏳ Full Agent: long-term (policy-engine dependent)
+- ✅ Intelligent Pipeline: completed (Sprint 13-15; Gate C track)
+- ✅ Goals Only: achieved (Sprint 15, 2026-03-22)
+- ⏳ Full Agent: long-term (policy-engine + skill catalog + RAG dependent)
 
 Core principle:
 Humans define WHAT, agents decide HOW.
@@ -391,25 +392,79 @@ Humans define WHAT, agents decide HOW.
 
 # Current Strategic Position
 
-**Gate A (Reliability) and Gate B (Guided Autonomy) are PASSED.**
-**Gate C (Goals-Only Preparation) is in progress.**
+**Gate A (Reliability) ✅ · Gate B (Guided Autonomy) ✅ · Gate C (Goals-Only) ✅ — all passed.**
+**Next: Phase 3 capability expansion (skill catalog + RAG) → Gate D (Full Agent).**
 
-Sprint 12 completed guided autonomy hardening:
-- Unified summarization pipeline (synthesize_research)
-- Strict content emission validation
-- Run-centered storage layout
-- CLI defaults and workspace safety
+Sprint 15 completed the intelligent pipeline:
+- V3Planner: feasibility judgment (FULLY / MOSTLY / PARTIALLY / NOT_FEASIBLE)
+- V2Verifier: LLM semantic quality checks (relevance, completeness, consistency)
+- V2Executor: LLM output repair on schema validation failure
+- CLI: planning tokens, pipeline manifest, full audit trail for all LLM calls
 
-The next failure mode is:
+The system reached Goals-Only level in 15 sprints (2026-03-22).
 
-> Adding LLM intelligence without mechanical correctness underneath;
-> semantic checks must layer on top of deterministic validation.
+The next bottleneck is the skill catalog, not the pipeline intelligence.
+The planner, verifier, and executor are now more capable than the skills
+they can route to. Reachable task space is essentially: research + summarize + emit.
 
-Pipeline intelligence roadmap (Sprint 13-15):
-1. Sprint 13: Smarter plans (V2Planner + playbooks) + inline UX + pipeline extraction
-2. Sprint 14: Per-step verification + output schema enforcement + retry
-3. Sprint 15: LLM semantic verification + output repair + feasibility judgment
+Prioritization principle going forward:
+Broaden what the agent can DO before deepening how it reasons about doing it.
 
-Prioritization principle: maximum LLM impact for end users first.
-Mechanical foundations (V1) enable intelligent layers (V2).
-Gate C completion targets Sprint 15.
+------------------------------------------------------------------------
+
+# Post-Sprint 15 Thinking (2026-03-22)
+
+## Immediate bottleneck: skill collection
+
+The pipeline intelligence (V3Planner, V2Verifier, V2Executor) is now ahead
+of the skill catalog. Current primitives:
+  `web_search, fetch_web_content, load_documents, synthesize_research, emit_result`
+
+Everything beyond research/summarize/emit reports PARTIALLY_FEASIBLE or
+falls back to research_v0. Skill breadth directly gates task reachability.
+
+## Candidate next skill domains (unordered, for future sprint planning)
+
+- **File operations** — read/write/move/delete local files. Unlocks most
+  personal productivity tasks; the agent can find documents but not manipulate them.
+- **Code execution** — run a script or command and capture output. Turns
+  the agent from an observer into an actor.
+- **Structured data extraction** — parse tables, CSV, JSON from documents
+  or web content into a normalized form downstream skills can reason over.
+- **Calendar / task management** — create/read events or tasks via local
+  APIs (iCal, etc.). Directly relevant to scheduling and email-class tasks.
+- **Diff / compare** — compare two documents or code files and surface
+  meaningful deltas. Useful for review workflows.
+
+## Candidate playbook patterns (unordered)
+
+- **Decision brief** — research topic, extract pros/cons, emit structured
+  recommendation. High daily-use value.
+- **Weekly digest** — aggregate multiple sources on a theme, deduplicate,
+  emit summary report.
+- **Code review assist** — load a diff, analyze for issues, emit findings.
+- **Meeting prep** — given topic + attendees, research context, emit briefing doc.
+
+## Open architectural questions before Phase 3
+
+- Should skills be able to call other skills (skill composition), or
+  does that remain the playbook layer's job?
+- How to handle skills that require credentials (email, calendar, APIs)?
+  Secrets management does not exist yet.
+- Is a skill interface version discipline needed so V2 skills can coexist
+  with V1 skills during transition?
+
+## What Gate D (Full Agent) actually requires
+
+1. **Mature policy engine** — budgets, risk scoring, scope boundaries.
+   Currently only basic confirmation hooks exist.
+2. **Adaptive replanning** — genuine mid-run strategy pivot when a path
+   fails. Sprint 14/15 introduced bounded retry; true replanning does not exist.
+3. **Skill catalog breadth** — a full agent with a narrow skill set is
+   still heavily constrained in what it can decide autonomously.
+4. **RAG / retrieval interface** — workspace-bound indexing, evidence
+   bundles, citation linking. Listed as Phase 3 prerequisite.
+5. **Internal API readiness** — CLI → service layer so the agent is
+   callable programmatically, not just from the terminal.
+
+Path: skills/playbooks → Phase 3 capability layer → policy engine → Gate D
