@@ -101,12 +101,16 @@ class V1Verifier:
         return "passed", "All steps completed successfully"
 
     def build_evidence(self, steps: list[Step]) -> dict[str, Any]:
-        """Build per-step evidence breakdown for the Verifier model."""
+        """Build per-step evidence breakdown for the Verifier model (AF-0118).
+
+        Returns a structured evidence dict with version, counts, and per-step detail.
+        """
         required_passed = 0
         required_failed = 0
         optional_passed = 0
         optional_failed = 0
         per_step: list[dict[str, Any]] = []
+        retries: dict[str, dict[str, Any]] = {}
 
         for step in steps:
             has_error = bool(step.error)
@@ -123,18 +127,32 @@ class V1Verifier:
 
             entry: dict[str, Any] = {
                 "step": step.step_number,
+                "skill": step.skill_name,  # AF-0118: Include skill name
                 "required": step.required,
                 "status": "failed" if has_error else "passed",
             }
             if has_error:
                 entry["reason"] = step.error
+
+            # AF-0118: Extract retry info from output_data
+            if step.output_data and "_validation_attempts" in step.output_data:
+                attempts = step.output_data["_validation_attempts"]
+                entry["attempts"] = attempts
+                if attempts > 1:
+                    retries[f"step_{step.step_number}"] = {
+                        "attempts": attempts,
+                        "skill": step.skill_name,
+                    }
+
             per_step.append(entry)
 
         return {
+            "version": "v1",  # AF-0118: Evidence schema version
             "total_steps": len(steps),
             "required_passed": required_passed,
             "required_failed": required_failed,
             "optional_passed": optional_passed,
             "optional_skipped": optional_failed,
+            "retries": retries,  # AF-0118: Retry summary
             "per_step": per_step,
         }

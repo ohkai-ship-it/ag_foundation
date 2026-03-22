@@ -37,7 +37,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 2 | BUG-0018 | P1 | FIXED | V2Planner misclassifies playbook as skill | Core Runtime/Planner | Jacob | [✅](../bugs/reports/BUG0018_FIXED_v2planner_misclassifies_playbook.md) |
 | 3 | AF-0116 | P1 | DONE | V1 Executor: output schema validation | Core Runtime/Executor | S14 | [✅](items/AF0116_DONE_v1_executor_output_validation.md) |
 | 4 | AF-0117 | P1 | DONE | V1 Orchestrator: per-step verification (remainder) | Core Runtime/Orchestrator | S14 | [✅](items/AF0117_DONE_v1_orchestrator_perstep_loop.md) |
-| 5 | AF-0118 | P1 | READY | V1 Recorder: verification evidence | Core Runtime/Recorder | TBD | [🔗](items/AF0118_READY_v1_recorder_verification_evidence.md) |
+| 5 | AF-0118 | P1 | DONE | V1 Recorder: verification evidence | Core Runtime/Recorder | S14 | [✅](items/AF0118_DONE_v1_recorder_verification_evidence.md) |
 | 6 | AF-0119 | P1 | READY | Planner trace + per-step LLM attribution | Core Runtime/Planner/Recorder | TBD | [🔗](items/AF0119_READY_planner_trace_llm_attribution.md) |
 | 7 | AF-0113 | P1 | READY | Per-step output verification | Core Runtime/Verifier/Skills | TBD | [🔗](items/AF0113_READY_per_step_output_verification.md) |
 | 8 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |

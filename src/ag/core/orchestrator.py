@@ -804,6 +804,16 @@ class V1Orchestrator(V0Orchestrator):
             step_input_data: dict[str, Any] | None = skill_params if skill_name else None
             step_output_data: dict[str, Any] | None = result if skill_name and result else None
 
+            # AF-0118: Capture retry info from V1Executor
+            validation_attempts: int | None = None
+            if hasattr(self._executor, "last_validation_attempts"):
+                validation_attempts = self._executor.last_validation_attempts
+                if validation_attempts and validation_attempts > 1:
+                    # Include retry info in output_data for evidence
+                    if step_output_data is None:
+                        step_output_data = {}
+                    step_output_data["_validation_attempts"] = validation_attempts
+
             # Record the skill step
             step = Step(
                 step_id=f"{run_id}-step-{trace_step_index}",
