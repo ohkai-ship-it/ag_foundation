@@ -1281,6 +1281,19 @@ def runs_show(
             console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
             if trace.verifier.message:
                 console.print(f"    Message: {trace.verifier.message}")
+            # AF-0118: Show verification evidence summary
+            if trace.verifier.evidence:
+                ev = trace.verifier.evidence
+                req_pass = ev.get("required_passed", 0)
+                req_fail = ev.get("required_failed", 0)
+                opt_skip = ev.get("optional_skipped", 0)
+                retries = ev.get("retries", {})
+                summary_parts = [f"{req_pass}/{req_pass + req_fail} required ok"]
+                if opt_skip:
+                    summary_parts.append(f"{opt_skip} optional skipped")
+                if retries:
+                    summary_parts.append(f"{len(retries)} retried")
+                console.print(f"    Summary: {', '.join(summary_parts)}")
             console.print(f"  Duration: {labels['duration']}")
             console.print(f"  Playbook: {labels['playbook']}")
             # AF-0062: Show LLM provider info
@@ -1297,16 +1310,38 @@ def runs_show(
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()
 
-            # Steps
+            # Steps - AF-0118: Display VERIFICATION steps distinctly
             console.print(f"[bold]Steps ({len(trace.steps)}):[/bold]")
             for step in trace.steps:
-                step_status = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
-                console.print(
-                    f"  {step_status} Step {step.step_number}: {step.skill_name or 'reasoning'}"
-                )
-                console.print(f"      Output: {step.output_summary[:60]}...")
-                if step.error:
-                    console.print(f"      [red]Error: {step.error}[/red]")
+                # AF-0118: Different formatting for VERIFICATION steps
+                if step.step_type == "verification":
+                    # Verification step - show inline with previous skill
+                    verify_status = "[green]✓[/green]" if not step.error else "[yellow]⚠[/yellow]"
+                    verify_msg = step.output_summary[:50] if step.output_summary else "verified"
+                    console.print(f"      {verify_status} [dim]verification: {verify_msg}[/dim]")
+                else:
+                    # Skill/reasoning step
+                    step_status = "[green]✓[/green]" if not step.error else "[red]✗[/red]"
+                    skill_label = step.skill_name or "reasoning"
+
+                    # AF-0118: Show retry count if multiple attempts
+                    retry_info = ""
+                    if step.output_data and "_validation_attempts" in step.output_data:
+                        attempts = step.output_data["_validation_attempts"]
+                        if attempts > 1:
+                            retry_info = f" [yellow]({attempts} attempts)[/yellow]"
+
+                    # AF-0118: Show optional flag for non-required steps
+                    optional_label = " [dim](optional)[/dim]" if not step.required else ""
+
+                    console.print(
+                        f"  {step_status} Step {step.step_number}: "
+                        f"{skill_label}{optional_label}{retry_info}"
+                    )
+                    if step.output_summary:
+                        console.print(f"      Output: {step.output_summary[:60]}...")
+                    if step.error:
+                        console.print(f"      [red]Error: {step.error}[/red]")
 
             # Artifacts
             if trace.artifacts:

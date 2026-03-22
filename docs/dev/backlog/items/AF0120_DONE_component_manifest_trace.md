@@ -1,7 +1,7 @@
 # AF-0120 — Component manifest in RunTrace
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: READY
+# Status: DONE
 # Priority: P2
 # Area: Core Runtime / Recorder
 
@@ -87,3 +87,24 @@ Implementation:
 
 - Minimal — purely additive schema change with `pipeline: null` default
 - One-session scope, low complexity
+
+---
+
+# Completion section (fill when done)
+
+## Outcome
+Implemented as designed. `PipelineManifest` model and `RunTrace.pipeline` field were already present in `src/ag/core/run_trace.py`. `create_runtime()` populates the manifest from component class names.
+
+## Deliverable
+- `src/ag/core/run_trace.py` — `PipelineManifest` model, `RunTrace.pipeline: PipelineManifest | None`
+- `src/ag/core/runtime.py` — `create_runtime()` builds manifest from component instances
+- `tests/test_runtime.py` — added `TestPipelineManifest` class (5 tests)
+- `ag runs show <id> --json` exposes `pipeline` block
+
+## Key findings
+- Feature was already partially implemented; sprint work verified and tested the integration
+- `PipelineManifest` is backward-compatible: old traces load cleanly with `pipeline: null`
+- `V1Orchestrator` reads `RunTrace.pipeline` for logging/routing context
+
+## Status
+DONE — pipeline manifest in RunTrace, 5 tests pass

@@ -568,3 +568,40 @@ class TestConnectionLifecycle:
             assert len(store._connections) == 2
         # After exit, all should be closed
         assert store._connections == {}
+
+
+# ---------------------------------------------------------------------------
+# User Workspace Non-Pollution Tests (AF-0096)
+# ---------------------------------------------------------------------------
+
+
+class TestUserWorkspaceNonPollution:
+    """AF-0096: Tests never write to ~/.ag/workspaces/.
+
+    The conftest.py session fixture sets AG_WORKSPACE_DIR to a temp dir,
+    so get_workspace_dir() never returns the real user workspace path.
+    """
+
+    def test_workspace_dir_is_not_user_home(self) -> None:
+        """get_workspace_dir() must NOT return ~/.ag/workspaces during tests."""
+        import os
+        from pathlib import Path
+
+        from ag.config import DEFAULT_WORKSPACES_ROOT, get_workspace_dir
+
+        current = get_workspace_dir()
+        assert current != DEFAULT_WORKSPACES_ROOT, (
+            f"Tests are writing to user's real workspace dir: {DEFAULT_WORKSPACES_ROOT}. "
+            "Check that conftest.py isolated_workspace_dir fixture is active."
+        )
+        # Must be a temp directory (set by conftest.py)
+        assert os.environ.get("AG_WORKSPACE_DIR") is not None
+        assert Path(os.environ["AG_WORKSPACE_DIR"]) == current
+
+    def test_sqlite_run_store_default_uses_isolated_dir(self) -> None:
+        """SQLiteRunStore() with no args uses the isolated temp dir, not ~/.ag/."""
+        from ag.config import DEFAULT_WORKSPACES_ROOT
+        from ag.storage import SQLiteRunStore
+
+        with SQLiteRunStore() as store:
+            assert store._root != DEFAULT_WORKSPACES_ROOT

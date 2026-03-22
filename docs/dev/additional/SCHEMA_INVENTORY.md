@@ -33,6 +33,9 @@
 | `Subtask` | run_trace.py | Delegated subtask reference | 0.1 |
 | `EvidenceRef` | run_trace.py | Reference to evidence supporting a step | 0.1 |
 | `PlaybookMetadata` | run_trace.py | Playbook info captured in trace (name, version) | 0.1 |
+| `PlanningLLMCall` | run_trace.py | LLM call details during planning phase (model, tokens) (AF-0119) | 0.1 |
+| `PlanningMetadata` | run_trace.py | Planning phase metadata — planner, timing, raw steps (AF-0119) | 0.1 |
+| `PipelineManifest` | run_trace.py | Pipeline component versions used for run (AF-0120) | 0.1 |
 | `Verifier` | run_trace.py | Verification result stored in trace (status, message) | 0.1 |
 | `LLMExecution` | run_trace.py | LLM provider/model info with token tracking (AF-0062, AF-0094) | 0.1 |
 | `AutonomyMetadata` | run_trace.py | Autonomy mode for run (mode, plan_id, confirmation_enabled) (AF-0101) | 0.1 |

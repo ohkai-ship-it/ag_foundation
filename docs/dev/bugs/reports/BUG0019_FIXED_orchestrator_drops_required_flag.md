@@ -19,14 +19,16 @@
 
 ## Metadata
 - **ID:** BUG-0019
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P1
 - **Area:** Core Runtime / Orchestrator
 - **Reported by:** Kai
 - **Date:** 2026-03-22
+- **Fixed by:** Jacob (Sprint 14)
+- **Fixed date:** 2026-03-22
 - **Related backlog item(s):** AF-0117 (V1 Orchestrator), AF-0115 (V1 Verifier)
 - **Related ADR(s):** —
-- **Related PR(s):** —
+- **Related PR(s):** feat/sprint14-pipeline-trace-hardening
 
 ---
 
@@ -92,11 +94,24 @@ V1Orchestrator's `_expand_steps()` method creates new `Step` objects from `Playb
 
 ---
 
-## Proposed fix
+## Fix
 
 **Decision (2026-03-22, Kai):** Use AND logic — the sub-step is required only if *both* the parent step and the playbook author agree.
 
-In V1Orchestrator `_expand_steps()`, change the `required` assignment:
+**Implementation:** Changed `orchestrator.py:536` from:
+```python
+required=step.required,  # inherit parent's required flag
+```
+to:
+```python
+required=step.required and sub_step.required,  # AND logic: both must agree
+```
+
+**Test added:** `test_v1_orchestrator_required_flag_and_logic_bug0019` in `test_planner.py`
+
+**Files changed:**
+- `src/ag/core/orchestrator.py` — one-line fix
+- `tests/test_planner.py` — new test for AND logic
 
 ```python
 inlined = PlaybookStep(

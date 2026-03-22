@@ -1,7 +1,7 @@
 # AF-0116 — V1 Executor: output schema validation with retry
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: READY
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Executor / Skills
 

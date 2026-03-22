@@ -215,10 +215,19 @@ Workspaces isolate:
 - mode (llm/manual)
 - interface (cli/api/event)
 - playbook name + version
+- planning metadata: planner name, LLM tokens (input/output), duration, confidence (AF-0119)
+- pipeline manifest: component versions used (planner, orchestrator, executor, verifier, recorder) (AF-0120)
 - timestamps + duration
 - final status + verifier status
 - artifacts count + retrieval usage indicator
 - top-level summary
+
+### JSON output (`--json`)
+The `--json` flag returns the full `RunTrace` schema, which includes:
+- `planning`: planner name, duration_ms, llm_call (model, input_tokens, output_tokens, total_tokens), confidence
+- `pipeline`: planner, orchestrator, executor, verifier, recorder class names
+- `steps[]`: full step array with per-step verification, LLM attribution, input/output data
+- All other RunTrace fields (see `run_trace.py`)
 
 ---
 

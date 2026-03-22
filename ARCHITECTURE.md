@@ -73,6 +73,8 @@ Each module lives in its own file (AF-0114) and evolves through versioned implem
 - chooses playbook + reasoning modes
 - **V0Planner (current):** deterministic registry lookup, requires explicit `--playbook`
 - **V1Planner (Sprint 11):** LLM analyzes task + skill catalog → composes skill sequence
+- **V2Planner (Sprint 13):** LLM composes mixed skill+playbook plans; playbooks as first-class plan steps
+- **V3Planner (planned, ADR-0009):** adds feasibility assessment phase before plan generation; identifies capability gaps and prevents execution of tasks that can't be performed
 
 3) **Orchestrator**
 - executes the playbook step graph (sequence first; branching/parallel later)
@@ -100,18 +102,20 @@ Each module lives in its own file (AF-0114) and evolves through versioned implem
 - **V0Recorder (current):** persists trace + artifacts to SQLite/filesystem
 - **V1Recorder (planned, AF-0118):** adds structured verification evidence, retry history, per-step breakdown
 
+> **Pipeline Manifest (AF-0120):** Every `RunTrace` includes a `pipeline` block recording which component versions executed the run (e.g., `V2Planner → V1Orchestrator → V0Executor → V1Verifier → V0Recorder`). This enables reproducibility — given a trace, you know the exact component mix.
+
 #### 3.2.1 Implementation Map
 
 All pipeline components have Protocol interfaces in `interfaces.py` and versioned implementations:
 
-| Component | Protocol | V0 Implementation | V1 Implementation | Primary File |
+| Component | Protocol | V0 Implementation | V1+ Implementation | Primary File |
 |-----------|----------|-------------------|-------------------|-------------|
 | TaskSpec | — (schema) | `TaskSpec` | — | `task_spec.py` |
-| Planner | `Planner` | `V0Planner` | `V1Planner` ✅ | `planner.py` |
-| Orchestrator | `Orchestrator` | `V0Orchestrator` | AF-0117 | `orchestrator.py` (after AF-0114) |
-| Executor | `Executor` | `V0Executor` | AF-0116 | `executor.py` (after AF-0114) |
-| Verifier | `Verifier` | `V0Verifier` | AF-0115 | `verifier.py` (after AF-0114) |
-| Recorder | `Recorder` | `V0Recorder` | AF-0118 | `recorder.py` (after AF-0114) |
+| Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` (ADR-0009) | `planner.py` |
+| Orchestrator | `Orchestrator` | `V0Orchestrator` | `V1Orchestrator` ✅ | `orchestrator.py` |
+| Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116) | `executor.py` |
+| Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115) | `verifier.py` |
+| Recorder | `Recorder` | `V0Recorder` | AF-0118 | `recorder.py` |
 
 > **Current state:** V0 Orchestrator, Executor, Verifier, and Recorder all live in `runtime.py`.
 > AF-0114 extracts them to dedicated files. `runtime.py` becomes the composition root (assembly/wiring only).

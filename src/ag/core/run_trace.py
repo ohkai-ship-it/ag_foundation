@@ -322,6 +322,49 @@ class LLMExecution(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+# AF-0119: Planning metadata for trace
+class PlanningLLMCall(BaseModel):
+    """LLM call details for the planning phase (AF-0119)."""
+
+    model: str | None = Field(default=None, description="Model used for planning")
+    input_tokens: int | None = Field(default=None, ge=0, description="Input tokens")
+    output_tokens: int | None = Field(default=None, ge=0, description="Output tokens")
+    total_tokens: int | None = Field(default=None, ge=0, description="Total tokens")
+
+    model_config = {"extra": "forbid"}
+
+
+class PlanningMetadata(BaseModel):
+    """Planning phase metadata for a run (AF-0119).
+
+    Records the planner's work as first-class trace element:
+    - Which planner was used
+    - Timing and token usage
+    - Parsed plan steps (not raw LLM response for security)
+    - Any validation corrections applied
+    """
+
+    planner: str = Field(..., description="Planner name (V0Planner, V1Planner, V2Planner)")
+    plan_id: str | None = Field(default=None, description="Plan ID if persisted")
+    started_at: datetime = Field(..., description="Planning start timestamp")
+    ended_at: datetime | None = Field(default=None, description="Planning end timestamp")
+    duration_ms: int | None = Field(default=None, ge=0, description="Planning duration in ms")
+    llm_call: PlanningLLMCall | None = Field(
+        default=None, description="LLM call details (null for static planners)"
+    )
+    raw_plan_steps: list[dict[str, Any]] = Field(
+        default_factory=list, description="Parsed plan steps (from LLM response)"
+    )
+    validation_corrections: list[str] = Field(
+        default_factory=list, description="Auto-corrections applied during validation"
+    )
+    confidence: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="Planner confidence score"
+    )
+
+    model_config = {"extra": "forbid"}
+
+
 # AF-0101: Autonomy mode tracking
 class AutonomyMode(str, Enum):
     """Mode of execution autonomy (AF-0101).
@@ -356,6 +399,24 @@ class AutonomyMetadata(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+class PipelineManifest(BaseModel):
+    """Pipeline component manifest for a run (AF-0120).
+
+    Records which component versions (V0/V1/V2) were used for execution.
+    Enables reproducibility and debugging of behavior differences.
+    """
+
+    planner: str | None = Field(
+        default=None, description="Planner class name (V0Planner, V1Planner, V2Planner)"
+    )
+    orchestrator: str | None = Field(default=None, description="Orchestrator class name")
+    executor: str | None = Field(default=None, description="Executor class name")
+    verifier: str | None = Field(default=None, description="Verifier class name")
+    recorder: str | None = Field(default=None, description="Recorder class name")
+
+    model_config = {"extra": "forbid"}
+
+
 class RunTrace(BaseModel):
     """v0.1 RunTrace — the evidence log for a single run.
 
@@ -382,6 +443,10 @@ class RunTrace(BaseModel):
     llm: LLMExecution | None = Field(
         default=None, description="LLM execution details (null for manual mode)"
     )
+    # AF-0119: Planning phase metadata (additive field)
+    planning: PlanningMetadata | None = Field(
+        default=None, description="Planning phase details (AF-0119)"
+    )
     playbook: PlaybookMetadata = Field(..., description="Playbook used for this run")
     started_at: datetime = Field(..., description="Run start timestamp")
     ended_at: datetime | None = Field(default=None, description="Run end timestamp")
@@ -398,6 +463,10 @@ class RunTrace(BaseModel):
     # AF-0101: Autonomy mode tracking (additive field)
     autonomy: AutonomyMetadata | None = Field(
         default=None, description="Autonomy mode and policy info (AF-0101)"
+    )
+    # AF-0120: Pipeline component manifest (additive field)
+    pipeline: PipelineManifest | None = Field(
+        default=None, description="Pipeline component versions (AF-0120)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 

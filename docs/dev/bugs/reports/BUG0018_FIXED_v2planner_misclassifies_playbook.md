@@ -19,14 +19,16 @@
 
 ## Metadata
 - **ID:** BUG-0018
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P1
 - **Area:** Core Runtime / Planner
 - **Reported by:** Kai
 - **Date:** 2026-03-22
+- **Fixed by:** Jacob (Sprint 14)
+- **Fixed date:** 2026-03-22
 - **Related backlog item(s):** AF-0103 (V2 Planner), AF-0104 (V3 Planner feasibility)
 - **Related ADR(s):** —
-- **Related PR(s):** —
+- **Related PR(s):** feat/sprint14-pipeline-trace-hardening
 
 ---
 
@@ -87,7 +89,29 @@ When the LLM returns `{"type": "skill", "skill": "research_v0"}` and `research_v
 
 ---
 
-## Proposed fix
+## Fix
+
+**Decision (2026-03-22, Kai):** Auto-correct + warn (maximize success rate; LLM retry is expensive and may repeat the same error).
+
+**Implementation:** Modified `_validate_v2_steps()` in `planner.py` to perform bi-directional cross-check:
+
+1. `type=skill` but name exists only as playbook → auto-correct to `type=playbook`, log warning
+2. `type=playbook` but name exists only as skill → auto-correct to `type=skill`, log warning
+3. Name exists in *neither* namespace → raise `PlannerError` (error message now lists both available skills AND playbooks)
+4. Name exists in *both* namespaces → trust the declared type
+
+**Files changed:**
+- `src/ag/core/planner.py` — `_validate_v2_steps()` rewritten with cross-check + auto-correct
+- `tests/test_planner.py` — 3 new tests for BUG-0018
+
+**Tests added:**
+- `test_v2_planner_autocorrects_playbook_misclassified_as_skill_bug0018`
+- `test_v2_planner_autocorrects_skill_misclassified_as_playbook_bug0018`
+- `test_v2_planner_raises_for_unknown_name_in_both_namespaces`
+
+---
+
+## Original proposed fix
 
 **Decision (2026-03-22, Kai):** Auto-correct + warn (maximize success rate; LLM retry is expensive and may repeat the same error).
 

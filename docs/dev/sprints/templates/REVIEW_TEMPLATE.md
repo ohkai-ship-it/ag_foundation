@@ -63,8 +63,8 @@ Evidence: `scope_links.md`, `index_diff_notes.md`
 ### Pass 2 — Lint/format + test suite verification (authoritative)
 - [ ] `ruff check src tests`
 - [ ] `ruff format --check src tests` (or apply `ruff format src tests`)
-- [ ] `pytest -q`
 - [ ] `pytest -W error`
+- [ ] `pytest --cov=src/ag --cov-report=term-missing` (verify thresholds per FOUNDATION_MANUAL §6.1)
 
 Evidence: `ruff_summary.txt`, `pytest_summary.txt`
 

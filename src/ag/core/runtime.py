@@ -17,10 +17,10 @@ from ag.core.orchestrator import (
     V1Orchestrator,
     _adapt_document_to_source,
 )
-from ag.core.planner import V0Planner
+from ag.core.planner import PlanningResult, V0Planner
 from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
-from ag.core.run_trace import RunTrace
+from ag.core.run_trace import PipelineManifest, PlanningLLMCall, PlanningMetadata, RunTrace
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.core.verifier import V0Verifier, V1Verifier
 from ag.skills import SkillRegistry
@@ -120,13 +120,64 @@ class Runtime:
         )
 
         # Plan - skip if playbook_object provided (e.g., from ExecutionPlan)
+        planning_metadata: PlanningMetadata | None = None
         if playbook_object is not None:
             selected_playbook = playbook_object
+        elif hasattr(self._planner, "plan_with_metadata"):
+            # AF-0119: Use plan_with_metadata() to capture planning trace
+            result: PlanningResult = self._planner.plan_with_metadata(task)
+            selected_playbook = result.playbook
+            # Build PlanningMetadata from PlanningResult
+            llm_call: PlanningLLMCall | None = None
+            if result.model_used or result.total_tokens:
+                llm_call = PlanningLLMCall(
+                    model=result.model_used,
+                    input_tokens=result.input_tokens,
+                    output_tokens=result.output_tokens,
+                    total_tokens=result.total_tokens,
+                )
+            planning_metadata = PlanningMetadata(
+                planner=result.planner_name,
+                started_at=result.started_at,
+                ended_at=result.ended_at,
+                duration_ms=result.duration_ms,
+                llm_call=llm_call,
+                raw_plan_steps=result.raw_steps,
+                validation_corrections=result.validation_corrections,
+                confidence=result.confidence,
+            )
         else:
             selected_playbook = self._planner.plan(task)
 
-        # Execute
-        trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)
+        # AF-0120: Build pipeline manifest from component class names
+        pipeline_manifest = PipelineManifest(
+            planner=self._planner.__class__.__name__,
+            orchestrator=self._orchestrator.__class__.__name__,
+            executor=getattr(self._orchestrator, "_executor", None).__class__.__name__
+            if hasattr(self._orchestrator, "_executor") and self._orchestrator._executor is not None
+            else None,
+            verifier=getattr(self._orchestrator, "_verifier", None).__class__.__name__
+            if hasattr(self._orchestrator, "_verifier") and self._orchestrator._verifier is not None
+            else None,
+            recorder=getattr(self._orchestrator, "_recorder", None).__class__.__name__
+            if hasattr(self._orchestrator, "_recorder") and self._orchestrator._recorder is not None
+            else None,
+        )
+
+        # Execute (pass planning metadata and pipeline manifest if orchestrator is V1)
+        if isinstance(self._orchestrator, V1Orchestrator):
+            # V1Orchestrator with planning support (AF-0119) and pipeline manifest (AF-0120)
+            trace = self._orchestrator.run(
+                task,
+                selected_playbook,
+                workspace_source=workspace_source,
+                planning=planning_metadata,
+                pipeline=pipeline_manifest,
+            )
+        else:
+            trace = self._orchestrator.run(
+                task, selected_playbook, workspace_source=workspace_source
+            )
 
         return trace
 

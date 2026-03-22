@@ -217,7 +217,24 @@ Every PR must include:
 
 ## 5. CI & Quality Enforcement
 
-### 5.1 Required Commands Before PR
+### 5.0 Two-Phase CI Workflow (CRITICAL)
+
+**During AF development** — run targeted tests only:
+```bash
+pytest tests/test_<relevant>.py -W error
+```
+Do NOT run the full suite on every save. Targeted tests keep feedback fast.
+
+**Before commit (full gate)** — run the complete gate once:
+```bash
+ruff check src tests
+ruff format --check src tests
+pytest -W error
+pytest --cov=src/ag --cov-report=term-missing
+```
+All four commands must pass before `git commit`.
+
+### 5.1 Full Gate Commands (Reference)
 
 **Linting:**
 ```bash

@@ -20,7 +20,7 @@
 ## Metadata
 - **ID:** AF0104
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Core Runtime / Planner
 - **Owner:** TBD
@@ -215,4 +215,18 @@ Would you like to proceed with the partial plan? [y/N]
 
 # Completion section (fill when done)
 
-_To be filled upon completion_
+## Outcome
+Scoped as feasibility study only per S14 sprint plan ("feasibility study only, no implementation required").
+
+## Deliverable
+ADR-0009: V3Planner feasibility design — `docs/dev/decisions/files/ADR009_ACCEPTED_v3planner_feasibility_design.md`
+
+## Key findings
+- Current V1/V2 planners already emit a `confidence` float but with no structured capability-gap reasoning
+- Two-phase LLM design (feasibility assessment + conditional plan generation) is the recommended approach
+- Pydantic schemas designed: `FeasibilityLevel`, `CapabilityGap`, `FeasibilityAssessment`, `V3PlannerOutput`
+- `PlanningMetadata` (AF-0119) should gain `feasibility_level` / `feasibility_score` fields when V3 ships
+- Implementation scoped to Sprint 15: ~7 steps, fully additive, V0/V1/V2 unaffected
+
+## Status
+DONE — feasibility study complete, ADR-0009 accepted, implementation deferred to S15.
