@@ -910,11 +910,12 @@ def run(
             if not resolved_quiet and not resolved_json:
                 console.print("[dim]Assessing feasibility...[/dim]")
 
-            generated_playbook = planner.plan(task_spec)
-            confidence = generated_playbook.metadata.get("confidence", 0.0)
+            plan_result = planner.plan_with_metadata(task_spec)
+            generated_playbook = plan_result.playbook
+            confidence = plan_result.confidence or 0.0
             warnings = generated_playbook.metadata.get("warnings", [])
-            feasibility_level = generated_playbook.metadata.get("feasibility_level")
-            feasibility_score = generated_playbook.metadata.get("feasibility_score")
+            feasibility_level = plan_result.feasibility_level
+            feasibility_score = plan_result.feasibility_score
 
         except PlannerError as e:
             if resolved_json:
@@ -1030,6 +1031,7 @@ def run(
                 mode=mode,
                 workspace_source=workspace_source,
                 playbook_object=generated_playbook,
+                plan_result=plan_result,
             )
 
             # Set autonomy metadata (guided mode — user confirmed inline plan)

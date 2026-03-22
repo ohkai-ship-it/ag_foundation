@@ -97,6 +97,7 @@ class Runtime:
         playbook: str | None = None,
         workspace_source: str | None = None,
         playbook_object: Playbook | None = None,
+        plan_result: PlanningResult | None = None,
     ) -> RunTrace:
         """Execute a task and return the trace.
 
@@ -107,6 +108,10 @@ class Runtime:
             playbook: Playbook name preference (used if playbook_object not provided)
             workspace_source: How the workspace was resolved (AF-0030)
             playbook_object: Pre-built Playbook to execute directly (for plan execution)
+            plan_result: PlanningResult from an external planner (e.g. V3Planner called
+                in the CLI before runtime). When provided alongside playbook_object, the
+                real planner's metadata is recorded in trace.planning and the pipeline
+                manifest uses the real planner name (truthfulness fix, AF-0122).
 
         Returns:
             RunTrace capturing the execution
@@ -123,6 +128,30 @@ class Runtime:
         planning_metadata: PlanningMetadata | None = None
         if playbook_object is not None:
             selected_playbook = playbook_object
+            # AF-0122 fix: when the real planner ran externally (e.g. V3Planner in CLI),
+            # build PlanningMetadata from the provided PlanningResult so trace.planning
+            # truthfully records the planner that actually ran.
+            if plan_result is not None:
+                llm_call: PlanningLLMCall | None = None
+                if plan_result.model_used or plan_result.total_tokens:
+                    llm_call = PlanningLLMCall(
+                        model=plan_result.model_used,
+                        input_tokens=plan_result.input_tokens,
+                        output_tokens=plan_result.output_tokens,
+                        total_tokens=plan_result.total_tokens,
+                    )
+                planning_metadata = PlanningMetadata(
+                    planner=plan_result.planner_name,
+                    started_at=plan_result.started_at,
+                    ended_at=plan_result.ended_at,
+                    duration_ms=plan_result.duration_ms,
+                    llm_call=llm_call,
+                    raw_plan_steps=plan_result.raw_steps,
+                    validation_corrections=plan_result.validation_corrections,
+                    confidence=plan_result.confidence,
+                    feasibility_level=plan_result.feasibility_level,
+                    feasibility_score=plan_result.feasibility_score,
+                )
         elif hasattr(self._planner, "plan_with_metadata"):
             # AF-0119: Use plan_with_metadata() to capture planning trace
             result: PlanningResult = self._planner.plan_with_metadata(task)
@@ -149,9 +178,13 @@ class Runtime:
         else:
             selected_playbook = self._planner.plan(task)
 
-        # AF-0120: Build pipeline manifest from component class names
+        # AF-0120: Build pipeline manifest from component class names.
+        # When planning ran externally, use the real planner name from planning_metadata
+        # rather than self._planner (which was skipped) — fixes trace truthfulness.
         pipeline_manifest = PipelineManifest(
-            planner=self._planner.__class__.__name__,
+            planner=planning_metadata.planner
+            if planning_metadata is not None
+            else self._planner.__class__.__name__,
             orchestrator=self._orchestrator.__class__.__name__,
             executor=getattr(self._orchestrator, "_executor", None).__class__.__name__
             if hasattr(self._orchestrator, "_executor") and self._orchestrator._executor is not None
