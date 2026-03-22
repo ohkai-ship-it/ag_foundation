@@ -533,7 +533,7 @@ class V1Orchestrator(V0Orchestrator):
                         step_type=sub_step.step_type,
                         skill_name=sub_step.skill_name,
                         description=sub_step.description,
-                        required=step.required,  # inherit parent's required flag
+                        required=step.required and sub_step.required,  # AND logic: both must agree
                         retry_count=sub_step.retry_count,
                         timeout_seconds=sub_step.timeout_seconds,
                         parameters=merged_params,

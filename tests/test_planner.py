@@ -952,9 +952,62 @@ class TestV1OrchestratorMixedPlans:
 
         expanded = orchestrator._expand_steps(playbook)
 
-        # All expanded steps should inherit required=False
+        # All expanded steps should be False (AND logic: False AND anything = False)
         for step in expanded:
             assert step.required is False
+
+    def test_v1_orchestrator_required_flag_and_logic_bug0019(self) -> None:
+        """BUG-0019: Expanded steps use AND logic for required flag.
+
+        required = parent.required AND sub_step.required
+
+        The playbook author declares which sub-steps are optional.
+        A parent step cannot promote an optional sub-step to required.
+        """
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Playbook, PlaybookStep, PlaybookStepType
+
+        orchestrator = V1Orchestrator()
+
+        # Parent step is REQUIRED, but research_v0 has optional sub-steps
+        playbook = Playbook(
+            name="test",
+            version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="pb1",
+                    name="Required Research",
+                    step_type=PlaybookStepType.PLAYBOOK,
+                    skill_name="research_v0",
+                    required=True,  # Parent is required
+                ),
+            ],
+        )
+
+        expanded = orchestrator._expand_steps(playbook)
+
+        # Find the load_documents step (defined as optional in research_v0)
+        load_docs_step = next(
+            (s for s in expanded if "load_documents" in s.skill_name), None
+        )
+        assert load_docs_step is not None, "load_documents step should exist"
+
+        # BUG-0019 fix: even though parent is required=True,
+        # load_documents is optional in research_v0, so AND logic → False
+        assert load_docs_step.required is False, (
+            "BUG-0019: load_documents should remain optional (AND logic)"
+        )
+
+        # Find a required sub-step (emit_result is required in research_v0)
+        emit_step = next(
+            (s for s in expanded if "emit_result" in s.skill_name), None
+        )
+        assert emit_step is not None, "emit_result step should exist"
+
+        # emit_result is required in research_v0, parent is required → True AND True = True
+        assert emit_step.required is True, (
+            "emit_result should remain required (True AND True = True)"
+        )
 
     def test_v1_orchestrator_merges_parameters(self) -> None:
         """V1Orchestrator merges parent step params into expanded steps."""

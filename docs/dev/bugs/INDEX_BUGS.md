@@ -20,7 +20,6 @@
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
 | BUG-0018 | P1 | OPEN | V2Planner misclassifies playbook as skill | Core Runtime / Planner | [🔗](reports/BUG0018_OPEN_v2planner_misclassifies_playbook.md) |
-| BUG-0019 | P1 | OPEN | V1Orchestrator drops required flag on expansion | Core Runtime / Orchestrator | [🔗](reports/BUG0019_OPEN_orchestrator_drops_required_flag.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
 | BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |
@@ -30,6 +29,7 @@
 ## FIXED bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0019 | P1 | FIXED | V1Orchestrator drops required flag on expansion | Core Runtime / Orchestrator | [🔗](reports/BUG0019_FIXED_orchestrator_drops_required_flag.md) |
 | BUG-0017 | P1 | FIXED | Verifier ignores optional step failures | Core Runtime / Verifier | [🔗](reports/BUG0017_FIXED_verifier_ignores_optional_steps.md) |
 | BUG-0016c | P1 | FIXED | Accumulated chaining loss (multi-emit data lost) | Core Runtime | [🔗](reports/BUG0016c_FIXED_accumulated_chaining_loss.md) |
 | BUG-0016b | P1 | FIXED | Alias placeholder override (emit_result) | Skills | [🔗](reports/BUG0016b_FIXED_alias_placeholder_override.md) |
