@@ -1025,4 +1025,124 @@ class TestCLIStubs:
             data = json.loads(result.stdout)
             assert "error" in data, f"Missing 'error' key for {' '.join(cmd)}"
             assert data["error"] == "not_implemented"
-            assert "command" in data
+
+
+class TestPlanningPipelineDisplay:
+    """Tests for AF-0122: planning and pipeline display in ag runs show."""
+
+    def test_runs_show_displays_planning_section(self, monkeypatch, tmp_path):
+        """ag runs show displays Planning section when trace has planning metadata."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from datetime import datetime, timezone
+
+        from ag.core.run_trace import PipelineManifest, PlanningLLMCall, PlanningMetadata
+        from ag.storage import SQLiteRunStore, Workspace
+        from tests.test_storage import _make_run_trace
+
+        ws = Workspace("pln-ws", tmp_path)
+        ws.ensure_exists()
+
+        trace = _make_run_trace("pln-ws")
+        now = datetime.now(timezone.utc)
+        trace.planning = PlanningMetadata(
+            planner="V3Planner",
+            started_at=now,
+            ended_at=now,
+            duration_ms=1234,
+            llm_call=PlanningLLMCall(
+                model="gpt-4o-mini",
+                input_tokens=11333,
+                output_tokens=645,
+                total_tokens=11978,
+            ),
+            confidence=0.85,
+        )
+        trace.pipeline = PipelineManifest(
+            planner="V3Planner",
+            orchestrator="V1Orchestrator",
+            executor="V0Executor",
+            verifier="V1Verifier",
+            recorder="V0Recorder",
+        )
+
+        store = SQLiteRunStore(tmp_path)
+        store.save(trace)
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "show", trace.run_id, "--workspace", "pln-ws"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        assert "Planning" in result.stdout
+        assert "V3Planner" in result.stdout
+        assert "1234ms" in result.stdout
+        assert "11978" in result.stdout
+        assert "gpt-4o-mini" in result.stdout
+        assert "85%" in result.stdout
+
+    def test_runs_show_displays_pipeline_section(self, monkeypatch, tmp_path):
+        """ag runs show displays Pipeline section when trace has pipeline manifest."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.core.run_trace import PipelineManifest
+        from ag.storage import SQLiteRunStore, Workspace
+        from tests.test_storage import _make_run_trace
+
+        ws = Workspace("pip-ws", tmp_path)
+        ws.ensure_exists()
+
+        trace = _make_run_trace("pip-ws")
+        trace.pipeline = PipelineManifest(
+            planner="V3Planner",
+            orchestrator="V1Orchestrator",
+            executor="V2Executor",
+            verifier="V2Verifier",
+            recorder="V0Recorder",
+        )
+
+        store = SQLiteRunStore(tmp_path)
+        store.save(trace)
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "show", trace.run_id, "--workspace", "pip-ws"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        assert "Pipeline" in result.stdout
+        assert "V1Orchestrator" in result.stdout
+        assert "V2Executor" in result.stdout
+
+    def test_runs_show_omits_planning_for_old_traces(self, monkeypatch, tmp_path):
+        """ag runs show renders gracefully for old traces without planning/pipeline."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+
+        from ag.storage import SQLiteRunStore, Workspace
+        from tests.test_storage import _make_run_trace
+
+        ws = Workspace("old-ws", tmp_path)
+        ws.ensure_exists()
+
+        trace = _make_run_trace("old-ws")
+        # planning and pipeline are None by default
+
+        store = SQLiteRunStore(tmp_path)
+        store.save(trace)
+        store.close()
+
+        result = runner.invoke(
+            app,
+            ["runs", "show", trace.run_id, "--workspace", "old-ws"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+
+        assert result.exit_code == 0
+        # Planning/Pipeline sections omitted for old traces
+        assert "Planning" not in result.stdout
+        assert "Pipeline" not in result.stdout

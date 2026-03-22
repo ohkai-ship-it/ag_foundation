@@ -1077,6 +1077,39 @@ def run(
                     console.print(f"  Run ID: {labels['run_id']}")
                     console.print(f"  Workspace: {labels['workspace_id']}")
                     console.print("  Autonomy: [yellow]guided[/yellow] (inline plan)")
+                    # AF-0122: Planning and pipeline display
+                    if trace.planning:
+                        tokens = (
+                            trace.planning.llm_call.total_tokens if trace.planning.llm_call else 0
+                        )
+                        dur_s = (
+                            f"{trace.planning.duration_ms / 1000:.1f}s"
+                            if trace.planning.duration_ms is not None
+                            else "?"
+                        )
+                        conf = (
+                            f"{trace.planning.confidence:.0%}"
+                            if trace.planning.confidence is not None
+                            else "?"
+                        )
+                        console.print(
+                            f"  Planning: {trace.planning.planner}"
+                            f" ({tokens} tokens, {dur_s}, confidence: {conf})"
+                        )
+                    if trace.pipeline:
+                        parts = [
+                            p
+                            for p in [
+                                trace.pipeline.planner,
+                                trace.pipeline.orchestrator,
+                                trace.pipeline.executor,
+                                trace.pipeline.verifier,
+                                trace.pipeline.recorder,
+                            ]
+                            if p
+                        ]
+                        arrow = " -> "
+                        console.print(f"  Pipeline: {arrow.join(parts)}")
                     console.print(f"  Status: {format_status(trace.final)}")
                     console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
                     console.print(f"  Duration: {labels['duration']}")
@@ -1151,6 +1184,37 @@ def run(
                     is_playbook = trace.autonomy.mode == AutonomyMode.PLAYBOOK
                     a_color = "[blue]" if is_playbook else "[yellow]"
                     console.print(f"  Autonomy: {a_color}{trace.autonomy.mode.value}[/]")
+                # AF-0122: Planning and pipeline display
+                if trace.planning:
+                    tokens = trace.planning.llm_call.total_tokens if trace.planning.llm_call else 0
+                    dur_s = (
+                        f"{trace.planning.duration_ms / 1000:.1f}s"
+                        if trace.planning.duration_ms is not None
+                        else "?"
+                    )
+                    conf = (
+                        f"{trace.planning.confidence:.0%}"
+                        if trace.planning.confidence is not None
+                        else "?"
+                    )
+                    console.print(
+                        f"  Planning: {trace.planning.planner}"
+                        f" ({tokens} tokens, {dur_s}, confidence: {conf})"
+                    )
+                if trace.pipeline:
+                    parts = [
+                        p
+                        for p in [
+                            trace.pipeline.planner,
+                            trace.pipeline.orchestrator,
+                            trace.pipeline.executor,
+                            trace.pipeline.verifier,
+                            trace.pipeline.recorder,
+                        ]
+                        if p
+                    ]
+                    arrow = " -> "
+                    console.print(f"  Pipeline: {arrow.join(parts)}")
                 console.print(f"  Status: {format_status(trace.final)}")
                 console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
                 console.print(f"  Duration: {labels['duration']}")
@@ -1353,6 +1417,39 @@ def runs_show(
             console.print(f"  Started: {trace.started_at.isoformat()}")
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()
+
+            # AF-0122: Planning section
+            if trace.planning:
+                console.print("[bold]Planning[/bold]")
+                console.print(f"  Planner:    {trace.planning.planner}")
+                if trace.planning.duration_ms is not None:
+                    console.print(f"  Duration:   {trace.planning.duration_ms}ms")
+                if trace.planning.llm_call:
+                    lc = trace.planning.llm_call
+                    total = lc.total_tokens or 0
+                    inp = lc.input_tokens or 0
+                    out = lc.output_tokens or 0
+                    console.print(f"  Tokens:     {total} (input: {inp}, output: {out})")
+                    if lc.model:
+                        console.print(f"  Model:      {lc.model}")
+                if trace.planning.confidence is not None:
+                    console.print(f"  Confidence: {trace.planning.confidence:.0%}")
+                console.print()
+
+            # AF-0122: Pipeline section
+            if trace.pipeline:
+                console.print("[bold]Pipeline[/bold]")
+                if trace.pipeline.planner:
+                    console.print(f"  Planner:      {trace.pipeline.planner}")
+                if trace.pipeline.orchestrator:
+                    console.print(f"  Orchestrator: {trace.pipeline.orchestrator}")
+                if trace.pipeline.executor:
+                    console.print(f"  Executor:     {trace.pipeline.executor}")
+                if trace.pipeline.verifier:
+                    console.print(f"  Verifier:     {trace.pipeline.verifier}")
+                if trace.pipeline.recorder:
+                    console.print(f"  Recorder:     {trace.pipeline.recorder}")
+                console.print()
 
             # Steps - AF-0118: Display VERIFICATION steps distinctly
             console.print(f"[bold]Steps ({len(trace.steps)}):[/bold]")

@@ -25,7 +25,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
 | *(empty)* | | | | | | |
-
+| 6 | AF-0125 | P1 | READY | Deterministic test provider | Testing / CI | Jacob | [🔗](items/AF0125_READY_deterministic_test_provider.md) 
 
 ---
 ## Sprints *IN DESCENDING ORDER*
@@ -37,7 +37,8 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 2 | AF-0121 | P1 | IN_PROGRESS | V3Planner: feasibility assessment | Core Runtime / Planner | Jacob | [🔗](items/AF0121_READY_v3planner_feasibility_assessment.md) |
 | 3 | AF-0123 | P1 | IN_PROGRESS | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | Jacob | [🔗](items/AF0123_READY_v2_verifier_semantic_checks.md) |
 | 4 | AF-0124 | P2 | IN_PROGRESS | V2Executor: LLM output repair | Core Runtime / Executor | Jacob | [🔗](items/AF0124_IN_PROGRESS_v2_executor_llm_repair.md) |
-| 5 | AF-0122 | P2 | READY | CLI planning and pipeline display | CLI | Jacob | [🔗](items/AF0122_READY_cli_planning_pipeline_display.md) |
+| 5 | AF-0122 | P2 | IN_PROGRESS | CLI planning and pipeline display | CLI | Jacob | [🔗](items/AF0122_IN_PROGRESS_cli_planning_pipeline_display.md) |
+
 
 ### Sprint 14 Scope (pipeline_trace_hardening)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
