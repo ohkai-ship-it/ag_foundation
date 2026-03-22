@@ -80,7 +80,7 @@ filterwarnings = [
     # ResourceWarning that -W error would promote to a hard failure.
     # This is a third-party library defect; suppress it to keep -W error useful
     # for our own code warnings.
-    "ignore::ResourceWarning",
+    "ignore:unclosed.*ssl:ResourceWarning",
 ]
 markers = [
     "integration: marks tests that require external services (deselect with '-m \"not integration\"')",

@@ -24,6 +24,7 @@ from ag.providers.registry import (
 )
 from ag.providers.stubs import (
     AnthropicStubProvider,
+    FakeLLMProvider,
     LocalStubProvider,
 )
 
@@ -45,5 +46,6 @@ __all__ = [
     # Implementations
     "OpenAIProvider",
     "AnthropicStubProvider",
+    "FakeLLMProvider",
     "LocalStubProvider",
 ]
