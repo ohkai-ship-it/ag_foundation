@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0103
 - **Type:** Feature
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Core Runtime / Planner
-- **Owner:** TBD
-- **Target sprint:** TBD (after AF-0102)
+- **Owner:** S13
+- **Target sprint:** Sprint 13
 - **Depends on:** AF-0102 (V1Planner skills-only)
 
 ---

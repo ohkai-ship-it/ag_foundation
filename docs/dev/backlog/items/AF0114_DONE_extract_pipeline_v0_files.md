@@ -1,7 +1,7 @@
 # AF-0114 — Extract pipeline V0s to own files
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: READY
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Refactor
 

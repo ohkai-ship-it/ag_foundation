@@ -33,20 +33,20 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 14 Scope (Planned)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0116 | P1 | PROPOSED | V1 Executor: output schema validation | Core Runtime/Executor | TBD | [🔗](items/AF0116_PROPOSED_v1_executor_output_validation.md) |
-| 2 | AF-0117 | P1 | PROPOSED | V1 Orchestrator: per-step verification (remainder) | Core Runtime/Orchestrator | TBD | [🔗](items/AF0117_PROPOSED_v1_orchestrator_perstep_loop.md) |
-| 3 | AF-0118 | P2 | PROPOSED | V1 Recorder: verification evidence | Core Runtime/Recorder | TBD | [🔗](items/AF0118_PROPOSED_v1_recorder_verification_evidence.md) |
+| 1 | AF-0116 | P1 | READY | V1 Executor: output schema validation | Core Runtime/Executor | TBD | [🔗](items/AF0116_READY_v1_executor_output_validation.md) |
+| 2 | AF-0117 | P1 | READY | V1 Orchestrator: per-step verification (remainder) | Core Runtime/Orchestrator | TBD | [🔗](items/AF0117_READY_v1_orchestrator_perstep_loop.md) |
+| 3 | AF-0118 | P2 | READY | V1 Recorder: verification evidence | Core Runtime/Recorder | TBD | [🔗](items/AF0118_READY_v1_recorder_verification_evidence.md) |
 | 4 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
-| 5 | AF-0104 | P2 | PROPOSED | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_PROPOSED_llm_planner_v3_feasibility.md) |
+| 5 | AF-0104 | P2 | READY | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_READY_llm_planner_v3_feasibility.md) |
 
 ### Sprint 13 Scope (Current)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0103 | P1 | READY | V2 Planner: playbooks as plan steps | Core Runtime/Planner | TBD | [🔗](items/AF0103_READY_llm_planner_v2_playbooks.md) |
+| 1 | AF-0103 | P1 | DONE | V2 Planner: playbooks as plan steps | Core Runtime/Planner | S13 | [✅](items/AF0103_DONE_llm_planner_v2_playbooks.md) |
 | 2 | AF-0112 | P1 | DONE | Inline plan preview and confirm in ag run | CLI/Runtime/Planner | Jacob | [✅](items/AF0112_DONE_inline_plan_confirm_run.md) |
-| 3 | AF-0114 | P1 | READY | Extract pipeline V0s to own files | Core Runtime/Refactor | TBD | [🔗](items/AF0114_READY_extract_pipeline_v0_files.md) |
-| 4 | AF-0115 | P1 | READY | V1 Verifier: step-aware verification | Core Runtime/Verifier | TBD | [🔗](items/AF0115_READY_v1_verifier_step_aware.md) |
-| 5 | AF-0117 | P1 | READY | V1 Orchestrator: mixed plan support (partial) | Core Runtime/Orchestrator | TBD | [🔗](items/AF0117_READY_v1_orchestrator_perstep_loop.md) |
+| 3 | AF-0114 | P1 | DONE | Extract pipeline V0s to own files | Core Runtime/Refactor | S13 | [✅](items/AF0114_DONE_extract_pipeline_v0_files.md) |
+| 4 | AF-0115 | P1 | DONE | V1 Verifier: step-aware verification | Core Runtime/Verifier | S13 | [✅](items/AF0115_DONE_v1_verifier_step_aware.md) |
+| 5 | AF-0117 | P1 | DONE | V1 Orchestrator: mixed plan support (partial) | Core Runtime/Orchestrator | S13 | [✅](items/AF0117_DONE_v1_orchestrator_perstep_loop.md) |
 
 ### Sprint 12 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0104
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Core Runtime / Planner
 - **Owner:** TBD
-- **Target sprint:** TBD (after AF-0103)
+- **Target sprint:** S14
 - **Depends on:** AF-0103 (V2Planner skills+playbooks)
 
 ---

@@ -1,7 +1,7 @@
 # AF-0118 — V1 Recorder: verification evidence persistence
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: PROPOSED
+# Status: READY
 # Priority: P2
 # Area: Core Runtime / Recorder / Storage
 
