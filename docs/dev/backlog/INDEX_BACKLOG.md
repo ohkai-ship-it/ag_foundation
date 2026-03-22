@@ -34,7 +34,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0116 | P1 | READY | V1 Executor: output schema validation | Core Runtime/Executor | TBD | [🔗](items/AF0116_READY_v1_executor_output_validation.md) |
-| 2 | AF-0117 | P1 | READY | V1 Orchestrator: per-step verification (remainder) | Core Runtime/Orchestrator | TBD | [🔗](items/AF0117_READY_v1_orchestrator_perstep_loop.md) |
+| 2 | AF-0117 | P1 | IN_PROGRESS | V1 Orchestrator: per-step verification (remainder) | Core Runtime/Orchestrator | TBD | [🔗](items/AF0117_DONE_v1_orchestrator_perstep_loop.md) |
 | 3 | AF-0118 | P2 | READY | V1 Recorder: verification evidence | Core Runtime/Recorder | TBD | [🔗](items/AF0118_READY_v1_recorder_verification_evidence.md) |
 | 4 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
 | 5 | AF-0104 | P2 | READY | LLM Planner V3 (feasibility) | Core Runtime/Planner | TBD | [🔗](items/AF0104_READY_llm_planner_v3_feasibility.md) |
@@ -44,7 +44,7 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 9 | AF-0120 | P2 | READY | Component manifest in RunTrace | Core Runtime/Recorder | TBD | [🔗](items/AF0120_READY_component_manifest_trace.md) |
 | 10 | AF-0113 | P1 | READY | Per-step output verification | Core Runtime/Verifier/Skills | TBD | [🔗](items/AF0113_READY_per_step_output_verification.md) |
 
-### Sprint 13 Scope (Current)
+### Sprint 13 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0103 | P1 | DONE | V2 Planner: playbooks as plan steps | Core Runtime/Planner | S13 | [✅](items/AF0103_DONE_llm_planner_v2_playbooks.md) |
