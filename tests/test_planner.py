@@ -943,7 +943,9 @@ class TestV2PlannerPlaybookAwareness:
         planner = V2Planner(mock_provider, mock_registry)
 
         # Should raise with both available skills AND playbooks listed
-        with pytest.raises(PlannerError, match="Invalid skill.*Available skills.*Available playbooks"):
+        with pytest.raises(
+            PlannerError, match="Invalid skill.*Available skills.*Available playbooks"
+        ):  # noqa: E501
             planner.plan(task_spec)
 
 
@@ -1107,9 +1109,7 @@ class TestV1OrchestratorMixedPlans:
         expanded = orchestrator._expand_steps(playbook)
 
         # Find the load_documents step (defined as optional in research_v0)
-        load_docs_step = next(
-            (s for s in expanded if "load_documents" in s.skill_name), None
-        )
+        load_docs_step = next((s for s in expanded if "load_documents" in s.skill_name), None)
         assert load_docs_step is not None, "load_documents step should exist"
 
         # BUG-0019 fix: even though parent is required=True,
@@ -1119,9 +1119,7 @@ class TestV1OrchestratorMixedPlans:
         )
 
         # Find a required sub-step (emit_result is required in research_v0)
-        emit_step = next(
-            (s for s in expanded if "emit_result" in s.skill_name), None
-        )
+        emit_step = next((s for s in expanded if "emit_result" in s.skill_name), None)
         assert emit_step is not None, "emit_result step should exist"
 
         # emit_result is required in research_v0, parent is required → True AND True = True

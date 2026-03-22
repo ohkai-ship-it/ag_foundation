@@ -8,9 +8,21 @@
 > Critical invariants in this context:
 > - Truthful UX (trace-derived labels)
 > - Workspace isolation
-> - CI discipline (ruff + pytest -W error + coverage)
+> - CI workflow (two-phase — see below)
 > - 1 PR = 1 sprint
 > - INDEX update rule (status ↔ filename integrity)
+>
+> **CI workflow (CRITICAL):**
+> - **During AF development:** run targeted tests only
+>   `pytest tests/test_<relevant>.py -W error`
+> - **Before commit (full gate):** run the complete CI gate
+>   1. `ruff check src tests`
+>   2. `ruff format --check src tests`
+>   3. `pytest -W error`
+>   4. `pytest --cov=src/ag --cov-report=term-missing`
+>
+> Do NOT run the full suite on every save. Targeted tests keep feedback fast.
+> The full gate runs once, right before `git commit`.
 
 > **File naming (required):** `AF####_<STATUS>_<three_word_description>.md`
 > Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
@@ -47,11 +59,13 @@ Explicitly out of scope.
 - [ ] Deliverable exists in the correct folder (per `/docs/dev` structure)
 - [ ] Naming conventions applied (file name + internal Status match)
 - [ ] INDEX file(s) updated (ritual at sprint start AND on status change)
-- [ ] CI/local checks pass (as applicable):  
-  - [ ] `ruff check src tests`  
-  - [ ] `ruff format --check src tests` (or `ruff format src tests`)  
-  - [ ] `pytest -W error`  
-  - [ ] coverage thresholds met (see TESTING_GUIDELINES)
+- [ ] CI/local checks pass (two-phase workflow):  
+  - **During development:** targeted tests run (`pytest tests/test_<relevant>.py -W error`)  
+  - **Before commit (full gate):**  
+    - [ ] `ruff check src tests`  
+    - [ ] `ruff format --check src tests` (or `ruff format src tests`)  
+    - [ ] `pytest -W error`  
+    - [ ] coverage thresholds met (`pytest --cov=src/ag --cov-report=term-missing`)
 - [ ] Evidence included (as applicable): tests + RunTrace ID(s)
 - [ ] Completion section filled below (mandatory when Status = Done)
 

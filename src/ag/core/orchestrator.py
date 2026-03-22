@@ -898,7 +898,9 @@ class V1Orchestrator(V0Orchestrator):
             workspace_id=task.workspace_id,
             workspace_source=ws_source_enum,
             mode=task.mode,
-            playbook=PlaybookMetadata(name=expanded_playbook.name, version=expanded_playbook.version),
+            playbook=PlaybookMetadata(
+                name=expanded_playbook.name, version=expanded_playbook.version
+            ),
             planning=planning,  # AF-0119: Include planning metadata
             pipeline=pipeline,  # AF-0120: Include pipeline manifest
             started_at=started_at,

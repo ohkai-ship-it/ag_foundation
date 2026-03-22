@@ -165,8 +165,16 @@ ls docs/dev/decisions/files/ADR###_*.md
 - Make atomic commits
 - Each commit should be reversible
 - Do not mix unrelated changes
+- **Run targeted tests only** — do NOT run the full suite on every change:
+  ```bash
+  pytest tests/test_<relevant>.py -W error
+  ```
+  This keeps feedback fast and avoids wasted CI cycles.
 
-### 4.3 Before Creating PR
+### 4.3 Before Commit (Full Gate)
+
+Run the complete CI gate **once, right before `git commit`**.
+Do NOT run these on every save — that's what targeted tests (4.2) are for.
 
 **Run ALL of these commands. All must pass.**
 

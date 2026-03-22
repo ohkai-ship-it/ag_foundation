@@ -28,6 +28,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -86,8 +87,6 @@ class PlannerError(Exception):
 # ---------------------------------------------------------------------------
 # AF-0119: Planning metadata for trace attribution
 # ---------------------------------------------------------------------------
-
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -273,12 +272,14 @@ class V1Planner:
         if self._last_plan_response is not None:
             confidence = self._last_plan_response.confidence
             for step in self._last_plan_response.steps:
-                raw_steps.append({
-                    "type": step.type,
-                    "skill": step.skill,
-                    "playbook": step.playbook,
-                    "rationale": step.rationale,
-                })
+                raw_steps.append(
+                    {
+                        "type": step.type,
+                        "skill": step.skill,
+                        "playbook": step.playbook,
+                        "rationale": step.rationale,
+                    }
+                )
 
         return PlanningResult(
             playbook=playbook,
@@ -859,12 +860,14 @@ Respond with a JSON plan."""
         if self._last_plan_response is not None:
             confidence = self._last_plan_response.confidence
             for step in self._last_plan_response.steps:
-                raw_steps.append({
-                    "type": step.type,
-                    "skill": step.skill,
-                    "playbook": step.playbook,
-                    "rationale": step.rationale,
-                })
+                raw_steps.append(
+                    {
+                        "type": step.type,
+                        "skill": step.skill,
+                        "playbook": step.playbook,
+                        "rationale": step.rationale,
+                    }
+                )
 
         return PlanningResult(
             playbook=playbook,

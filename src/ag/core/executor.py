@@ -109,16 +109,15 @@ class V1Executor(V0Executor):
             is_valid, errors = self._validate_output(output, output_schema)
 
             if is_valid:
-                logger.debug(
-                    f"Skill '{skill_name}' output validated on attempt {attempt}"
-                )
+                logger.debug(f"Skill '{skill_name}' output validated on attempt {attempt}")
                 return output.to_legacy_tuple()
 
             # Log validation failure
             error_msg = f"Output validation failed: {'; '.join(errors)}"
             self._last_validation_errors.append(f"Attempt {attempt}: {error_msg}")
             logger.warning(
-                f"Skill '{skill_name}' output validation failed (attempt {attempt}/{self._max_attempts}): {errors}"
+                f"Skill '{skill_name}' output validation failed "
+                f"(attempt {attempt}/{self._max_attempts}): {errors}"
             )
 
             if attempt < self._max_attempts:
@@ -130,11 +129,15 @@ class V1Executor(V0Executor):
             f"Output validation failed after {self._max_attempts} attempts for '{skill_name}'"
         )
         logger.error(final_msg)
-        return False, final_msg, {
-            "error": "output_validation_failed",
-            "attempts": self._last_validation_attempts,
-            "errors": self._last_validation_errors,
-        }
+        return (
+            False,
+            final_msg,
+            {
+                "error": "output_validation_failed",
+                "attempts": self._last_validation_attempts,
+                "errors": self._last_validation_errors,
+            },
+        )
 
     def _validate_output(
         self, output: SkillOutput, schema: type[SkillOutput]

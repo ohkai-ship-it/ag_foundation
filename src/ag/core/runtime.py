@@ -175,7 +175,9 @@ class Runtime:
                 pipeline=pipeline_manifest,
             )
         else:
-            trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)
+            trace = self._orchestrator.run(
+                task, selected_playbook, workspace_source=workspace_source
+            )
 
         return trace
 

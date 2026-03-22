@@ -30,6 +30,15 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ---
 ## Sprints *IN DESCENDING ORDER*
 
+### Sprint 15 Scope (llm_intelligence_layer)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | — | [🔗](../bugs/reports/BUG0020_OPEN_empty_plan_reports_success.md) |
+| 2 | AF-0121 | P1 | PROPOSED | V3Planner: feasibility assessment | Core Runtime / Planner | — | [🔗](items/AF0121_PROPOSED_v3planner_feasibility_assessment.md) |
+| 3 | AF-0123 | P1 | PROPOSED | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | — | [🔗](items/AF0123_PROPOSED_v2_verifier_semantic_checks.md) |
+| 4 | AF-0124 | P2 | PROPOSED | V2Executor: LLM output repair | Core Runtime / Executor | — | [🔗](items/AF0124_PROPOSED_v2_executor_llm_repair.md) |
+| 5 | AF-0122 | P2 | PROPOSED | CLI planning and pipeline display | CLI | — | [🔗](items/AF0122_PROPOSED_cli_planning_pipeline_display.md) |
+
 ### Sprint 14 Scope (pipeline_trace_hardening)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
@@ -40,9 +49,9 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 | 5 | AF-0118 | P1 | DONE | V1 Recorder: verification evidence | Core Runtime/Recorder | S14 | [✅](items/AF0118_DONE_v1_recorder_verification_evidence.md) |
 | 6 | AF-0119 | P1 | DONE | Planner trace + per-step LLM attribution | Core Runtime/Planner/Recorder | S14 | [✅](items/AF0119_DONE_planner_trace_llm_attribution.md) |
 | 7 | AF-0113 | P1 | DONE | Per-step output verification | Core Runtime/Verifier/Skills | S14 | [✅](items/AF0113_DONE_per_step_output_verification.md) |
-| 8 | AF-0096 | P2 | READY | Test workspace cleanup pollution | Testing/Storage | TBD | [🔗](items/AF0096_READY_test_workspace_cleanup.md) |
+| 8 | AF-0096 | P2 | DONE | Test workspace cleanup pollution | Testing/Storage | S14 | [✅](items/AF0096_DONE_test_workspace_cleanup.md) |
 | 9 | AF-0104 | P2 | DONE | LLM Planner V3 (feasibility) | Core Runtime/Planner | Jacob | [✅](items/AF0104_DONE_llm_planner_v3_feasibility.md) |
-| 10 | AF-0120 | P2 | READY | Component manifest in RunTrace | Core Runtime/Recorder | TBD | [🔗](items/AF0120_READY_component_manifest_trace.md) |
+| 10 | AF-0120 | P2 | DONE | Component manifest in RunTrace | Core Runtime/Recorder | S14 | [✅](items/AF0120_DONE_component_manifest_trace.md) |
 
 ### Sprint 13 Scope (Closed)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

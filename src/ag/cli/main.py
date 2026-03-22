@@ -1335,7 +1335,8 @@ def runs_show(
                     optional_label = " [dim](optional)[/dim]" if not step.required else ""
 
                     console.print(
-                        f"  {step_status} Step {step.step_number}: {skill_label}{optional_label}{retry_info}"
+                        f"  {step_status} Step {step.step_number}: "
+                        f"{skill_label}{optional_label}{retry_info}"
                     )
                     if step.output_summary:
                         console.print(f"      Output: {step.output_summary[:60]}...")

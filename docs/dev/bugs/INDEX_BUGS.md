@@ -19,6 +19,7 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
+| BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | [🔗](reports/BUG0020_OPEN_empty_plan_reports_success.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
 | BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |

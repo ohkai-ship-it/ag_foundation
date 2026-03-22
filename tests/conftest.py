@@ -8,8 +8,17 @@ real workspace directory.
 from __future__ import annotations
 
 import os
+import warnings
 
 import pytest
+
+# Suppress SSL-socket GC noise from ddgs/DuckDuckGo Cloudflare connections.
+# These sockets are created by tests that mock DDGS but the underlying
+# primp/httpx client may still open a connection on import; when Python's GC
+# finalizes the socket, pytest turns the ResourceWarning into
+# PytestUnraisableExceptionWarning — even under `-W error`.
+# This filter is inserted early (before CLI flags) so it wins.
+warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
 
 
 @pytest.fixture(autouse=True, scope="session")

@@ -10,10 +10,9 @@ from typing import ClassVar
 import pytest
 from pydantic import Field
 
-from ag.core.executor import V0Executor, V1Executor, DEFAULT_MAX_VALIDATION_ATTEMPTS
+from ag.core.executor import DEFAULT_MAX_VALIDATION_ATTEMPTS, V0Executor, V1Executor
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
 from ag.skills.registry import SkillRegistry
-
 
 # ---------------------------------------------------------------------------
 # Test Fixtures - Skills for Testing
