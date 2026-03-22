@@ -166,18 +166,18 @@ ag runs show <run-id> --json > artifacts/review_S15_01/happy_trace.json
 ```
 
 Verify in `happy_trace.json`:
-- [ ] `planning.planner` = `"V3Planner"`
-- [ ] `planning.feasibility_level` = `"MOSTLY_FEASIBLE"` or `"FULLY_FEASIBLE"`
-- [ ] `planning.llm_call.model` is populated (not null)
-- [ ] `planning.llm_call.total_tokens` > 0
-- [ ] `pipeline.executor` = `"V2Executor"`
-- [ ] `pipeline.verifier` = `"V2Verifier"`
-- [ ] CLI Planning section labels match these trace fields
+- [x] `planning.planner` = `"V3Planner"` — **confirmed**: `V3Planner`
+- [x] `planning.feasibility_level` = `"MOSTLY_FEASIBLE"` or `"FULLY_FEASIBLE"` — **confirmed**: `mostly_feasible`
+- [x] `planning.llm_call.model` is populated (not null) — **confirmed**: `gpt-4o-mini-2024-07-18`
+- [x] `planning.llm_call.total_tokens` > 0 — **confirmed**: `1779`
+- [x] `pipeline.executor` = `"V2Executor"` — **confirmed**
+- [x] `pipeline.verifier` = `"V2Verifier"` — **confirmed**
+- [x] CLI Planning section labels match these trace fields — **confirmed via `ag runs show` output**
 
 Verify in CLI output:
-- [ ] Planning section visible in `ag run` interactive output
-- [ ] Pipeline arrow notation visible (e.g. `V3Planner → V1Orchestrator → ...`)
-- [ ] Feasibility level and score shown and match trace
+- [x] Planning section visible in `ag run` interactive output — **confirmed in cli_outputs.txt**: `Planning: V3Planner (1779 tokens, 6.9s, confidence: 85%)`
+- [x] Pipeline arrow notation visible (e.g. `V3Planner → V1Orchestrator → ...`) — **confirmed**: `V3Planner -> V1Orchestrator -> V2Executor -> V2Verifier -> V0Recorder`
+- [x] Feasibility level and score shown and match trace — **confirmed**: `Feasibility: Mostly Feasible (70%)`
 
 Evidence: `cli_outputs.txt`, `happy_trace.json`
 
