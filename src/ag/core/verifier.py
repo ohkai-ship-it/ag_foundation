@@ -41,13 +41,33 @@ class V0Verifier:
 
 
 class V1Verifier:
-    """V1 Verifier: step-aware verification (AF-0115).
+    """V1 Verifier: step-aware verification (AF-0115, AF-0117).
 
     Respects the required/optional distinction on steps:
     - Required step failure → verifier fails
     - Optional step failure → verifier passes with warnings
     - Populates evidence dict with per-step breakdown
+
+    AF-0117: Adds verify_step() for per-step verification in V1Orchestrator.
     """
+
+    def verify_step(self, step: Step) -> tuple[bool, str]:
+        """Verify a single step (AF-0117).
+
+        Args:
+            step: The step to verify
+
+        Returns:
+            Tuple of (passed, message) where:
+            - passed: True if step succeeded or is optional failure
+            - message: Description of verification result
+        """
+        if step.error:
+            if step.required:
+                return False, f"Required step {step.step_number} failed: {step.error}"
+            else:
+                return True, f"Optional step {step.step_number} skipped: {step.error}"
+        return True, f"Step {step.step_number} passed"
 
     def verify(self, trace: RunTrace) -> tuple[str, str | None]:
         """Verify a run's results with step awareness."""

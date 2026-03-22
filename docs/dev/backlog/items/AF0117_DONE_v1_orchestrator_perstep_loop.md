@@ -1,7 +1,7 @@
 # AF-0117 — V1 Orchestrator: per-step verification loop
-# Version number: v0.3
+# Version number: v0.4
 # Created: 2026-03-21
-# Status: DONE (Sprint 13 partial)
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Orchestrator
 
@@ -12,11 +12,11 @@
 ---
 
 > **SCOPE SPLIT (Sprint 13/14)**
-> This AF is delivered in two parts:
+> This AF was delivered in two parts:
 > - **Sprint 13 (DONE):** V1Orchestrator creation with mixed skill+playbook plan support
 >   (iterates plan steps, expands `type=playbook` steps to their skill sequences inline,
 >   adds `PLAYBOOK` to `PlaybookStepType` enum). Co-delivered with AF-0103 (V2Planner).
-> - **Sprint 14:** Per-step verification wiring (V1Executor + V1Verifier integration,
+> - **Sprint 14 (DONE):** Per-step verification wiring (V1Executor + V1Verifier integration,
 >   `VERIFICATION` steps in trace, stop/continue decisions per step).
 
 ---

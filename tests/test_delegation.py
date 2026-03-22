@@ -221,11 +221,15 @@ class TestDelegationCLI:
             # Parse the JSON
             trace_json = json.loads(show_result.stdout)
 
-            # Should have 2 steps (echo stubs)
-            assert len(trace_json["steps"]) == 2
+            # Should have 4 steps: 2 skill calls + 2 verification (AF-0117)
+            assert len(trace_json["steps"]) == 4
 
-            # Both steps should use echo_tool
-            for step in trace_json["steps"]:
+            # Filter to skill_call steps only
+            skill_steps = [s for s in trace_json["steps"] if s["step_type"] == "skill_call"]
+            assert len(skill_steps) == 2
+
+            # Both skill steps should use echo_tool
+            for step in skill_steps:
                 assert step["skill_name"] == "echo_tool"
 
     def test_cli_delegate_with_default_alias(self, monkeypatch: pytest.MonkeyPatch) -> None:

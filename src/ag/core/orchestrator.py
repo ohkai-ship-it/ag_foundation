@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from ag.core.executor import V0Executor
+from ag.core.executor import V0Executor, V1Executor
 from ag.core.playbook import Playbook, PlaybookStep
 from ag.core.recorder import V0Recorder
 from ag.core.run_trace import (
@@ -33,7 +33,7 @@ from ag.core.run_trace import (
     Verifier as VerifierModel,
 )
 from ag.core.task_spec import ExecutionMode, TaskSpec
-from ag.core.verifier import V0Verifier
+from ag.core.verifier import V0Verifier, V1Verifier
 from ag.providers.base import ChatMessage, ChatResponse, LLMProvider, ProviderConfig
 from ag.providers.registry import get_provider
 from ag.skills import SkillContext
@@ -486,17 +486,32 @@ class V0Orchestrator:
 
 
 # ---------------------------------------------------------------------------
-# V1 Orchestrator — mixed skill+playbook plans (AF-0103, partial AF-0117)
+# V1 Orchestrator — per-step verification (AF-0103, AF-0117)
 # ---------------------------------------------------------------------------
 
 
 class V1Orchestrator(V0Orchestrator):
-    """Orchestrator that handles mixed skill+playbook plans.
+    """Orchestrator with per-step verification (AF-0117).
 
-    For SKILL steps: delegates to executor (same as V0).
-    For PLAYBOOK steps: loads the referenced playbook and executes its
-    skill sequence inline, flattening into the step trace.
+    Extends V0 with:
+    - Mixed skill+playbook plans (AF-0103)
+    - Per-step verification after each skill execution
+    - VERIFICATION steps interleaved with SKILL_CALL steps in trace
+    - V1Executor (output schema validation) + V1Verifier (step-aware)
     """
+
+    def __init__(
+        self,
+        executor: V0Executor | V1Executor | None = None,
+        verifier: V0Verifier | V1Verifier | None = None,
+        recorder: V0Recorder | None = None,
+    ) -> None:
+        # V1Orchestrator defaults to V1 components
+        super().__init__(
+            executor=executor or V1Executor(),
+            verifier=verifier or V1Verifier(),
+            recorder=recorder or V0Recorder(),
+        )
 
     def _expand_steps(self, playbook: Playbook) -> list[PlaybookStep]:
         """Expand PLAYBOOK steps into their constituent skill steps.
@@ -543,11 +558,50 @@ class V1Orchestrator(V0Orchestrator):
                 expanded.append(step)
         return expanded
 
+    def _record_verification(
+        self,
+        run_id: str,
+        step_index: int,
+        verified_step: Step,
+        passed: bool,
+        message: str,
+    ) -> Step:
+        """Create a VERIFICATION step for the trace (AF-0117)."""
+        now = datetime.now(UTC)
+        return Step(
+            step_id=f"{run_id}-verify-{step_index}",
+            step_number=step_index,
+            step_type=StepType.VERIFICATION,
+            skill_name=None,
+            input_summary=f"Verifying step {verified_step.step_number}: {verified_step.skill_name}",
+            output_summary=message,
+            started_at=now,
+            ended_at=now,
+            duration_ms=0,
+            error=None if passed else message,
+            subtasks=None,
+            artifacts=[],
+            input_data={"verified_step": verified_step.step_number},
+            output_data={"passed": passed, "message": message},
+            required=False,  # Verification steps are never "required" themselves
+        )
+
     def run(
         self, task: TaskSpec, playbook: Playbook, workspace_source: str | None = None
     ) -> RunTrace:
-        """Execute a playbook, expanding PLAYBOOK steps inline first."""
-        # Expand PLAYBOOK steps to skill steps, then delegate to V0
+        """Execute a playbook with per-step verification (AF-0117).
+
+        Flow:
+        1. Expand PLAYBOOK steps to skill steps
+        2. For each skill step:
+           a. Execute skill
+           b. Record SKILL_CALL step
+           c. Run per-step verification
+           d. Record VERIFICATION step
+           e. Stop if required step failed verification
+        3. Run end-of-run verification summary
+        """
+        # Expand PLAYBOOK steps to skill steps
         expanded_playbook = Playbook(
             playbook_version=playbook.playbook_version,
             name=playbook.name,
@@ -558,4 +612,294 @@ class V1Orchestrator(V0Orchestrator):
             steps=self._expand_steps(playbook),
             metadata=playbook.metadata,
         )
-        return super().run(task, expanded_playbook, workspace_source=workspace_source)
+
+        # Check if verifier supports per-step verification
+        has_verify_step = hasattr(self._verifier, "verify_step")
+
+        if not has_verify_step:
+            # No per-step verification, fall back to V0 behavior
+            return super().run(task, expanded_playbook, workspace_source=workspace_source)
+
+        # --- Full V1 per-step verification loop ---
+        run_id = str(uuid4())
+        started_at = datetime.now(UTC)
+        steps: list[Step] = []
+        artifacts: list[Artifact] = []
+        final_status = FinalStatus.SUCCESS
+        error_message: str | None = None
+
+        # Resolve workspace path for skill context
+        workspace_path: Path | None = None
+        if task.workspace_id:
+            try:
+                ws = Workspace(task.workspace_id)
+                if ws.exists():
+                    workspace_path = ws.path
+            except Exception:
+                pass
+
+        # Track subtasks and step results
+        planned_subtasks: list[dict[str, Any]] = []
+        step_results: list[dict[str, Any]] = []
+        accumulated_result: dict[str, Any] = {}
+
+        # Create LLM provider
+        llm_provider: LLMProvider | None = None
+        tracking_provider: TrackingLLMProvider | None = None
+        provider_config: ProviderConfig | None = None
+        if task.mode != ExecutionMode.MANUAL:
+            try:
+                provider_config = ProviderConfig(
+                    provider="openai",
+                    model="gpt-4o-mini",
+                )
+                raw_provider = get_provider(provider_config)
+                tracking_provider = TrackingLLMProvider(raw_provider)
+                llm_provider = tracking_provider
+            except Exception:
+                pass
+
+        # Track pending artifacts
+        pending_artifacts: list[tuple[str, str, bytes, str]] = []
+
+        # Step counter for trace (includes verification steps)
+        trace_step_index = 0
+
+        # Execute each step with per-step verification
+        for i, playbook_step in enumerate(expanded_playbook.steps):
+            step_started = datetime.now(UTC)
+            step_error: str | None = None
+            output_summary = ""
+            skill_name = playbook_step.skill_name
+            step_subtasks: list[Subtask] | None = None
+            result: dict[str, Any] = {}
+            step_artifact_ids: list[str] = []
+
+            try:
+                if skill_name:
+                    # Build skill parameters
+                    chained_result = accumulated_result.copy()
+                    if skill_name == "synthesize_research" and "documents" in chained_result:
+                        chained_result = {
+                            **chained_result,
+                            "documents": [
+                                _adapt_document_to_source(doc)
+                                for doc in chained_result["documents"]
+                            ],
+                        }
+                    step_params = {
+                        k: v
+                        for k, v in playbook_step.parameters.items()
+                        if not (isinstance(v, str) and v.startswith("previous_step."))
+                    }
+                    skill_params = {
+                        "prompt": task.prompt,
+                        "step": i,
+                        **step_params,
+                        **chained_result,
+                    }
+                    if skill_name == "execute_subtask" and planned_subtasks:
+                        skill_params["subtasks"] = planned_subtasks
+
+                    trace_metadata: dict[str, Any] = {
+                        "elapsed_ms": int((datetime.now(UTC) - started_at).total_seconds() * 1000),
+                        "playbook_name": expanded_playbook.name,
+                        "playbook_version": expanded_playbook.version,
+                        "steps_summary": [
+                            {
+                                "skill": s.skill_name or "no-skill",
+                                "duration_ms": s.duration_ms,
+                                "output_summary": (
+                                    s.output_summary[:100] if s.output_summary else ""
+                                ),
+                            }
+                            for s in steps
+                            if s.step_type == StepType.SKILL_CALL  # Only skill steps for summary
+                        ],
+                    }
+                    if provider_config:
+                        trace_metadata["model"] = provider_config.model
+
+                    skill_context = SkillContext(
+                        provider=llm_provider,
+                        workspace_path=workspace_path,
+                        step_number=i,
+                        run_id=run_id,
+                        trace_metadata=trace_metadata,
+                    )
+
+                    success, output_summary, result = self._executor.execute(
+                        skill_name, skill_params, skill_context
+                    )
+                    if not success:
+                        step_error = output_summary
+                    else:
+                        step_results.append(result)
+                        accumulated_result.update(result)
+
+                        if "artifact_id" in result:
+                            artifact_id = result["artifact_id"]
+                            step_artifact_ids.append(artifact_id)
+                            artifact = Artifact(
+                                artifact_id=artifact_id,
+                                path=result.get("artifact_path", f"{skill_name}_output"),
+                                artifact_type=result.get("artifact_type", "application/json"),
+                                size_bytes=result.get("bytes_written"),
+                            )
+                            artifacts.append(artifact)
+
+                        if result:
+                            step_output_artifact_id = f"{run_id}-step-{i}-{skill_name}_output"
+                            step_output_path = f"{i}_{skill_name}_output.json"
+                            step_output_content = json.dumps(result, indent=2).encode("utf-8")
+                            step_artifact_ids.append(step_output_artifact_id)
+                            step_output_artifact = Artifact(
+                                artifact_id=step_output_artifact_id,
+                                path=step_output_path,
+                                artifact_type="application/json",
+                                size_bytes=len(step_output_content),
+                            )
+                            artifacts.append(step_output_artifact)
+                            pending_artifacts.append(
+                                (
+                                    step_output_artifact_id,
+                                    step_output_path,
+                                    step_output_content,
+                                    "application/json",
+                                )
+                            )
+
+                    if skill_name == "plan_subtasks" and success:
+                        raw_subtasks = result.get("subtasks", [])
+                        planned_subtasks = raw_subtasks
+                        step_subtasks = [
+                            Subtask(
+                                subtask_id=st.get("subtask_id", f"subtask_{idx}"),
+                                description=st.get("description", ""),
+                                status=st.get("status", "pending"),
+                            )
+                            for idx, st in enumerate(raw_subtasks)
+                        ]
+                else:
+                    output_summary = "No skill defined for step"
+
+            except KeyError as e:
+                step_error = str(e)
+            except ValueError as e:
+                step_error = str(e)
+            except Exception as e:
+                step_error = f"Unexpected error: {e}"
+
+            step_ended = datetime.now(UTC)
+            duration_ms = int((step_ended - step_started).total_seconds() * 1000)
+
+            # Determine step type
+            if skill_name == "plan_subtasks":
+                step_type = StepType.PLANNING
+            elif skill_name:
+                step_type = StepType.SKILL_CALL
+            else:
+                step_type = StepType.REASONING
+
+            step_input_data: dict[str, Any] | None = skill_params if skill_name else None
+            step_output_data: dict[str, Any] | None = result if skill_name and result else None
+
+            # Record the skill step
+            step = Step(
+                step_id=f"{run_id}-step-{trace_step_index}",
+                step_number=trace_step_index,
+                step_type=step_type,
+                skill_name=skill_name,
+                input_summary=f"prompt={task.prompt[:50]}...",
+                output_summary=output_summary,
+                started_at=step_started,
+                ended_at=step_ended,
+                duration_ms=duration_ms,
+                error=step_error,
+                subtasks=step_subtasks,
+                artifacts=step_artifact_ids,
+                input_data=step_input_data,
+                output_data=step_output_data,
+                required=playbook_step.required,
+            )
+            steps.append(step)
+            trace_step_index += 1
+
+            # --- AF-0117: Per-step verification ---
+            verify_passed, verify_msg = self._verifier.verify_step(step)
+            verification_step = self._record_verification(
+                run_id, trace_step_index, step, verify_passed, verify_msg
+            )
+            steps.append(verification_step)
+            trace_step_index += 1
+
+            # Decision: stop or continue?
+            if not verify_passed and playbook_step.required:
+                # Required step failed verification → stop execution
+                final_status = FinalStatus.FAILURE
+                error_message = f"Required step '{playbook_step.name}' failed: {step_error}"
+                break
+            # Optional step failure or verification passed → continue
+
+        # Calculate total duration
+        ended_at = datetime.now(UTC)
+        duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+        # End-of-run verification summary
+        verify_status, verify_message = self._verifier.verify_components(steps, final_status)
+        checked_at = datetime.now(UTC)
+
+        verify_evidence: dict[str, Any] = {}
+        if hasattr(self._verifier, "build_evidence"):
+            # Filter to just skill steps for evidence building
+            skill_steps = [s for s in steps if s.step_type != StepType.VERIFICATION]
+            verify_evidence = self._verifier.build_evidence(skill_steps)
+
+        ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
+
+        llm_execution: LLMExecution | None = None
+        if provider_config is not None:
+            usage = tracking_provider.get_usage() if tracking_provider else {}
+            llm_execution = LLMExecution(
+                provider=provider_config.provider,
+                model=provider_config.model,
+                call_count=usage.get("call_count", 0),
+                total_tokens=usage.get("total_tokens"),
+                input_tokens=usage.get("input_tokens"),
+                output_tokens=usage.get("output_tokens"),
+            )
+
+        trace = RunTrace(
+            run_id=run_id,
+            workspace_id=task.workspace_id,
+            workspace_source=ws_source_enum,
+            mode=task.mode,
+            playbook=PlaybookMetadata(name=expanded_playbook.name, version=expanded_playbook.version),
+            started_at=started_at,
+            ended_at=ended_at,
+            duration_ms=duration_ms,
+            steps=steps,
+            artifacts=artifacts,
+            verifier=VerifierModel(
+                status=VerifierStatus(verify_status),
+                checked_at=checked_at,
+                message=verify_message,
+                evidence=verify_evidence,
+            ),
+            final=final_status,
+            error=error_message,
+            llm=llm_execution,
+        )
+
+        self._recorder.record(trace)
+
+        for artifact_id, path, content, artifact_type in pending_artifacts:
+            self._recorder.register_artifact(
+                trace=trace,
+                artifact_id=artifact_id,
+                path=path,
+                content=content,
+                artifact_type=artifact_type,
+            )
+
+        return trace
