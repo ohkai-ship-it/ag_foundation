@@ -1,18 +1,19 @@
 # AF-0113 — Per-step skill output verification
 # Version number: v0.1
 # Created: 2026-03-21
-# Status: READY
+# Completed: 2026-03-22 (via decomposition into AF-0114→0118)
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime/Verifier/Skills
 
-> **⚠️ SUPERSEDED:** This AF has been decomposed into focused component AFs:
-> - **AF-0114** — Extract pipeline V0s to own files (structural prerequisite)
-> - **AF-0115** — V1 Verifier: step-aware verification (fixes BUG-0017)
-> - **AF-0116** — V1 Executor: output schema validation with retry (+ V2 LLM repair roadmap)
-> - **AF-0117** — V1 Orchestrator: per-step verification loop (wires it all together)
-> - **AF-0118** — V1 Recorder: verification evidence persistence
+> **✅ COMPLETED VIA DECOMPOSITION:** This AF was decomposed into focused component AFs:
+> - **AF-0114** — Extract pipeline V0s to own files ✅ DONE
+> - **AF-0115** — V1 Verifier: step-aware verification ✅ DONE  
+> - **AF-0116** — V1 Executor: output schema validation with retry ✅ DONE
+> - **AF-0117** — V1 Orchestrator: per-step verification loop ✅ DONE
+> - **AF-0118** — V1 Recorder: verification evidence persistence ✅ DONE
 >
-> This AF remains as the original analysis document. Implementation should follow AF-0114→0118.
+> All decomposed items are complete. This AF is considered DONE.
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
