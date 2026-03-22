@@ -306,5 +306,5 @@ Decision rule for autonomy-affecting sprints:
 ### Next actions
 - [x] Close sprint — **ACCEPT WITH FOLLOW-UPS**
 - [x] Follow-up items created and indexed: AF-0125, AF-0126, BUG-0022, BUG-0023, BUG-0024 all in INDEX
-- [ ] Update `S15_DESCRIPTION.md` to **Closed** after PR merge
-- [ ] Push updated branch to origin (includes `cfd1a0f` test fix)
+- [x] Update `S15_DESCRIPTION.md` to **Closed** after PR merge
+- [x] Push updated branch to origin (includes `cfd1a0f` test fix)
