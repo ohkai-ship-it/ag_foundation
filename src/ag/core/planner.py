@@ -490,14 +490,14 @@ class V2Planner(V1Planner):
             if entry is None:
                 continue
             pb = entry.playbook
-            skill_sequence = [
-                s.skill_name for s in pb.steps if s.skill_name
-            ]
-            catalog.append({
-                "name": pb.name,
-                "description": pb.description,
-                "steps": skill_sequence,
-            })
+            skill_sequence = [s.skill_name for s in pb.steps if s.skill_name]
+            catalog.append(
+                {
+                    "name": pb.name,
+                    "description": pb.description,
+                    "steps": skill_sequence,
+                }
+            )
         return catalog
 
     def _get_v2_system_prompt(self) -> str:
@@ -540,9 +540,7 @@ Respond with valid JSON matching this schema:
         playbook_lines = []
         for pb in playbook_catalog:
             steps_str = " → ".join(pb["steps"]) if pb["steps"] else "(no skills)"
-            playbook_lines.append(
-                f"- **{pb['name']}**: {pb['description']}\n  Steps: {steps_str}"
-            )
+            playbook_lines.append(f"- **{pb['name']}**: {pb['description']}\n  Steps: {steps_str}")
         playbooks_str = "\n".join(playbook_lines) if playbook_lines else "(none)"
 
         # Format skills (reuse V1 logic)
