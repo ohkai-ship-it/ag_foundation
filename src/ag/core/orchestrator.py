@@ -627,6 +627,38 @@ class V1Orchestrator(V0Orchestrator):
             metadata=playbook.metadata,
         )
 
+        # BUG-0020: If plan has zero executable steps, fail immediately
+        if not expanded_playbook.steps:
+            run_id = str(uuid4())
+            started_at = datetime.now(UTC)
+            ended_at = started_at
+            ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
+            trace = RunTrace(
+                run_id=run_id,
+                workspace_id=task.workspace_id,
+                workspace_source=ws_source_enum,
+                mode=task.mode,
+                playbook=PlaybookMetadata(
+                    name=expanded_playbook.name, version=expanded_playbook.version
+                ),
+                planning=planning,
+                pipeline=pipeline,
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=0,
+                steps=[],
+                artifacts=[],
+                verifier=VerifierModel(
+                    status=VerifierStatus("failed"),
+                    checked_at=ended_at,
+                    message="No steps executed",
+                ),
+                final=FinalStatus.FAILURE,
+                error="No executable steps in plan",
+            )
+            self._recorder.record(trace)
+            return trace
+
         # Check if verifier supports per-step verification
         has_verify_step = hasattr(self._verifier, "verify_step")
 

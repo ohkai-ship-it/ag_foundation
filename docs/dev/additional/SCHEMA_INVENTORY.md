@@ -39,6 +39,9 @@
 | `Verifier` | run_trace.py | Verification result stored in trace (status, message) | 0.1 |
 | `LLMExecution` | run_trace.py | LLM provider/model info with token tracking (AF-0062, AF-0094) | 0.1 |
 | `AutonomyMetadata` | run_trace.py | Autonomy mode for run (mode, plan_id, confirmation_enabled) (AF-0101) | 0.1 |
+| `FeasibilityAssessment` | run_trace.py | V3Planner feasibility result — level, score, gaps, recommendations (AF-0121) | 0.1 |
+| `CapabilityGap` | run_trace.py | Missing capability identified during feasibility assessment (AF-0121) | 0.1 |
+| `SemanticVerification` | run_trace.py | LLM semantic verification scores — relevance, completeness, consistency (AF-0123) | 0.1 |
 
 #### Playbook
 

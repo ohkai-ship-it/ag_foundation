@@ -614,9 +614,9 @@ def run(
             )
 
             # BUG0009: Run verifier on step (not skipped)
-            from ag.core.verifier import V1Verifier
+            from ag.core.verifier import V2Verifier
 
-            verifier = V1Verifier()
+            verifier = V2Verifier()  # No provider in direct skill path — V1 behavior
             final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
             verify_status, verify_message = verifier.verify_components([step], final_status)
 
@@ -890,7 +890,7 @@ def run(
         from ag.core import (
             PlannerError,
             TaskSpec,
-            V2Planner,
+            V3Planner,
             create_execution_plan,
         )
         from ag.providers import ProviderConfig, get_provider
@@ -905,14 +905,16 @@ def run(
             provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
             provider = get_provider(provider_config)
             registry = get_default_registry()
-            planner = V2Planner(provider, registry)
+            planner = V3Planner(provider, registry)
 
             if not resolved_quiet and not resolved_json:
-                console.print("[dim]Planning...[/dim]")
+                console.print("[dim]Assessing feasibility...[/dim]")
 
             generated_playbook = planner.plan(task_spec)
             confidence = generated_playbook.metadata.get("confidence", 0.0)
             warnings = generated_playbook.metadata.get("warnings", [])
+            feasibility_level = generated_playbook.metadata.get("feasibility_level")
+            feasibility_score = generated_playbook.metadata.get("feasibility_score")
 
         except PlannerError as e:
             if resolved_json:
@@ -942,9 +944,50 @@ def run(
             skill_policy_flags=skill_flags,
         )
 
+        # BUG-0020: Guard for empty plan — no skills match the task
+        if not inline_plan.planned_steps:
+            if resolved_json:
+                plan_data = json.loads(inline_plan.to_json())
+                plan_data["not_feasible"] = True
+                plan_data["message"] = "No available skills or playbooks can handle this task"
+                print(json.dumps(plan_data, indent=2))
+            else:
+                _display_plan(inline_plan)
+                console.print()
+                console.print(
+                    "[bold yellow]Nothing to execute[/bold yellow] "
+                    "— no available skills or playbooks match this task."
+                )
+                if warnings:
+                    console.print(f"[dim]Planner: {', '.join(warnings)}[/dim]")
+            raise typer.Exit(code=1)
+
+        # Display feasibility assessment (AF-0121)
+        if feasibility_level and not resolved_json and not resolved_quiet:
+            level_colors = {
+                "fully_feasible": "green",
+                "mostly_feasible": "green",
+                "partially_feasible": "yellow",
+            }
+            color = level_colors.get(feasibility_level, "yellow")
+            label = feasibility_level.replace("_", " ").title()
+            score_str = f"{feasibility_score:.0%}" if feasibility_score is not None else "?"
+            console.print(f"[{color}]Feasibility: {label} ({score_str})[/{color}]")
+            # Show capability gaps if any
+            gaps = generated_playbook.metadata.get("capability_gaps", [])
+            if gaps:
+                for gap in gaps:
+                    name = gap.get("missing_capability", "unknown")
+                    desc = gap.get("description", "")
+                    console.print(f"  [dim]Gap: {name} — {desc}[/dim]")
+            console.print()
+
         # Display plan summary
         if resolved_json:
             plan_data = json.loads(inline_plan.to_json())
+            if feasibility_level:
+                plan_data["feasibility_level"] = feasibility_level
+                plan_data["feasibility_score"] = feasibility_score
             if dry_run:
                 plan_data["dry_run"] = True
                 print(json.dumps(plan_data, indent=2))
@@ -978,6 +1021,7 @@ def run(
             runtime = create_runtime(
                 run_store=run_store,
                 artifact_store=artifact_store,
+                provider=provider,
             )
 
             trace = runtime.execute(

@@ -61,16 +61,16 @@ Gate C (Goals-Only Preparation) readiness.
 - [x] Define sprint ID + sprint name
 
 ### Jacob
-- [ ] Read sprint description
-- [ ] Check AFs in `/docs/dev/backlog/items/`
-- [ ] Ask clarifying questions in chat (no writing required)
-- [ ] Create branch
-- [ ] Create sprint folder
-- [ ] Update INDEX files (ritual at sprint start):
-  - `/docs/dev/backlog/INDEX_BACKLOG.md`
-  - `/docs/dev/bugs/INDEX_BUGS.md`
-  - `/docs/dev/decisions/INDEX_DECISIONS.md`
-  - `/docs/dev/sprints/INDEX_SPRINTS.md`
+- [x] Read sprint description
+- [x] Check AFs in `/docs/dev/backlog/items/`
+- [x] Ask clarifying questions in chat (no writing required)
+- [x] Create branch
+- [x] Create sprint folder
+- [x] Update INDEX files (ritual at sprint start):
+  - `/docs/dev/backlog/INDEX_BACKLOG.md` ✓ (Sprint 15 section present)
+  - `/docs/dev/bugs/INDEX_BUGS.md` ✓ (BUG-0020 OPEN)
+  - `/docs/dev/decisions/INDEX_DECISIONS.md` ✓ (ADR-0009 ACCEPTED)
+  - `/docs/dev/sprints/INDEX_SPRINTS.md` ✓ (Sprint 15 In Progress)
 - [ ] Confirm with Kai before starting implementation
 
 > **INDEX update rule (strict):**

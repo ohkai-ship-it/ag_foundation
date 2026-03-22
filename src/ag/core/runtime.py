@@ -22,7 +22,7 @@ from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
 from ag.core.run_trace import PipelineManifest, PlanningLLMCall, PlanningMetadata, RunTrace
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
-from ag.core.verifier import V0Verifier, V1Verifier
+from ag.core.verifier import V0Verifier, V1Verifier, V2Verifier
 from ag.skills import SkillRegistry
 from ag.storage import SQLiteArtifactStore, SQLiteRunStore
 
@@ -203,6 +203,7 @@ def create_runtime(
     registry: SkillRegistry | None = None,
     run_store: SQLiteRunStore | None = None,
     artifact_store: SQLiteArtifactStore | None = None,
+    provider: object | None = None,
 ) -> Runtime:
     """Create a configured runtime instance.
 
@@ -210,13 +211,14 @@ def create_runtime(
         registry: Skill registry (uses default if not provided)
         run_store: Run storage (uses default if not provided)
         artifact_store: Artifact storage (uses default if not provided)
+        provider: LLM provider for V2Verifier semantic checks (None = V1 only)
 
     Returns:
         Configured Runtime instance
     """
     executor = V0Executor(registry)
     recorder = V0Recorder(run_store, artifact_store)
-    verifier = V1Verifier()
+    verifier = V2Verifier(provider) if provider is not None else V1Verifier()
     orchestrator = V1Orchestrator(executor, verifier, recorder)
 
     return Runtime(
@@ -235,6 +237,7 @@ __all__ = [
     "V0Executor",
     "V0Verifier",
     "V1Verifier",
+    "V2Verifier",
     "V0Recorder",
     "V0Orchestrator",
     "V1Orchestrator",

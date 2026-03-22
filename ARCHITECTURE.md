@@ -74,7 +74,7 @@ Each module lives in its own file (AF-0114) and evolves through versioned implem
 - **V0Planner (current):** deterministic registry lookup, requires explicit `--playbook`
 - **V1Planner (Sprint 11):** LLM analyzes task + skill catalog → composes skill sequence
 - **V2Planner (Sprint 13):** LLM composes mixed skill+playbook plans; playbooks as first-class plan steps
-- **V3Planner (planned, ADR-0009):** adds feasibility assessment phase before plan generation; identifies capability gaps and prevents execution of tasks that can't be performed
+- **V3Planner (Sprint 15, ADR-0009):** adds feasibility assessment phase before plan generation; identifies capability gaps and prevents execution of tasks that can't be performed
 
 3) **Orchestrator**
 - executes the playbook step graph (sequence first; branching/parallel later)
@@ -102,7 +102,7 @@ Each module lives in its own file (AF-0114) and evolves through versioned implem
 - **V0Recorder (current):** persists trace + artifacts to SQLite/filesystem
 - **V1Recorder (planned, AF-0118):** adds structured verification evidence, retry history, per-step breakdown
 
-> **Pipeline Manifest (AF-0120):** Every `RunTrace` includes a `pipeline` block recording which component versions executed the run (e.g., `V2Planner → V1Orchestrator → V0Executor → V1Verifier → V0Recorder`). This enables reproducibility — given a trace, you know the exact component mix.
+> **Pipeline Manifest (AF-0120):** Every `RunTrace` includes a `pipeline` block recording which component versions executed the run (e.g., `V3Planner → V1Orchestrator → V0Executor → V1Verifier → V0Recorder`). This enables reproducibility — given a trace, you know the exact component mix.
 
 #### 3.2.1 Implementation Map
 
@@ -111,10 +111,10 @@ All pipeline components have Protocol interfaces in `interfaces.py` and versione
 | Component | Protocol | V0 Implementation | V1+ Implementation | Primary File |
 |-----------|----------|-------------------|-------------------|-------------|
 | TaskSpec | — (schema) | `TaskSpec` | — | `task_spec.py` |
-| Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` (AF-0121, Sprint 15) | `planner.py` |
+| Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` ✅ (AF-0121) | `planner.py` |
 | Orchestrator | `Orchestrator` | `V0Orchestrator` | `V1Orchestrator` ✅ | `orchestrator.py` |
 | Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116), `V2Executor` (AF-0124, Sprint 15) | `executor.py` |
-| Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115), `V2Verifier` (AF-0123, Sprint 15) | `verifier.py` |
+| Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115), `V2Verifier` ✅ (AF-0123) | `verifier.py` |
 | Recorder | `Recorder` | `V0Recorder` | `V1Recorder` ✅ (AF-0118) | `recorder.py` |
 
 > **Current state:** V0 Orchestrator, Executor, Verifier, and Recorder all live in `runtime.py`.
@@ -126,10 +126,10 @@ All pipeline components have Protocol interfaces in `interfaces.py` and versione
 src/ag/core/
 ├── interfaces.py        # Protocols (stable contracts)
 ├── task_spec.py         # TaskSpec schema
-├── planner.py           # V0Planner + V1Planner
+├── planner.py           # V0Planner + V1Planner + V2Planner + V3Planner
 ├── orchestrator.py      # V0/V1 Orchestrator
 ├── executor.py          # V0/V1 Executor
-├── verifier.py          # V0/V1 Verifier
+├── verifier.py          # V0/V1/V2 Verifier
 ├── recorder.py          # V0/V1 Recorder
 ├── runtime.py           # Composition root: wire dependencies, create_runtime()
 ├── run_trace.py         # RunTrace, Step, VerifierStatus, etc.

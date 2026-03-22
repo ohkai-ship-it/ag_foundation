@@ -15,6 +15,66 @@ from pydantic import BaseModel, Field, model_validator
 from .task_spec import ExecutionMode
 
 
+class FeasibilityLevel(str, Enum):
+    """Feasibility level for V3Planner assessment (AF-0121, ADR-0009)."""
+
+    FULLY_FEASIBLE = "fully_feasible"  # score 0.8–1.0
+    MOSTLY_FEASIBLE = "mostly_feasible"  # score 0.6–0.8
+    PARTIALLY_FEASIBLE = "partially_feasible"  # score 0.3–0.6
+    NOT_FEASIBLE = "not_feasible"  # score 0.0–0.3
+
+
+class CapabilityGap(BaseModel):
+    """A missing capability identified during feasibility assessment (AF-0121)."""
+
+    missing_capability: str = Field(..., min_length=1, description="Name of the missing capability")
+    description: str = Field(..., min_length=1, description="What this capability would do")
+    required_for: str = Field(..., min_length=1, description="Which part of the task needs it")
+    workaround: str | None = Field(default=None, description="Suggested workaround if any")
+
+    model_config = {"extra": "forbid"}
+
+
+class FeasibilityAssessment(BaseModel):
+    """Result of V3Planner feasibility assessment (AF-0121, ADR-0009)."""
+
+    level: FeasibilityLevel = Field(..., description="Feasibility level")
+    score: float = Field(..., ge=0.0, le=1.0, description="Feasibility score 0–1")
+    reason: str = Field(..., min_length=1, description="Why this level was assigned")
+    capability_gaps: list[CapabilityGap] = Field(
+        default_factory=list, description="Identified capability gaps"
+    )
+    recommendations: list[str] = Field(
+        default_factory=list, description="Recommendations for the user"
+    )
+
+    model_config = {"extra": "forbid"}
+
+
+class SemanticVerification(BaseModel):
+    """LLM semantic verification result for a step (AF-0123).
+
+    Records relevance, completeness, and consistency scores from LLM evaluation.
+    """
+
+    relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score 0–1")
+    relevance_reason: str = Field(default="", description="Relevance assessment reason")
+    completeness_score: float = Field(..., ge=0.0, le=1.0, description="Completeness score 0–1")
+    completeness_missing: list[str] = Field(
+        default_factory=list, description="Missing elements identified"
+    )
+    consistency_score: float = Field(..., ge=0.0, le=1.0, description="Consistency score 0–1")
+    consistency_issues: list[str] = Field(
+        default_factory=list, description="Consistency issues found"
+    )
+    overall_pass: bool = Field(..., description="True if all scores above threshold")
+    llm_model: str = Field(default="", description="Model used for semantic evaluation")
+    llm_tokens_used: int = Field(default=0, ge=0, description="Tokens consumed")
+    evaluation_ms: int = Field(default=0, ge=0, description="Evaluation duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
 class VerifierStatus(str, Enum):
     """Status from the verifier module."""
 
@@ -360,6 +420,13 @@ class PlanningMetadata(BaseModel):
     )
     confidence: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Planner confidence score"
+    )
+    # AF-0121: Feasibility assessment fields (additive)
+    feasibility_level: str | None = Field(
+        default=None, description="Feasibility level from V3Planner assessment (AF-0121)"
+    )
+    feasibility_score: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="Feasibility score (AF-0121)"
     )
 
     model_config = {"extra": "forbid"}

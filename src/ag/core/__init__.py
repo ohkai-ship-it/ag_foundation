@@ -38,6 +38,7 @@ from .planner import (
     V0Planner,
     V1Planner,
     V2Planner,
+    V3Planner,
 )
 from .playbook import (
     Playbook,
@@ -52,12 +53,16 @@ from .run_trace import (
     ArtifactCategory,
     AutonomyMetadata,
     AutonomyMode,
+    CapabilityGap,
     EvidenceRef,
+    FeasibilityAssessment,
+    FeasibilityLevel,
     FinalStatus,
     LLMExecution,
     PlaybookMetadata,
     RunTrace,
     RunTraceBuilder,
+    SemanticVerification,
     Step,
     StepConfirmation,
     StepType,
@@ -88,7 +93,7 @@ from .task_spec import (
     TaskSpec,
     TaskSpecBuilder,
 )
-from .verifier import V0Verifier, V1Verifier
+from .verifier import V0Verifier, V1Verifier, V2Verifier
 
 __all__ = [
     # task_spec
@@ -115,6 +120,12 @@ __all__ = [
     "FinalStatus",
     "WorkspaceSource",
     "infer_artifact_category",
+    # run_trace feasibility (AF-0121)
+    "FeasibilityLevel",
+    "FeasibilityAssessment",
+    "CapabilityGap",
+    # run_trace semantic verification (AF-0123)
+    "SemanticVerification",
     # playbook
     "Playbook",
     "PlaybookBuilder",
@@ -143,13 +154,15 @@ __all__ = [
     "V0Executor",
     "V0Verifier",
     "V1Verifier",
+    "V2Verifier",
     "V0Recorder",
     "TrackingLLMProvider",
     "_adapt_document_to_source",
     "create_runtime",
-    # planner (AF-0102)
+    # planner (AF-0102, AF-0121)
     "V1Planner",
     "V2Planner",
+    "V3Planner",
     "PlannerError",
     # execution_plan (AF-0098)
     "ExecutionPlan",
