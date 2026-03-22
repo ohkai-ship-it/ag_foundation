@@ -20,11 +20,11 @@
 ## Metadata
 - **ID:** AF0103
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** Core Runtime / Planner
-- **Owner:** TBD
-- **Target sprint:** TBD (after AF-0102)
+- **Owner:** S13
+- **Target sprint:** Sprint 13
 - **Depends on:** AF-0102 (V1Planner skills-only)
 
 ---
@@ -85,6 +85,19 @@ V2Planner LLM output:
 - Creating new playbooks dynamically (playbooks are predefined)
 - Modifying playbook internals (playbooks are atomic units)
 - Judging feasibility (that's V3Planner, AF-0104)
+
+## Implementation decisions (Sprint 13 planning)
+
+- **Multiple playbooks in sequence:** Yes, a plan can have multiple playbooks.
+- **Orchestrator:** V1Orchestrator created as part of this sprint (AF-0117 partial).
+  V1Orchestrator handles mixed plans: iterates plan steps and, for `type=playbook`
+  steps, loads and executes that playbook's skill sequence inline.
+  V0Orchestrator stays untouched.
+- **PlaybookStepType:** Add `PLAYBOOK = "playbook"` to the enum. The planner
+  outputs `PlannedStep` with `type: Literal["skill", "playbook"]`, and the
+  plan-to-playbook conversion maps this to `PlaybookStepType.PLAYBOOK`.
+- **V1Verifier wiring:** `create_runtime()` switches to V1Verifier as default
+  (AF-0115). V0Verifier stays in file for reference.
 
 ---
 

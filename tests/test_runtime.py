@@ -1123,7 +1123,8 @@ class TestVerifierFailurePathsE2E:
             # Verifier should fail
             assert trace.verifier.status == VerifierStatus.FAILED
             assert trace.verifier.message is not None
-            assert "Step 0 failed" in trace.verifier.message
+            assert "Step 0" in trace.verifier.message
+            assert "failed" in trace.verifier.message.lower()
 
             # Step should have error
             assert trace.steps[0].error is not None

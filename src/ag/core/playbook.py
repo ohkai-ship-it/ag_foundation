@@ -29,6 +29,7 @@ class PlaybookStepType(str, Enum):
     BRANCH = "branch"
     LOOP = "loop"
     GATE = "gate"
+    PLAYBOOK = "playbook"  # AF-0103: Nested playbook as a plan step
 
 
 class PlaybookStep(BaseModel):

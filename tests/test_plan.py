@@ -465,7 +465,7 @@ class TestPlanCLI:
 
 
 class TestPlanCLIWithMockedPlanner:
-    """Tests for ag plan generate with mocked V1Planner."""
+    """Tests for ag plan generate with mocked V2Planner."""
 
     @pytest.fixture
     def temp_workspaces(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -502,7 +502,7 @@ class TestPlanCLIWithMockedPlanner:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -531,12 +531,20 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.9, "warnings": []},
         )
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -568,12 +576,20 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.75, "warnings": []},
         )
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -613,12 +629,20 @@ class TestPlanCLIWithMockedPlanner:
         mock_playbook = Playbook(
             name="v1plan_test",
             version="1.0",
+            steps=[
+                PlaybookStep(
+                    step_id="s1",
+                    name="Test",
+                    step_type=PlaybookStepType.SKILL,
+                    skill_name="emit_result",
+                ),
+            ],
             metadata={"confidence": 0.8, "warnings": []},
         )
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -678,7 +702,7 @@ class TestPlanCLIWithMockedPlanner:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider

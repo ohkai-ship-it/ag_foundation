@@ -1012,7 +1012,7 @@ class TestAccumulatedChaining:
 class TestInlinePlanConfirmRun:
     """Contract: ag run "prompt" generates a plan inline, confirms, then executes.
 
-    The default `ag run "prompt"` path must call V1Planner, display the plan,
+    The default `ag run "prompt"` path must call V2Planner, display the plan,
     prompt for confirmation, and only execute on approval. --yes auto-approves,
     --dry-run shows the plan and exits, --json auto-approves with JSON output.
     """
@@ -1064,7 +1064,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1092,7 +1092,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1121,7 +1121,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
@@ -1154,7 +1154,7 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.planner.V1Planner") as mock_planner_cls,
+            patch("ag.core.V2Planner") as mock_planner_cls,
             patch("ag.cli.main.create_runtime") as mock_create_rt,
             patch("ag.cli.main._get_run_store") as mock_get_rs,
             patch("ag.cli.main._get_artifact_store") as mock_get_as,
@@ -1192,10 +1192,10 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        # The --plan path should NOT invoke V1Planner
-        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
+        # The --plan path should NOT invoke V2Planner
+        with patch("ag.core.V2Planner") as mock_planner_cls:
             result = runner.invoke(app, ["run", "--plan", "plan_nonexistent", "-w", "test-ws"])
-            # It should fail because plan doesn't exist, but should NOT call V1Planner
+            # It should fail because plan doesn't exist, but should NOT call V2Planner
             mock_planner_cls.assert_not_called()
             assert result.exit_code != 0
 
@@ -1211,7 +1211,7 @@ class TestInlinePlanConfirmRun:
         assert "cannot be combined" in result.output.lower()
 
     def test_playbook_flag_bypasses_planner(self, _workspace) -> None:
-        """ag run --playbook uses explicit playbook, does not invoke V1Planner."""
+        """ag run --playbook uses explicit playbook, does not invoke V2Planner."""
         from unittest.mock import patch
 
         from typer.testing import CliRunner
@@ -1220,7 +1220,139 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        with patch("ag.core.planner.V1Planner") as mock_planner_cls:
-            # Will fail because playbook doesn't exist, but verifies V1Planner not called
+        with patch("ag.core.V2Planner") as mock_planner_cls:
+            # Will fail because playbook doesn't exist, but verifies V2Planner not called
             runner.invoke(app, ["run", "--playbook", "nonexistent", "-w", "test-ws", "test"])
             mock_planner_cls.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# AF-0115: V1Verifier step-aware verification (BUG-0017 fix)
+# ---------------------------------------------------------------------------
+
+
+def _make_step(step_number: int, *, required: bool = True, error: str | None = None) -> Step:
+    """Helper: build a minimal Step for verifier tests."""
+    return Step(
+        step_id=f"step_{step_number}",
+        step_number=step_number,
+        step_type=StepType.SKILL_CALL,
+        started_at=datetime.now(tz=UTC),
+        required=required,
+        error=error,
+    )
+
+
+class TestV1VerifierContract:
+    """Contract: V1Verifier distinguishes required vs optional step failures."""
+
+    def test_all_required_pass(self) -> None:
+        """All required steps succeed → passed."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [_make_step(0), _make_step(1)]
+        status, msg = v.verify_components(steps, FinalStatus.SUCCESS)
+        assert status == "passed"
+        assert msg == "All steps completed successfully"
+
+    def test_required_failure_fails(self) -> None:
+        """Required step error → failed."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [_make_step(0, error="boom"), _make_step(1)]
+        status, msg = v.verify_components(steps, FinalStatus.SUCCESS)
+        assert status == "failed"
+        assert "Required step(s) failed" in msg
+        assert "Step 0" in msg
+
+    def test_optional_failure_passes_with_warning(self) -> None:
+        """Optional step error → passed with warnings (BUG-0017 fix)."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [_make_step(0), _make_step(1, required=False, error="non-critical")]
+        status, msg = v.verify_components(steps, FinalStatus.SUCCESS)
+        assert status == "passed"
+        assert "optional" in msg.lower()
+        assert "Step 1" in msg
+
+    def test_mixed_required_and_optional_failures(self) -> None:
+        """Required + optional failures → failed (required takes priority)."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [
+            _make_step(0, error="critical"),
+            _make_step(1, required=False, error="minor"),
+        ]
+        status, msg = v.verify_components(steps, FinalStatus.SUCCESS)
+        assert status == "failed"
+        assert "Required step(s) failed" in msg
+
+    def test_non_success_final_status_fails(self) -> None:
+        """Non-success final status with clean steps → failed."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [_make_step(0)]
+        status, msg = v.verify_components(steps, FinalStatus.FAILURE)
+        assert status == "failed"
+        assert "status" in msg.lower()
+
+    def test_build_evidence_counts(self) -> None:
+        """Evidence dict has correct per-step counts."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [
+            _make_step(0),  # required, pass
+            _make_step(1, error="err"),  # required, fail
+            _make_step(2, required=False),  # optional, pass
+            _make_step(3, required=False, error="warn"),  # optional, fail
+        ]
+        ev = v.build_evidence(steps)
+        assert ev["total_steps"] == 4
+        assert ev["required_passed"] == 1
+        assert ev["required_failed"] == 1
+        assert ev["optional_passed"] == 1
+        assert ev["optional_skipped"] == 1
+        assert len(ev["per_step"]) == 4
+
+    def test_build_evidence_per_step_detail(self) -> None:
+        """Each per-step entry contains step, required, status fields."""
+        from ag.core.verifier import V1Verifier
+
+        v = V1Verifier()
+        steps = [_make_step(0, error="oops")]
+        ev = v.build_evidence(steps)
+        entry = ev["per_step"][0]
+        assert entry["step"] == 0
+        assert entry["required"] is True
+        assert entry["status"] == "failed"
+        assert entry["reason"] == "oops"
+
+    def test_step_required_default_true(self) -> None:
+        """Step.required defaults to True (backward-compatible)."""
+        s = Step(
+            step_id="s0",
+            step_number=0,
+            step_type=StepType.SKILL_CALL,
+            started_at=datetime.now(tz=UTC),
+        )
+        assert s.required is True
+
+    def test_step_required_roundtrip(self) -> None:
+        """Step.required survives JSON round-trip."""
+        s = Step(
+            step_id="s0",
+            step_number=0,
+            step_type=StepType.SKILL_CALL,
+            started_at=datetime.now(tz=UTC),
+            required=False,
+        )
+        data = s.model_dump(mode="json")
+        assert data["required"] is False
+        restored = Step.model_validate(data)
+        assert restored.required is False

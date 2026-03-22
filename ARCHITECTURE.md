@@ -1,5 +1,5 @@
 # ag_foundation — Architecture
-# Version number: v0.3
+# Version number: v0.4
 
 This document defines the **core architecture** for ag_foundation: a modular, inspectable **agent network runtime** that can plan, execute, verify, and record runs.
 
@@ -60,7 +60,8 @@ Adapters accept requests/events and **normalize** them into `TaskSpec`.
 **Contract:** adapters do not contain business logic; they produce `TaskSpec` + `RequestContext`.
 
 ### 3.2 Core Runtime (Modular Pipeline)
-The kernel of execution, implemented as replaceable modules:
+The kernel of execution, implemented as replaceable modules.
+Each module lives in its own file (AF-0114) and evolves through versioned implementations.
 
 1) **TaskSpec Normalizer**
 - input/event → `TaskSpec`
@@ -77,19 +78,72 @@ The kernel of execution, implemented as replaceable modules:
 - executes the playbook step graph (sequence first; branching/parallel later)
 - enforces budgets, retries, state transitions
 - emits trace events
+- **V0Orchestrator (current):** linear fire-and-forget loop, verification once at end
+- **V1Orchestrator (planned, AF-0117):** per-step verification loop; calls Verifier after each step
 
 4) **Executor**
 - runs one step
 - calls LLM(s) and/or skills/tools
 - outputs step results + evidence
+- **V0Executor (current):** calls `skill.execute()` and returns result unchecked
+- **V1Executor (planned, AF-0116):** validates output against `SkillInfo.output_schema`; bounded retry on schema mismatch
 
 5) **Verifier/Evaluator**
 - checks acceptance criteria / quality thresholds
 - can trigger repair loops within limits
+- **V0Verifier (current):** end-of-run error scan only; no step awareness (BUG-0017)
+- **V1Verifier (planned, AF-0115):** step-aware; respects required/optional; per-step pass/fail evidence
 
 6) **Recorder**
 - persists run trace + artifacts + summaries
 - produces artifact index for CLI/API/UI retrieval
+- **V0Recorder (current):** persists trace + artifacts to SQLite/filesystem
+- **V1Recorder (planned, AF-0118):** adds structured verification evidence, retry history, per-step breakdown
+
+#### 3.2.1 Implementation Map
+
+All pipeline components have Protocol interfaces in `interfaces.py` and versioned implementations:
+
+| Component | Protocol | V0 Implementation | V1 Implementation | Primary File |
+|-----------|----------|-------------------|-------------------|-------------|
+| TaskSpec | — (schema) | `TaskSpec` | — | `task_spec.py` |
+| Planner | `Planner` | `V0Planner` | `V1Planner` ✅ | `planner.py` |
+| Orchestrator | `Orchestrator` | `V0Orchestrator` | AF-0117 | `orchestrator.py` (after AF-0114) |
+| Executor | `Executor` | `V0Executor` | AF-0116 | `executor.py` (after AF-0114) |
+| Verifier | `Verifier` | `V0Verifier` | AF-0115 | `verifier.py` (after AF-0114) |
+| Recorder | `Recorder` | `V0Recorder` | AF-0118 | `recorder.py` (after AF-0114) |
+
+> **Current state:** V0 Orchestrator, Executor, Verifier, and Recorder all live in `runtime.py`.
+> AF-0114 extracts them to dedicated files. `runtime.py` becomes the composition root (assembly/wiring only).
+
+#### 3.2.2 Target File Structure
+
+```
+src/ag/core/
+├── interfaces.py        # Protocols (stable contracts)
+├── task_spec.py         # TaskSpec schema
+├── planner.py           # V0Planner + V1Planner
+├── orchestrator.py      # V0/V1 Orchestrator
+├── executor.py          # V0/V1 Executor
+├── verifier.py          # V0/V1 Verifier
+├── recorder.py          # V0/V1 Recorder
+├── runtime.py           # Composition root: wire dependencies, create_runtime()
+├── run_trace.py         # RunTrace, Step, VerifierStatus, etc.
+├── playbook.py          # Playbook, PlaybookStep
+├── execution_plan.py    # ExecutionPlan
+└── schema_verifier.py   # SchemaValidator (repair loop engine)
+```
+
+**Dependency graph:**
+```
+executor.py      (depends on: skills/registry, interfaces)
+verifier.py      (depends on: run_trace, interfaces)
+recorder.py      (depends on: storage, run_trace, interfaces)
+     ↑ ↑ ↑
+orchestrator.py  (depends on: executor, verifier, recorder, planner)
+     ↑
+runtime.py       (imports all, wires together, exports create_runtime())
+```
 
 ### 3.3 Skills & Tooling Layer (Plugins)
 
@@ -207,6 +261,11 @@ Orchestrator (contract) ──► executes steps ──► calls Executor (contr
      │                                         Skill (contract)
      │                                              │
      │                                         SkillInput/Output (schemas)
+     │                                              │
+     │                                              ▼
+     │                                         Verifier (contract)
+     │                                              │
+     │                                         pass / fail (repair?)
      │
      ▼
 RunTrace (schema) ──► persisted by ──► Recorder (contract)
@@ -217,6 +276,24 @@ RunTrace (schema) ──► persisted by ──► Recorder (contract)
 - **MemoryStore (optional)**: workspace-bounded state, summaries, embeddings
 - **Predictor (MLP option)**: `predict(ctx) -> ranked hints` (routing/tool ranking/classification)
   - must never be required for correctness
+
+### 3.5.1 LLM Intelligence in the Pipeline
+
+Not all pipeline components benefit equally from LLM calls. This table summarizes
+where intelligence adds value and where mechanical processing suffices:
+
+| Component | LLM in V0/V1? | LLM in V2+? | What LLM adds |
+|-----------|:-:|:-:|---|
+| **Planner** | **Yes** (V1) | Yes | Compose skill sequences, judge feasibility |
+| **Verifier** | No | **Yes (strongest candidate)** | Semantic quality: relevance, completeness, consistency |
+| **Executor** | No | Yes (targeted) | Output repair: fix malformed JSON without full re-invocation |
+| **Orchestrator** | No | Indirect only | Triggers Planner for replanning; decision logic stays mechanical |
+| **Recorder** | No | Low value | Auto-generated summaries (nice-to-have, not essential) |
+| **TaskSpec** | No | No | Pure data schema; no intelligence needed |
+
+**Design principle:** LLM calls in pipeline components are always **additive**.
+Mechanical validation runs first; LLM adds intelligence on top. If the LLM is
+unavailable, the pipeline degrades gracefully to mechanical-only behavior.
 
 ### 3.6 Storage Layer
 
@@ -288,16 +365,59 @@ V1Planner composes multi-step, multi-output plans from the skill catalog.
 Accumulated chaining allows earlier step outputs to flow through to all
 subsequent steps (validated 2026-03-21 with multi-emit plans).
 
-### Planner Evolution
+### Pipeline Component Evolution
 
-The planner evolves through phases aligned with the autonomy spectrum:
+Each pipeline component evolves through versioned implementations aligned with the autonomy spectrum.
 
-| Version | Behavior | Sprint |
-|---------|----------|--------|
-| V0Planner | Deterministic registry lookup; requires `--playbook <name>` | Current |
-| V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan`. Supports multi-output plans (multiple `emit_result` steps) with accumulated chaining. | Sprint 11 ✅ |
-| V2Planner | LLM uses skills AND playbooks as building blocks | Future |
-| V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | Future |
+#### Planner Evolution
+
+| Version | Behavior | LLM? | Sprint |
+|---------|----------|:---:|--------|
+| V0Planner | Deterministic registry lookup; requires `--playbook <name>` | No | Current |
+| V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan`. Supports multi-output plans (multiple `emit_result` steps) with accumulated chaining. | **Yes** | Sprint 11 ✅ |
+| V2Planner | LLM uses skills AND playbooks as building blocks | **Yes** | Future (AF-0103) |
+| V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | **Yes** | Future (AF-0104) |
+
+#### Executor Evolution
+
+| Version | Behavior | LLM? | Sprint |
+|---------|----------|:---:|--------|
+| V0Executor | Calls `skill.execute()`, returns result unchecked | No | Current |
+| V1Executor | Validates output against `SkillInfo.output_schema`; bounded retry (re-invoke skill) on schema mismatch | No | Planned (AF-0116) |
+| V2Executor | LLM-powered output repair: on schema validation failure, asks LLM to fix malformed JSON instead of full skill re-invocation. Cheaper than retry. | **Yes** | Future |
+
+#### Verifier Evolution
+
+| Version | Behavior | LLM? | Sprint |
+|---------|----------|:---:|--------|
+| V0Verifier | End-of-run error scan; no step awareness (BUG-0017) | No | Current |
+| V1Verifier | Step-aware: respects required/optional, per-step pass/fail evidence, rich verification data | No | Planned (AF-0115) |
+| V2Verifier | LLM-powered semantic verification: evaluates relevance, completeness, consistency, acceptance criteria | **Yes** | Future |
+
+**V2Verifier is the strongest LLM candidate in the pipeline.** Schema validation is mechanical;
+*meaning* validation requires intelligence. Examples:
+- *Relevance:* "User asked about Tokyo demographics — report covers Tokyo tourism instead"
+- *Completeness:* "Report has data but no conclusion"
+- *Consistency:* "Source says 14M population, synthesis says 9M"
+- *Acceptance criteria:* V3Planner emits expected-output hints; V2Verifier checks against them
+
+**Design principle:** LLM verification is always **additive** — mechanical validation (V1) runs first,
+then LLM evaluation (V2) adds semantic checks. If the LLM verifier is unavailable, mechanical verification still works.
+
+#### Orchestrator Evolution
+
+| Version | Behavior | LLM? | Sprint |
+|---------|----------|:---:|--------|
+| V0Orchestrator | Linear fire-and-forget loop; verification once at end | No | Current |
+| V1Orchestrator | Per-step verification loop; calls Verifier after each step; respects required/optional | No | Planned (AF-0117) |
+| V2Orchestrator | Replanning on failure: Verifier failure → Planner replan → retry (Gate C) | Indirect (calls Planner) | Future |
+
+#### Recorder Evolution
+
+| Version | Behavior | LLM? | Sprint |
+|---------|----------|:---:|--------|
+| V0Recorder | Persists RunTrace + artifacts to SQLite/filesystem | No | Current |
+| V1Recorder | Adds structured verification evidence, retry history, per-step breakdown | No | Planned (AF-0118) |
 
 **V1Planner flow:**
 ```
@@ -458,6 +578,20 @@ Any autonomy expansion must preserve these constraints:
 - **Deterministic failure behavior**: retries/timeouts/failures are explicit and traceable.
 - **Policy enforcement**: permission/confirmation/budget checks are enforced in runtime behavior, not only documented as hooks.
 - **Review gate compliance**: autonomy-affecting changes pass sprint autonomy gate checks before closure.
+
+### 7.2 Autonomy Phase Gates
+
+| Gate | Purpose | Required Conditions | Status |
+|------|---------|---------------------|--------|
+| Gate A: Reliability | Foundation to autonomy-ready | warning-clean tests, isolation stability, failure-path coverage | ✅ Passed (Sprint 09) |
+| Gate B: Guided Autonomy | Enable guided planning | policy enforcement, verifier rigor, trace-derived labels | ✅ Passed (Sprint 10) |
+| Gate C: Goals-Only | Enable adaptive autonomous execution | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | Future |
+
+**Key distinction:** Guided with `--yes` is "fire and forget with a fixed plan."
+Goals Only is "fire and forget with an adaptive agent" — the agent detects
+weak signals, replans around failures, and reports when goals are infeasible.
+
+Gate rule: no sprint may claim autonomy progression while a P0 gate condition is unmet.
 
 ---
 
@@ -655,10 +789,12 @@ Event Adapter replaces the CLI Adapter in step (1) and emits `EventSpec -> TaskS
 
 ### 11.2 Known Gaps (Implementation Debt)
 
-Post-Sprint08, these gaps are known and tracked for roadmap sequencing:
+Post-Sprint12, these gaps are known and tracked for roadmap sequencing:
 
+- **Verifier ignores optional steps (BUG-0017).** V0Verifier contradicts orchestrator when optional steps fail. Fix: AF-0115 (V1 Verifier).
+- **Output schema validation missing.** Skill outputs not validated against declared schemas. Fix: AF-0116 (V1 Executor).
+- **Pipeline components in single file.** Orchestrator/Executor/Verifier/Recorder all in `runtime.py`. Fix: AF-0114 (extraction).
+- **Verification runs once at end, not per-step.** Architecture diagram shows per-step verification but runtime doesn't do it. Fix: AF-0117 (V1 Orchestrator).
+- **Verification evidence empty.** `Verifier.evidence` dict always `{}`. Fix: AF-0118 (V1 Recorder).
 - Policy hook depth (permission/confirmation/budget) requires stronger runtime enforcement.
-- Playbook validation hardening is still an active quality concern.
-- Artifact evidence strategy needs stronger trace linkage patterns.
-- Test isolation and warning-clean discipline remain reliability priorities.
 - Plugin architecture for skills/playbooks is deferred until autonomy readiness gates are stable.

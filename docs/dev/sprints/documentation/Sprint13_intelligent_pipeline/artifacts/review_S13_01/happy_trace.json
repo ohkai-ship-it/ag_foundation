@@ -1,0 +1,88 @@
+{
+  "trace_version": "0.1",
+  "run_id": "883779d3-aa89-430d-85dc-0b72d687236c",
+  "workspace_id": "review-test",
+  "workspace_source": "cli",
+  "mode": "manual",
+  "llm": null,
+  "playbook": {
+    "name": "default_v0",
+    "version": "1.0.0"
+  },
+  "started_at": "2026-03-22T10:55:48.692723Z",
+  "ended_at": "2026-03-22T10:55:48.692986Z",
+  "duration_ms": 0,
+  "steps": [
+    {
+      "step_id": "883779d3-aa89-430d-85dc-0b72d687236c-step-0",
+      "step_number": 0,
+      "step_type": "skill_call",
+      "skill_name": "echo_tool",
+      "input_summary": "prompt=Test manual mode for review...",
+      "output_summary": "Echoed: {{prompt}}",
+      "started_at": "2026-03-22T10:55:48.692846Z",
+      "ended_at": "2026-03-22T10:55:48.692960Z",
+      "duration_ms": 0,
+      "tokens_used": null,
+      "error": null,
+      "artifacts": [
+        "883779d3-aa89-430d-85dc-0b72d687236c-step-0-echo_tool_output"
+      ],
+      "subtasks": null,
+      "evidence_refs": null,
+      "model_used": null,
+      "confirmation": null,
+      "input_data": {
+        "prompt": "Test manual mode for review",
+        "step": 0,
+        "message": "{{prompt}}"
+      },
+      "output_data": {
+        "error": null,
+        "echoed": "{{prompt}}"
+      },
+      "required": true
+    }
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "883779d3-aa89-430d-85dc-0b72d687236c-step-0-echo_tool_output",
+      "path": "0_echo_tool_output.json",
+      "artifact_type": "application/json",
+      "size_bytes": 45,
+      "checksum": null,
+      "created_at": "2026-03-22T10:55:48.692957Z",
+      "metadata": {},
+      "category": null
+    }
+  ],
+  "verifier": {
+    "status": "passed",
+    "checked_at": "2026-03-22T10:55:48.692989Z",
+    "message": "All steps completed successfully",
+    "evidence": {
+      "total_steps": 1,
+      "required_passed": 1,
+      "required_failed": 0,
+      "optional_passed": 0,
+      "optional_skipped": 0,
+      "per_step": [
+        {
+          "step": 0,
+          "required": true,
+          "status": "passed"
+        }
+      ]
+    }
+  },
+  "final": "success",
+  "error": null,
+  "plan_id": null,
+  "autonomy": {
+    "mode": "playbook",
+    "plan_id": null,
+    "confirmation_enabled": false,
+    "confirmation_flags": []
+  },
+  "metadata": {}
+}
