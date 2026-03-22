@@ -1,0 +1,28 @@
+{
+  "review_note": "Failure path testing - no JSON traces generated as commands failed early with expected errors",
+  "test_date": "2025-03-22",
+  "failure_scenarios": [
+    {
+      "scenario": "Non-existent workspace",
+      "command": "ag run \"test failure\" -w nonexistent_workspace_12345",
+      "exit_code": 1,
+      "error_message": "Error: Workspace 'nonexistent_workspace_12345' does not exist.",
+      "guidance": "Create it first: ag ws create nonexistent_workspace_12345",
+      "assessment": "PASS - Proper error message with actionable guidance"
+    },
+    {
+      "scenario": "Empty prompt",
+      "command": "ag run \"\" -w review-test",
+      "exit_code": 1,
+      "error_message": "Error: prompt argument is required",
+      "guidance": "Usage: ag run <prompt> or ag run --plan <plan_id>",
+      "assessment": "PASS - Proper validation with usage hint"
+    }
+  ],
+  "summary": {
+    "total_scenarios": 2,
+    "passed": 2,
+    "failed": 0,
+    "verdict": "CLI correctly handles error conditions with informative messages"
+  }
+}
