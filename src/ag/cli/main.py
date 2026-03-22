@@ -1564,9 +1564,15 @@ def runs_show(
                     # AF-0118: Show optional flag for non-required steps
                     optional_label = " [dim](optional)[/dim]" if not step.required else ""
 
+                    # Per-step LLM token info
+                    llm_info = ""
+                    if step.tokens_used:
+                        model_tag = f" {step.model_used}" if step.model_used else ""
+                        llm_info = f" [cyan]({step.tokens_used} tokens{model_tag})[/cyan]"
+
                     console.print(
                         f"  {step_status} Step {step.step_number}: "
-                        f"{skill_label}{optional_label}{retry_info}"
+                        f"{skill_label}{optional_label}{retry_info}{llm_info}"
                     )
                     if step.output_summary:
                         console.print(f"      Output: {step.output_summary[:60]}...")
