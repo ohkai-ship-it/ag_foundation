@@ -19,7 +19,6 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
-| BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | [🔗](reports/BUG0020_OPEN_empty_plan_reports_success.md) |
 | BUG-0021 | P2 | OPEN | ddgs/primp SSL socket GC noise in tests | Testing / CI | [🔗](reports/BUG0021_OPEN_ddgs_primp_ssl_noise.md) |
 | BUG-0022 | P2 | OPEN | V3Planner CLI test flakiness | Testing / CI | [🔗](reports/BUG0022_OPEN_v3planner_cli_test_flakiness.md) |
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
@@ -30,8 +29,7 @@
 
 ## FIXED bugs
 | ID | Severity | Status | Title | Area | Filename |
-|---:|:--:|:--|---|---|---|
-| BUG-0018 | P1 | FIXED | V2Planner misclassifies playbook as skill | Core Runtime / Planner | [🔗](reports/BUG0018_FIXED_v2planner_misclassifies_playbook.md) |
+|---:|:--:|:--|---|---|---|| BUG-0020 | P0 | FIXED | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | [✅](reports/BUG0020_FIXED_empty_plan_reports_success.md) || BUG-0018 | P1 | FIXED | V2Planner misclassifies playbook as skill | Core Runtime / Planner | [🔗](reports/BUG0018_FIXED_v2planner_misclassifies_playbook.md) |
 | BUG-0019 | P1 | FIXED | V1Orchestrator drops required flag on expansion | Core Runtime / Orchestrator | [🔗](reports/BUG0019_FIXED_orchestrator_drops_required_flag.md) |
 | BUG-0017 | P1 | FIXED | Verifier ignores optional step failures | Core Runtime / Verifier | [🔗](reports/BUG0017_FIXED_verifier_ignores_optional_steps.md) |
 | BUG-0016c | P1 | FIXED | Accumulated chaining loss (multi-emit data lost) | Core Runtime | [🔗](reports/BUG0016c_FIXED_accumulated_chaining_loss.md) |

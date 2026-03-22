@@ -1,7 +1,7 @@
 # AF-0121 — V3Planner: feasibility assessment
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: READY
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Planner
 
