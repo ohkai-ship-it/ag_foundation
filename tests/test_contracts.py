@@ -1052,6 +1052,24 @@ class TestInlinePlanConfirmRun:
             metadata={"confidence": 0.85, "warnings": [], "estimated_tokens": 3000},
         )
 
+    def _mock_plan_result(self):
+        from datetime import UTC, datetime
+
+        from ag.core.planner import PlanningResult
+
+        pb = self._mock_playbook()
+        now = datetime.now(UTC)
+        return PlanningResult(
+            playbook=pb,
+            planner_name="V3Planner",
+            started_at=now,
+            ended_at=now,
+            duration_ms=100,
+            confidence=0.85,
+            feasibility_level="mostly_feasible",
+            feasibility_score=0.85,
+        )
+
     def test_dry_run_shows_plan_and_exits(self, _workspace) -> None:
         """ag run --dry-run shows plan summary and exits with code 0."""
         from unittest.mock import MagicMock, patch
@@ -1069,7 +1087,7 @@ class TestInlinePlanConfirmRun:
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(app, ["run", "--dry-run", "-w", "test-ws", "Research test"])
@@ -1097,7 +1115,7 @@ class TestInlinePlanConfirmRun:
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(
@@ -1126,7 +1144,7 @@ class TestInlinePlanConfirmRun:
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(app, ["run", "-w", "test-ws", "Research test"], input="n\n")
@@ -1151,6 +1169,16 @@ class TestInlinePlanConfirmRun:
         mock_trace.to_json.return_value = "{}"
         mock_trace.steps = []
         mock_trace.error = None
+        mock_trace.workspace_id = "test-ws"
+        mock_trace.duration_ms = 500
+        mock_trace.planning = None
+        mock_trace.pipeline = None
+        mock_trace.playbook = MagicMock()
+        mock_trace.playbook.name = "v1plan_test"
+        mock_trace.playbook.version = "1.0"
+        mock_trace.verifier = MagicMock()
+        mock_trace.verifier.status = VerifierStatus.PASSED
+        mock_trace.workspace_source = None
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
@@ -1162,7 +1190,7 @@ class TestInlinePlanConfirmRun:
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             mock_runtime = MagicMock()
