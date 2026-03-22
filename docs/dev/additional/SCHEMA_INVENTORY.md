@@ -39,6 +39,13 @@
 | `Verifier` | run_trace.py | Verification result stored in trace (status, message) | 0.1 |
 | `LLMExecution` | run_trace.py | LLM provider/model info with token tracking (AF-0062, AF-0094) | 0.1 |
 | `AutonomyMetadata` | run_trace.py | Autonomy mode for run (mode, plan_id, confirmation_enabled) (AF-0101) | 0.1 |
+| `FeasibilityAssessment` | run_trace.py | V3Planner feasibility result — level, score, gaps, recommendations (AF-0121) | 0.1 |
+| `CapabilityGap` | run_trace.py | Missing capability identified during feasibility assessment (AF-0121) | 0.1 |
+| `SemanticVerification` | run_trace.py | LLM semantic verification scores — relevance, completeness, consistency (AF-0123) | 0.1 |
+| `RepairResult` | run_trace.py | LLM output repair result — repaired output, fields changed, cost metrics (AF-0124) | 0.1 |
+| `RepairSummary` | run_trace.py | Execution repair summary per step — tokens, timing, success (AF-0126) | 0.1 |
+| `ExecutionMetadata` | run_trace.py | Aggregate execution metadata — repair totals, per-step details (AF-0126) | 0.1 |
+| `VerifierLLMCall` | run_trace.py | Verifier LLM call metadata — model, tokens, evaluation time (AF-0126) | 0.1 |
 
 #### Playbook
 

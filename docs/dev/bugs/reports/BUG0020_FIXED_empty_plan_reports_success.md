@@ -19,7 +19,7 @@
 
 ## Metadata
 - **ID:** BUG-0020
-- **Status:** OPEN
+- **Status:** FIXED
 - **Severity:** P0
 - **Area:** Core Runtime / Orchestrator / Verifier / CLI
 - **Reported by:** Kai

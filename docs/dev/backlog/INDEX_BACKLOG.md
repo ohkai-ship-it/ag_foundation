@@ -24,8 +24,6 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Filename |
 |---:|:--:|:--|---|---|---|---|
-| *(empty)* | | | | | | |
-
 
 ---
 ## Sprints *IN DESCENDING ORDER*
@@ -33,11 +31,18 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | Jacob | [🔗](../bugs/reports/BUG0020_OPEN_empty_plan_reports_success.md) |
-| 2 | AF-0121 | P1 | READY | V3Planner: feasibility assessment | Core Runtime / Planner | Jacob | [🔗](items/AF0121_READY_v3planner_feasibility_assessment.md) |
-| 3 | AF-0123 | P1 | READY | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | Jacob | [🔗](items/AF0123_READY_v2_verifier_semantic_checks.md) |
-| 4 | AF-0124 | P2 | READY | V2Executor: LLM output repair | Core Runtime / Executor | Jacob | [🔗](items/AF0124_READY_v2_executor_llm_repair.md) |
-| 5 | AF-0122 | P2 | READY | CLI planning and pipeline display | CLI | Jacob | [🔗](items/AF0122_READY_cli_planning_pipeline_display.md) |
+| 1 | BUG-0020 | P0 | DONE | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | Jacob | [✅](../bugs/reports/BUG0020_FIXED_empty_plan_reports_success.md) |
+| 2 | AF-0121 | P1 | DONE | V3Planner: feasibility assessment | Core Runtime / Planner | Jacob | [✅](items/AF0121_DONE_v3planner_feasibility_assessment.md) |
+| 3 | AF-0123 | P1 | DONE | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | Jacob | [✅](items/AF0123_DONE_v2_verifier_semantic_checks.md) |
+| 4 | AF-0124 | P2 | DONE | V2Executor: LLM output repair | Core Runtime / Executor | Jacob | [✅](items/AF0124_DONE_v2_executor_llm_repair.md) |
+| 5 | AF-0122 | P2 | DONE | CLI planning and pipeline display | CLI | Jacob | [✅](items/AF0122_DONE_cli_planning_pipeline_display.md) |
+| 6 | AF-0125 | P1 | DONE | Deterministic test provider | Testing / CI | Jacob | [✅](items/AF0125_DONE_deterministic_test_provider.md) |
+| 7 | BUG-0021 | P2 | DONE | ddgs/primp SSL socket GC noise in tests | Testing / CI | Jacob | [✅](../bugs/reports/BUG0021_FIXED_ddgs_primp_ssl_noise.md) |
+| 8 | BUG-0022 | P2 | DONE | V3Planner CLI test flakiness | Testing / CI | Jacob | [✅](../bugs/reports/BUG0022_FIXED_v3planner_cli_test_flakiness.md) |
+| 9 | BUG-0024 | P2 | DONE | Planner duplicates emit_result | Core Runtime / Planner | Jacob | [✅](../bugs/reports/BUG0024_FIXED_planner_duplicates_emit_result.md) |
+| 10 | AF-0126 | P1 | DONE | Executor / verifier LLM trace | Core Runtime / Trace / CLI | Jacob | [✅](items/AF0126_DONE_executor_verifier_llm_trace.md) |
+| 11 | BUG-0023 | P2 | DONE | V2 pipeline evidence hidden | Core Runtime / Executor / Verifier / CLI | Jacob | [✅](../bugs/reports/BUG0023_FIXED_v2_pipeline_evidence_hidden.md) |
+
 
 ### Sprint 14 Scope (pipeline_trace_hardening)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

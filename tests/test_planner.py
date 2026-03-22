@@ -11,6 +11,7 @@ Tests cover:
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, PropertyMock
 
@@ -29,6 +30,7 @@ from ag.core import (
 from ag.providers.base import ChatResponse, LLMProvider, MessageRole
 from ag.skills import SkillRegistry
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
+from ag.skills.registry import create_default_registry
 
 # ---------------------------------------------------------------------------
 # Test Fixtures
@@ -1363,3 +1365,417 @@ class TestPlanWithMetadata:
         assert result.duration_ms >= 50
         # Started should be before ended
         assert result.started_at < result.ended_at
+
+
+# ---------------------------------------------------------------------------
+# V3Planner Tests (AF-0121, ADR-0009)
+# ---------------------------------------------------------------------------
+
+
+# Feasibility JSON responses for mocking
+FULLY_FEASIBLE_JSON = json.dumps(
+    {
+        "level": "fully_feasible",
+        "score": 0.95,
+        "reason": "All capabilities available",
+        "capability_gaps": [],
+        "recommendations": [],
+    }
+)
+
+MOSTLY_FEASIBLE_JSON = json.dumps(
+    {
+        "level": "mostly_feasible",
+        "score": 0.75,
+        "reason": "Most capabilities available",
+        "capability_gaps": [
+            {
+                "missing_capability": "advanced_analysis",
+                "description": "Deep analysis capability",
+                "required_for": "Detailed report section",
+                "workaround": "Use basic summarization instead",
+            }
+        ],
+        "recommendations": ["Consider simpler output format"],
+    }
+)
+
+PARTIALLY_FEASIBLE_JSON = json.dumps(
+    {
+        "level": "partially_feasible",
+        "score": 0.45,
+        "reason": "Significant gaps exist",
+        "capability_gaps": [
+            {
+                "missing_capability": "web_scraping",
+                "description": "Scrape live web pages",
+                "required_for": "Data collection phase",
+                "workaround": None,
+            },
+            {
+                "missing_capability": "database_query",
+                "description": "Query SQL databases",
+                "required_for": "Data retrieval",
+                "workaround": "Use local file search",
+            },
+        ],
+        "recommendations": ["Restrict task to local files only"],
+    }
+)
+
+NOT_FEASIBLE_JSON = json.dumps(
+    {
+        "level": "not_feasible",
+        "score": 0.1,
+        "reason": "No matching skills",
+        "capability_gaps": [
+            {
+                "missing_capability": "video_editing",
+                "description": "Edit video files",
+                "required_for": "The entire task",
+                "workaround": None,
+            }
+        ],
+        "recommendations": ["This system cannot edit videos"],
+    }
+)
+
+# Valid plan JSON for Phase 2 (when feasible)
+VALID_PLAN_JSON = (
+    '{"steps": [{"type": "skill", "skill": "mock_skill", "params": {}, '
+    '"rationale": "Execute task"}], "estimated_tokens": 100, "confidence": 0.85}'
+)
+
+
+class TestV3PlannerFeasibility:
+    """AF-0121: V3Planner feasibility assessment tests."""
+
+    def test_v3_extends_v2(self) -> None:
+        """V3Planner extends V2Planner."""
+        from ag.core.planner import V2Planner, V3Planner
+
+        assert issubclass(V3Planner, V2Planner)
+
+    def test_fully_feasible_produces_plan(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """FULLY_FEASIBLE assessment proceeds to plan generation."""
+        from ag.core.planner import V3Planner
+
+        # First call: feasibility → second call: plan generation
+        mock_provider.chat.side_effect = [
+            ChatResponse(
+                content=FULLY_FEASIBLE_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=50,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+            ChatResponse(
+                content=VALID_PLAN_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=100,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+        ]
+
+        planner = V3Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert len(result.steps) == 1
+        assert result.metadata["feasibility_level"] == "fully_feasible"
+        assert result.metadata["feasibility_score"] == 0.95
+        # Two LLM calls: feasibility + plan
+        assert mock_provider.chat.call_count == 2
+
+    def test_mostly_feasible_produces_plan_with_gaps(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """MOSTLY_FEASIBLE assessment proceeds to plan with gap metadata."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.side_effect = [
+            ChatResponse(
+                content=MOSTLY_FEASIBLE_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=50,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+            ChatResponse(
+                content=VALID_PLAN_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=100,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+        ]
+
+        planner = V3Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert len(result.steps) == 1
+        assert result.metadata["feasibility_level"] == "mostly_feasible"
+        assert result.metadata["feasibility_score"] == 0.75
+        assert len(result.metadata["capability_gaps"]) == 1
+        assert result.metadata["capability_gaps"][0]["missing_capability"] == "advanced_analysis"
+
+    def test_partially_feasible_produces_plan_with_warnings(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """PARTIALLY_FEASIBLE assessment produces plan with gap warnings."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.side_effect = [
+            ChatResponse(
+                content=PARTIALLY_FEASIBLE_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=50,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+            ChatResponse(
+                content=VALID_PLAN_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=100,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+        ]
+
+        planner = V3Planner(mock_provider, mock_registry)
+        result = planner.plan(task_spec)
+
+        assert result.metadata["feasibility_level"] == "partially_feasible"
+        # Should have gap warnings injected
+        warnings = result.metadata.get("warnings", [])
+        assert any("web_scraping" in w for w in warnings)
+        assert any("database_query" in w for w in warnings)
+
+    def test_not_feasible_raises_planner_error(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """NOT_FEASIBLE assessment raises PlannerError — no plan generated."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.return_value = ChatResponse(
+            content=NOT_FEASIBLE_JSON,
+            model="mock",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V3Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="not feasible"):
+            planner.plan(task_spec)
+
+        # Should only make ONE LLM call (feasibility only, no plan)
+        assert mock_provider.chat.call_count == 1
+
+    def test_not_feasible_error_contains_gaps(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """NOT_FEASIBLE error message includes capability gaps."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.return_value = ChatResponse(
+            content=NOT_FEASIBLE_JSON,
+            model="mock",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V3Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="video_editing"):
+            planner.plan(task_spec)
+
+    def test_plan_with_metadata_includes_feasibility(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """plan_with_metadata() includes feasibility fields."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.side_effect = [
+            ChatResponse(
+                content=FULLY_FEASIBLE_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=50,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+            ChatResponse(
+                content=VALID_PLAN_JSON,
+                model="mock",
+                provider="mock",
+                tokens_used=100,
+                finish_reason="stop",
+                created_at=None,
+                raw_response=None,
+            ),
+        ]
+
+        planner = V3Planner(mock_provider, mock_registry)
+        result = planner.plan_with_metadata(task_spec)
+
+        assert result.planner_name == "V3Planner"
+        assert result.feasibility_level == "fully_feasible"
+        assert result.feasibility_score == 0.95
+
+    def test_feasibility_llm_failure_raises_planner_error(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """LLM failure during feasibility assessment raises PlannerError."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.side_effect = RuntimeError("LLM unavailable")
+
+        planner = V3Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="Feasibility assessment failed"):
+            planner.plan(task_spec)
+
+    def test_feasibility_invalid_json_raises_planner_error(
+        self, mock_provider: MagicMock, mock_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """Invalid JSON from feasibility LLM raises PlannerError."""
+        from ag.core.planner import V3Planner
+
+        mock_provider.chat.return_value = ChatResponse(
+            content="not valid json at all",
+            model="mock",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V3Planner(mock_provider, mock_registry)
+
+        with pytest.raises(PlannerError, match="Invalid JSON"):
+            planner.plan(task_spec)
+
+
+# ---------------------------------------------------------------------------
+# BUG-0024: Planner strips redundant emit_result after playbook
+# ---------------------------------------------------------------------------
+
+
+class TestBUG0024RedundantEmitResult:
+    """BUG-0024: Planner removes emit_result after playbooks that already contain it."""
+
+    @pytest.fixture
+    def full_registry(self) -> SkillRegistry:
+        """Registry with real skills including emit_result."""
+        return create_default_registry()
+
+    def test_strips_emit_result_after_playbook(
+        self, mock_provider: MagicMock, full_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """Trailing emit_result after research_v0 (which contains emit_result) is removed."""
+        from ag.core.planner import V2Planner
+
+        plan_json = json.dumps(
+            {
+                "steps": [
+                    {
+                        "type": "playbook",
+                        "playbook": "research_v0",
+                        "params": {},
+                        "rationale": "Research",
+                    },
+                    {
+                        "type": "skill",
+                        "skill": "emit_result",
+                        "params": {},
+                        "rationale": "Produce output",
+                    },
+                ],
+                "estimated_tokens": 5000,
+                "confidence": 0.85,
+            }
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, full_registry)
+        result = planner.plan(task_spec)
+
+        # Only the playbook step should remain — emit_result stripped
+        assert len(result.steps) == 1
+        assert result.steps[0].step_type == PlaybookStepType.PLAYBOOK
+        assert result.steps[0].skill_name == "research_v0"
+
+    def test_keeps_emit_result_for_skill_only_plan(
+        self, mock_provider: MagicMock, full_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """emit_result is preserved when plan uses only individual skills."""
+        from ag.core.planner import V2Planner
+
+        plan_json = json.dumps(
+            {
+                "steps": [
+                    {
+                        "type": "skill",
+                        "skill": "zero_skill",
+                        "params": {},
+                        "rationale": "Process",
+                    },
+                    {
+                        "type": "skill",
+                        "skill": "emit_result",
+                        "params": {},
+                        "rationale": "Produce output",
+                    },
+                ],
+                "estimated_tokens": 1000,
+                "confidence": 0.9,
+            }
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, full_registry)
+        result = planner.plan(task_spec)
+
+        # Both steps preserved — no playbook in plan
+        assert len(result.steps) == 2
+        assert result.steps[0].skill_name == "zero_skill"
+        assert result.steps[1].skill_name == "emit_result"

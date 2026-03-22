@@ -59,6 +59,7 @@ class TrackingLLMProvider:
         self.total_tokens: int = 0
         self.input_tokens: int = 0
         self.output_tokens: int = 0
+        self.last_model: str | None = None
 
     @property
     def name(self) -> str:
@@ -87,6 +88,8 @@ class TrackingLLMProvider:
             self.input_tokens += response.input_tokens
         if response.output_tokens is not None:
             self.output_tokens += response.output_tokens
+        if response.model:
+            self.last_model = response.model
 
         return response
 
@@ -214,6 +217,10 @@ class V0Orchestrator:
             step_subtasks: list[Subtask] | None = None
             result: dict[str, Any] = {}
             step_artifact_ids: list[str] = []  # AF-0057: Track artifacts per step
+
+            # Snapshot token state before skill execution for per-step delta
+            tokens_before = tracking_provider.total_tokens if tracking_provider else 0
+            model_before = tracking_provider.last_model if tracking_provider else None
 
             try:
                 if skill_name:
@@ -369,6 +376,16 @@ class V0Orchestrator:
             step_input_data: dict[str, Any] | None = skill_params if skill_name else None
             step_output_data: dict[str, Any] | None = result if skill_name and result else None
 
+            # Per-step token delta from TrackingLLMProvider
+            step_tokens_used: int | None = None
+            step_model_used: str | None = None
+            if tracking_provider:
+                token_delta = tracking_provider.total_tokens - tokens_before
+                if token_delta > 0:
+                    step_tokens_used = token_delta
+                if tracking_provider.last_model != model_before:
+                    step_model_used = tracking_provider.last_model
+
             # Record the step
             step = Step(
                 step_id=f"{run_id}-step-{i}",
@@ -380,9 +397,11 @@ class V0Orchestrator:
                 started_at=step_started,
                 ended_at=step_ended,
                 duration_ms=duration_ms,
+                tokens_used=step_tokens_used,
                 error=step_error,
                 subtasks=step_subtasks,  # AF-0019: Only set for plan step
                 artifacts=step_artifact_ids,  # AF-0057: Skill-produced artifacts
+                model_used=step_model_used,
                 # AF-0094: Full step I/O for trace enrichment
                 input_data=step_input_data,
                 output_data=step_output_data,
@@ -627,6 +646,38 @@ class V1Orchestrator(V0Orchestrator):
             metadata=playbook.metadata,
         )
 
+        # BUG-0020: If plan has zero executable steps, fail immediately
+        if not expanded_playbook.steps:
+            run_id = str(uuid4())
+            started_at = datetime.now(UTC)
+            ended_at = started_at
+            ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
+            trace = RunTrace(
+                run_id=run_id,
+                workspace_id=task.workspace_id,
+                workspace_source=ws_source_enum,
+                mode=task.mode,
+                playbook=PlaybookMetadata(
+                    name=expanded_playbook.name, version=expanded_playbook.version
+                ),
+                planning=planning,
+                pipeline=pipeline,
+                started_at=started_at,
+                ended_at=ended_at,
+                duration_ms=0,
+                steps=[],
+                artifacts=[],
+                verifier=VerifierModel(
+                    status=VerifierStatus("failed"),
+                    checked_at=ended_at,
+                    message="No steps executed",
+                ),
+                final=FinalStatus.FAILURE,
+                error="No executable steps in plan",
+            )
+            self._recorder.record(trace)
+            return trace
+
         # Check if verifier supports per-step verification
         has_verify_step = hasattr(self._verifier, "verify_step")
 
@@ -688,6 +739,10 @@ class V1Orchestrator(V0Orchestrator):
             step_subtasks: list[Subtask] | None = None
             result: dict[str, Any] = {}
             step_artifact_ids: list[str] = []
+
+            # Snapshot token state before skill execution for per-step delta
+            tokens_before = tracking_provider.total_tokens if tracking_provider else 0
+            model_before = tracking_provider.last_model if tracking_provider else None
 
             try:
                 if skill_name:
@@ -828,6 +883,16 @@ class V1Orchestrator(V0Orchestrator):
                         step_output_data = {}
                     step_output_data["_validation_attempts"] = validation_attempts
 
+            # Per-step token delta from TrackingLLMProvider
+            step_tokens_used: int | None = None
+            step_model_used: str | None = None
+            if tracking_provider:
+                token_delta = tracking_provider.total_tokens - tokens_before
+                if token_delta > 0:
+                    step_tokens_used = token_delta
+                if tracking_provider.last_model != model_before:
+                    step_model_used = tracking_provider.last_model
+
             # Record the skill step
             step = Step(
                 step_id=f"{run_id}-step-{trace_step_index}",
@@ -839,9 +904,11 @@ class V1Orchestrator(V0Orchestrator):
                 started_at=step_started,
                 ended_at=step_ended,
                 duration_ms=duration_ms,
+                tokens_used=step_tokens_used,
                 error=step_error,
                 subtasks=step_subtasks,
                 artifacts=step_artifact_ids,
+                model_used=step_model_used,
                 input_data=step_input_data,
                 output_data=step_output_data,
                 required=playbook_step.required,
@@ -881,6 +948,11 @@ class V1Orchestrator(V0Orchestrator):
 
         ws_source_enum = WorkspaceSource(workspace_source) if workspace_source else None
 
+        # AF-0126: Collect executor repair metadata
+        execution_metadata = None
+        if hasattr(self._executor, "get_execution_metadata"):
+            execution_metadata = self._executor.get_execution_metadata()
+
         llm_execution: LLMExecution | None = None
         if provider_config is not None:
             usage = tracking_provider.get_usage() if tracking_provider else {}
@@ -917,7 +989,17 @@ class V1Orchestrator(V0Orchestrator):
             final=final_status,
             error=error_message,
             llm=llm_execution,
+            execution=execution_metadata,  # AF-0126
         )
+
+        # AF-0126: Run semantic evidence on V2Verifier (needs full trace)
+        if hasattr(self._verifier, "build_semantic_evidence"):
+            semantic_ev = self._verifier.build_semantic_evidence(trace)
+            if semantic_ev and trace.verifier.evidence is not None:
+                trace.verifier.evidence["semantic"] = semantic_ev
+            # Capture verifier LLM call metadata
+            if hasattr(self._verifier, "get_llm_call"):
+                trace.verifier.llm_call = self._verifier.get_llm_call()
 
         self._recorder.record(trace)
 

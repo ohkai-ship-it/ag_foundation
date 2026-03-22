@@ -230,6 +230,48 @@ def format_verifier(status: VerifierStatus) -> str:
     return f"[{colors.get(status, 'white')}]{status.value}[/{colors.get(status, 'white')}]"
 
 
+def _display_trace_extras(trace: "RunTrace", console: "Console") -> None:
+    """Display execution metadata and semantic scores from a trace (AF-0126, BUG-0023)."""
+    # AF-0126: Feasibility LLM call
+    if trace.planning and trace.planning.feasibility_llm_call:
+        flc = trace.planning.feasibility_llm_call
+        tokens = flc.total_tokens or 0
+        model = flc.model or "?"
+        console.print(f"  Feasibility LLM: {model} · {tokens} tokens")
+
+    # AF-0126: Execution section (repairs)
+    if trace.execution and trace.execution.total_repair_attempts > 0:
+        em = trace.execution
+        repair_model = ""
+        if em.repairs:
+            models = {r.repair_model for r in em.repairs if r.repair_model}
+            repair_model = f" ({', '.join(models)})" if models else ""
+        console.print(
+            f"  Execution: {em.total_repair_attempts} repair(s), "
+            f"{em.total_repair_successes} succeeded, "
+            f"{em.total_repair_tokens} tokens{repair_model}"
+        )
+
+    # BUG-0023b: Semantic verification scores
+    semantic = trace.verifier.evidence.get("semantic") if trace.verifier.evidence else None
+    if semantic:
+        rel = semantic.get("relevance_score")
+        comp = semantic.get("completeness_score")
+        cons = semantic.get("consistency_score")
+        if rel is not None and comp is not None and cons is not None:
+            console.print(
+                f"  Semantic: relevance={rel:.2f}  completeness={comp:.2f}  consistency={cons:.2f}"
+            )
+
+    # AF-0126: Verifier LLM call
+    if trace.verifier.llm_call:
+        vlc = trace.verifier.llm_call
+        tokens = vlc.total_tokens or 0
+        model = vlc.model or "?"
+        ms = vlc.evaluation_ms
+        console.print(f"  Verifier LLM: {model} · {tokens} tokens · {ms} ms")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Global options
 # ─────────────────────────────────────────────────────────────────────────────
@@ -614,9 +656,9 @@ def run(
             )
 
             # BUG0009: Run verifier on step (not skipped)
-            from ag.core.verifier import V1Verifier
+            from ag.core.verifier import V2Verifier
 
-            verifier = V1Verifier()
+            verifier = V2Verifier()  # No provider in direct skill path — V1 behavior
             final_status = FinalStatus.SUCCESS if success else FinalStatus.FAILURE
             verify_status, verify_message = verifier.verify_components([step], final_status)
 
@@ -890,7 +932,7 @@ def run(
         from ag.core import (
             PlannerError,
             TaskSpec,
-            V2Planner,
+            V3Planner,
             create_execution_plan,
         )
         from ag.providers import ProviderConfig, get_provider
@@ -905,14 +947,17 @@ def run(
             provider_config = ProviderConfig(provider="openai", model="gpt-4o-mini")
             provider = get_provider(provider_config)
             registry = get_default_registry()
-            planner = V2Planner(provider, registry)
+            planner = V3Planner(provider, registry)
 
             if not resolved_quiet and not resolved_json:
-                console.print("[dim]Planning...[/dim]")
+                console.print("[dim]Assessing feasibility...[/dim]")
 
-            generated_playbook = planner.plan(task_spec)
-            confidence = generated_playbook.metadata.get("confidence", 0.0)
+            plan_result = planner.plan_with_metadata(task_spec)
+            generated_playbook = plan_result.playbook
+            confidence = plan_result.confidence or 0.0
             warnings = generated_playbook.metadata.get("warnings", [])
+            feasibility_level = plan_result.feasibility_level
+            feasibility_score = plan_result.feasibility_score
 
         except PlannerError as e:
             if resolved_json:
@@ -942,9 +987,50 @@ def run(
             skill_policy_flags=skill_flags,
         )
 
+        # BUG-0020: Guard for empty plan — no skills match the task
+        if not inline_plan.planned_steps:
+            if resolved_json:
+                plan_data = json.loads(inline_plan.to_json())
+                plan_data["not_feasible"] = True
+                plan_data["message"] = "No available skills or playbooks can handle this task"
+                print(json.dumps(plan_data, indent=2))
+            else:
+                _display_plan(inline_plan)
+                console.print()
+                console.print(
+                    "[bold yellow]Nothing to execute[/bold yellow] "
+                    "— no available skills or playbooks match this task."
+                )
+                if warnings:
+                    console.print(f"[dim]Planner: {', '.join(warnings)}[/dim]")
+            raise typer.Exit(code=1)
+
+        # Display feasibility assessment (AF-0121)
+        if feasibility_level and not resolved_json and not resolved_quiet:
+            level_colors = {
+                "fully_feasible": "green",
+                "mostly_feasible": "green",
+                "partially_feasible": "yellow",
+            }
+            color = level_colors.get(feasibility_level, "yellow")
+            label = feasibility_level.replace("_", " ").title()
+            score_str = f"{feasibility_score:.0%}" if feasibility_score is not None else "?"
+            console.print(f"[{color}]Feasibility: {label} ({score_str})[/{color}]")
+            # Show capability gaps if any
+            gaps = generated_playbook.metadata.get("capability_gaps", [])
+            if gaps:
+                for gap in gaps:
+                    name = gap.get("missing_capability", "unknown")
+                    desc = gap.get("description", "")
+                    console.print(f"  [dim]Gap: {name} — {desc}[/dim]")
+            console.print()
+
         # Display plan summary
         if resolved_json:
             plan_data = json.loads(inline_plan.to_json())
+            if feasibility_level:
+                plan_data["feasibility_level"] = feasibility_level
+                plan_data["feasibility_score"] = feasibility_score
             if dry_run:
                 plan_data["dry_run"] = True
                 print(json.dumps(plan_data, indent=2))
@@ -978,6 +1064,7 @@ def run(
             runtime = create_runtime(
                 run_store=run_store,
                 artifact_store=artifact_store,
+                provider=provider,
             )
 
             trace = runtime.execute(
@@ -986,6 +1073,7 @@ def run(
                 mode=mode,
                 workspace_source=workspace_source,
                 playbook_object=generated_playbook,
+                plan_result=plan_result,
             )
 
             # Set autonomy metadata (guided mode — user confirmed inline plan)
@@ -1033,8 +1121,42 @@ def run(
                     console.print(f"  Run ID: {labels['run_id']}")
                     console.print(f"  Workspace: {labels['workspace_id']}")
                     console.print("  Autonomy: [yellow]guided[/yellow] (inline plan)")
+                    # AF-0122: Planning and pipeline display
+                    if trace.planning:
+                        tokens = (
+                            trace.planning.llm_call.total_tokens if trace.planning.llm_call else 0
+                        )
+                        dur_s = (
+                            f"{trace.planning.duration_ms / 1000:.1f}s"
+                            if trace.planning.duration_ms is not None
+                            else "?"
+                        )
+                        conf = (
+                            f"{trace.planning.confidence:.0%}"
+                            if trace.planning.confidence is not None
+                            else "?"
+                        )
+                        console.print(
+                            f"  Planning: {trace.planning.planner}"
+                            f" ({tokens} tokens, {dur_s}, confidence: {conf})"
+                        )
+                    if trace.pipeline:
+                        parts = [
+                            p
+                            for p in [
+                                trace.pipeline.planner,
+                                trace.pipeline.orchestrator,
+                                trace.pipeline.executor,
+                                trace.pipeline.verifier,
+                                trace.pipeline.recorder,
+                            ]
+                            if p
+                        ]
+                        arrow = " -> "
+                        console.print(f"  Pipeline: {arrow.join(parts)}")
                     console.print(f"  Status: {format_status(trace.final)}")
                     console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                    _display_trace_extras(trace, console)
                     console.print(f"  Duration: {labels['duration']}")
                     console.print(f"  Playbook: {labels['playbook']}")
 
@@ -1107,8 +1229,40 @@ def run(
                     is_playbook = trace.autonomy.mode == AutonomyMode.PLAYBOOK
                     a_color = "[blue]" if is_playbook else "[yellow]"
                     console.print(f"  Autonomy: {a_color}{trace.autonomy.mode.value}[/]")
+                # AF-0122: Planning and pipeline display
+                if trace.planning:
+                    tokens = trace.planning.llm_call.total_tokens if trace.planning.llm_call else 0
+                    dur_s = (
+                        f"{trace.planning.duration_ms / 1000:.1f}s"
+                        if trace.planning.duration_ms is not None
+                        else "?"
+                    )
+                    conf = (
+                        f"{trace.planning.confidence:.0%}"
+                        if trace.planning.confidence is not None
+                        else "?"
+                    )
+                    console.print(
+                        f"  Planning: {trace.planning.planner}"
+                        f" ({tokens} tokens, {dur_s}, confidence: {conf})"
+                    )
+                if trace.pipeline:
+                    parts = [
+                        p
+                        for p in [
+                            trace.pipeline.planner,
+                            trace.pipeline.orchestrator,
+                            trace.pipeline.executor,
+                            trace.pipeline.verifier,
+                            trace.pipeline.recorder,
+                        ]
+                        if p
+                    ]
+                    arrow = " -> "
+                    console.print(f"  Pipeline: {arrow.join(parts)}")
                 console.print(f"  Status: {format_status(trace.final)}")
                 console.print(f"  Verifier: {format_verifier(trace.verifier.status)}")
+                _display_trace_extras(trace, console)
                 console.print(f"  Duration: {labels['duration']}")
                 console.print(f"  Playbook: {labels['playbook']}")
 
@@ -1310,6 +1464,82 @@ def runs_show(
             console.print(f"  Ended: {trace.ended_at.isoformat() if trace.ended_at else 'N/A'}")
             console.print()
 
+            # AF-0122: Planning section
+            if trace.planning:
+                console.print("[bold]Planning[/bold]")
+                console.print(f"  Planner:    {trace.planning.planner}")
+                if trace.planning.duration_ms is not None:
+                    console.print(f"  Duration:   {trace.planning.duration_ms}ms")
+                if trace.planning.llm_call:
+                    lc = trace.planning.llm_call
+                    total = lc.total_tokens or 0
+                    inp = lc.input_tokens or 0
+                    out = lc.output_tokens or 0
+                    console.print(f"  Tokens:     {total} (input: {inp}, output: {out})")
+                    if lc.model:
+                        console.print(f"  Model:      {lc.model}")
+                if trace.planning.confidence is not None:
+                    console.print(f"  Confidence: {trace.planning.confidence:.0%}")
+                if trace.planning.feasibility_llm_call:
+                    flc = trace.planning.feasibility_llm_call
+                    f_total = flc.total_tokens or 0
+                    f_inp = flc.input_tokens or 0
+                    f_out = flc.output_tokens or 0
+                    console.print(
+                        f"  Feasibility: {f_total} tokens (input: {f_inp}, output: {f_out})"
+                    )
+                    if flc.model:
+                        console.print(f"  Feas. Model: {flc.model}")
+                console.print()
+
+            # AF-0122: Pipeline section
+            if trace.pipeline:
+                console.print("[bold]Pipeline[/bold]")
+                if trace.pipeline.planner:
+                    console.print(f"  Planner:      {trace.pipeline.planner}")
+                if trace.pipeline.orchestrator:
+                    console.print(f"  Orchestrator: {trace.pipeline.orchestrator}")
+                if trace.pipeline.executor:
+                    console.print(f"  Executor:     {trace.pipeline.executor}")
+                if trace.pipeline.verifier:
+                    console.print(f"  Verifier:     {trace.pipeline.verifier}")
+                if trace.pipeline.recorder:
+                    console.print(f"  Recorder:     {trace.pipeline.recorder}")
+                console.print()
+
+            # AF-0126: Execution metadata section
+            if trace.execution:
+                console.print("[bold]Execution[/bold]")
+                console.print(f"  Repairs attempted: {trace.execution.total_repair_attempts}")
+                console.print(f"  Repairs succeeded: {trace.execution.total_repair_successes}")
+                if trace.execution.total_repair_tokens:
+                    console.print(f"  Repair tokens:     {trace.execution.total_repair_tokens}")
+                for r in trace.execution.repairs:
+                    status = "[green]✓[/green]" if r.repair_succeeded else "[red]✗[/red]"
+                    console.print(
+                        f"    {status} Step {r.step_number} ({r.skill_name})"
+                        f" — {r.repair_tokens} tokens, {r.repair_ms}ms"
+                    )
+                console.print()
+
+            # AF-0126: Semantic verification section
+            if (
+                trace.verifier
+                and trace.verifier.evidence
+                and trace.verifier.evidence.get("semantic")
+            ):
+                sem = trace.verifier.evidence["semantic"]
+                console.print("[bold]Semantic Verification[/bold]")
+                for key in ("relevance", "completeness", "consistency"):
+                    if key in sem:
+                        console.print(f"  {key.capitalize()}: {sem[key]}")
+                if trace.verifier.llm_call:
+                    lc = trace.verifier.llm_call
+                    console.print(
+                        f"  LLM: {lc.model} ({lc.total_tokens} tokens, {lc.evaluation_ms}ms)"
+                    )
+                console.print()
+
             # Steps - AF-0118: Display VERIFICATION steps distinctly
             console.print(f"[bold]Steps ({len(trace.steps)}):[/bold]")
             for step in trace.steps:
@@ -1334,9 +1564,15 @@ def runs_show(
                     # AF-0118: Show optional flag for non-required steps
                     optional_label = " [dim](optional)[/dim]" if not step.required else ""
 
+                    # Per-step LLM token info
+                    llm_info = ""
+                    if step.tokens_used:
+                        model_tag = f" {step.model_used}" if step.model_used else ""
+                        llm_info = f" [cyan]({step.tokens_used} tokens{model_tag})[/cyan]"
+
                     console.print(
                         f"  {step_status} Step {step.step_number}: "
-                        f"{skill_label}{optional_label}{retry_info}"
+                        f"{skill_label}{optional_label}{retry_info}{llm_info}"
                     )
                     if step.output_summary:
                         console.print(f"      Output: {step.output_summary[:60]}...")

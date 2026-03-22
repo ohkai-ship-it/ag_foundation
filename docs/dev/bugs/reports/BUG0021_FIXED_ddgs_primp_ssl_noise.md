@@ -1,7 +1,7 @@
 # BUG-0021 — ddgs primp SSL socket noise
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: OPEN
+# Status: FIXED
 # Severity: P2
 # Area: Testing / CI
 

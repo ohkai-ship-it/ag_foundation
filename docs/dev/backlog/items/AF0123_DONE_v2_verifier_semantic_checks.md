@@ -1,7 +1,7 @@
 # AF-0123 — V2Verifier: LLM semantic quality checks
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: PROPOSED
+# Status: DONE
 # Priority: P1
 # Area: Core Runtime / Verifier
 

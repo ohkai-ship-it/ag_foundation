@@ -15,6 +15,128 @@ from pydantic import BaseModel, Field, model_validator
 from .task_spec import ExecutionMode
 
 
+class FeasibilityLevel(str, Enum):
+    """Feasibility level for V3Planner assessment (AF-0121, ADR-0009)."""
+
+    FULLY_FEASIBLE = "fully_feasible"  # score 0.8–1.0
+    MOSTLY_FEASIBLE = "mostly_feasible"  # score 0.6–0.8
+    PARTIALLY_FEASIBLE = "partially_feasible"  # score 0.3–0.6
+    NOT_FEASIBLE = "not_feasible"  # score 0.0–0.3
+
+
+class CapabilityGap(BaseModel):
+    """A missing capability identified during feasibility assessment (AF-0121)."""
+
+    missing_capability: str = Field(..., min_length=1, description="Name of the missing capability")
+    description: str = Field(..., min_length=1, description="What this capability would do")
+    required_for: str = Field(..., min_length=1, description="Which part of the task needs it")
+    workaround: str | None = Field(default=None, description="Suggested workaround if any")
+
+    model_config = {"extra": "forbid"}
+
+
+class FeasibilityAssessment(BaseModel):
+    """Result of V3Planner feasibility assessment (AF-0121, ADR-0009)."""
+
+    level: FeasibilityLevel = Field(..., description="Feasibility level")
+    score: float = Field(..., ge=0.0, le=1.0, description="Feasibility score 0–1")
+    reason: str = Field(..., min_length=1, description="Why this level was assigned")
+    capability_gaps: list[CapabilityGap] = Field(
+        default_factory=list, description="Identified capability gaps"
+    )
+    recommendations: list[str] = Field(
+        default_factory=list, description="Recommendations for the user"
+    )
+    # AF-0126: LLM call metadata for feasibility assessment
+    llm_model: str | None = Field(default=None, description="Model used for feasibility check")
+    llm_tokens: int | None = Field(default=None, ge=0, description="Total tokens used")
+    llm_input_tokens: int | None = Field(default=None, ge=0, description="Input tokens")
+    llm_output_tokens: int | None = Field(default=None, ge=0, description="Output tokens")
+
+    model_config = {"extra": "forbid"}
+
+
+class RepairResult(BaseModel):
+    """Result of an LLM output repair attempt (AF-0124).
+
+    Records the outcome of attempting to repair malformed skill output
+    via LLM, including which fields were changed and cost metrics.
+    """
+
+    repaired_output: dict[str, Any] | None = Field(
+        default=None, description="Repaired output dict, None if repair failed"
+    )
+    fields_changed: list[str] = Field(default_factory=list, description="Fields modified by repair")
+    repair_model: str = Field(default="", description="LLM model used for repair")
+    repair_tokens: int = Field(default=0, ge=0, description="Tokens consumed")
+    repair_ms: int = Field(default=0, ge=0, description="Repair duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
+class SemanticVerification(BaseModel):
+    """LLM semantic verification result for a step (AF-0123).
+
+    Records relevance, completeness, and consistency scores from LLM evaluation.
+    """
+
+    relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score 0–1")
+    relevance_reason: str = Field(default="", description="Relevance assessment reason")
+    completeness_score: float = Field(..., ge=0.0, le=1.0, description="Completeness score 0–1")
+    completeness_missing: list[str] = Field(
+        default_factory=list, description="Missing elements identified"
+    )
+    consistency_score: float = Field(..., ge=0.0, le=1.0, description="Consistency score 0–1")
+    consistency_issues: list[str] = Field(
+        default_factory=list, description="Consistency issues found"
+    )
+    overall_pass: bool = Field(..., description="True if all scores above threshold")
+    llm_model: str = Field(default="", description="Model used for semantic evaluation")
+    llm_tokens_used: int = Field(default=0, ge=0, description="Tokens consumed")
+    evaluation_ms: int = Field(default=0, ge=0, description="Evaluation duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
+# AF-0126: Executor / Verifier LLM trace models
+class RepairSummary(BaseModel):
+    """Per-step repair attempt summary for executor trace (AF-0126)."""
+
+    step_number: int = Field(..., ge=0, description="Step index in the plan")
+    skill_name: str = Field(..., description="Skill that triggered repair")
+    repair_attempted: bool = Field(..., description="Whether repair was attempted")
+    repair_succeeded: bool = Field(default=False, description="Whether repair succeeded")
+    repair_tokens: int = Field(default=0, ge=0, description="Tokens consumed by repair call")
+    repair_ms: int = Field(default=0, ge=0, description="Repair duration in ms")
+    repair_model: str = Field(default="", description="LLM model used for repair")
+
+    model_config = {"extra": "forbid"}
+
+
+class ExecutionMetadata(BaseModel):
+    """Aggregate trace of LLM calls made by V2Executor during the run (AF-0126)."""
+
+    executor: str = Field(default="V2Executor", description="Executor class name")
+    total_repair_attempts: int = Field(default=0, ge=0, description="Total repair attempts")
+    total_repair_successes: int = Field(default=0, ge=0, description="Successful repairs")
+    total_repair_tokens: int = Field(default=0, ge=0, description="Total tokens on repairs")
+    repairs: list[RepairSummary] = Field(default_factory=list, description="Per-step repair data")
+
+    model_config = {"extra": "forbid"}
+
+
+class VerifierLLMCall(BaseModel):
+    """LLM call details for verifier semantic checks (AF-0126)."""
+
+    model: str | None = Field(default=None, description="Model used for semantic checks")
+    input_tokens: int | None = Field(default=None, ge=0, description="Input tokens")
+    output_tokens: int | None = Field(default=None, ge=0, description="Output tokens")
+    total_tokens: int | None = Field(default=None, ge=0, description="Total tokens")
+    evaluation_ms: int = Field(default=0, ge=0, description="Evaluation duration in ms")
+
+    model_config = {"extra": "forbid"}
+
+
 class VerifierStatus(str, Enum):
     """Status from the verifier module."""
 
@@ -298,6 +420,9 @@ class Verifier(BaseModel):
     checked_at: datetime | None = Field(default=None, description="Verification timestamp")
     message: str | None = Field(default=None, description="Verifier message")
     evidence: dict[str, Any] = Field(default_factory=dict, description="Verification evidence")
+    llm_call: VerifierLLMCall | None = Field(
+        default=None, description="Verifier LLM call details (AF-0126)"
+    )
 
     model_config = {"extra": "forbid"}
 
@@ -360,6 +485,17 @@ class PlanningMetadata(BaseModel):
     )
     confidence: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Planner confidence score"
+    )
+    # AF-0121: Feasibility assessment fields (additive)
+    feasibility_level: str | None = Field(
+        default=None, description="Feasibility level from V3Planner assessment (AF-0121)"
+    )
+    feasibility_score: float | None = Field(
+        default=None, ge=0.0, le=1.0, description="Feasibility score (AF-0121)"
+    )
+    # AF-0126: Feasibility LLM call (separate from planning LLM call)
+    feasibility_llm_call: PlanningLLMCall | None = Field(
+        default=None, description="LLM call details for feasibility assessment (AF-0126)"
     )
 
     model_config = {"extra": "forbid"}
@@ -467,6 +603,10 @@ class RunTrace(BaseModel):
     # AF-0120: Pipeline component manifest (additive field)
     pipeline: PipelineManifest | None = Field(
         default=None, description="Pipeline component versions (AF-0120)"
+    )
+    # AF-0126: Executor LLM trace (additive field)
+    execution: ExecutionMetadata | None = Field(
+        default=None, description="Executor repair metadata (AF-0126)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 

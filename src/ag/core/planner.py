@@ -1,15 +1,16 @@
-"""V0/V1/V2 Planners — skill and playbook composition (AF-0102, AF-0103).
+"""V0/V1/V2/V3 Planners — skill and playbook composition (AF-0102, AF-0103, AF-0121).
 
 This module implements:
 - V0Planner: Registry lookup, requires --playbook flag
 - V1Planner: LLM composes skill sequences from task description
 - V2Planner: LLM composes mixed skill+playbook plans (AF-0103)
+- V3Planner: Feasibility assessment + conditional plan generation (AF-0121, ADR-0009)
 
 Architecture Position:
 - V0Planner: Registry lookup, requires --playbook flag
 - V1Planner: LLM composes skill sequence from task description
 - V2Planner: Uses skills AND playbooks as building blocks (this module)
-- V3Planner: Judges feasibility, identifies capability gaps (future)
+- V3Planner: Judges feasibility, identifies capability gaps (this module)
 
 Usage:
     from ag.core.planner import V1Planner
@@ -30,7 +31,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, ValidationError
@@ -46,6 +47,9 @@ from ag.core.task_spec import TaskSpec
 from ag.playbooks import DEFAULT_V0, get_playbook
 from ag.providers.base import ChatMessage, LLMProvider, MessageRole
 from ag.skills import SkillRegistry
+
+if TYPE_CHECKING:
+    from ag.core.run_trace import FeasibilityAssessment
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +114,14 @@ class PlanningResult:
     confidence: float | None = None
     raw_steps: list[dict[str, Any]] = field(default_factory=list)
     validation_corrections: list[str] = field(default_factory=list)
+    # AF-0121: Feasibility assessment fields
+    feasibility_level: str | None = None
+    feasibility_score: float | None = None
+    # AF-0126: Feasibility LLM call info
+    feasibility_model: str | None = None
+    feasibility_tokens: int | None = None
+    feasibility_input_tokens: int | None = None
+    feasibility_output_tokens: int | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -587,6 +599,7 @@ class V2Planner(V1Planner):
             raise PlannerError(f"Failed to parse LLM response: {e}") from e
 
         self._validate_v2_steps(plan_response)
+        self._strip_redundant_emit_result(plan_response)
         playbook = self._build_v2_playbook(task, plan_response)
 
         logger.info(
@@ -633,6 +646,9 @@ Rules:
 4. Prefer playbooks when the task closely matches a playbook's use case
 5. Use individual skills when playbooks don't fit or for additional steps
 6. You can mix playbooks and skills in a single plan
+7. Playbooks are self-contained — their internal step sequences already produce
+   output (check each playbook's steps list). NEVER add a standalone emit_result
+   step after a playbook step that already contains emit_result internally.
 
 Respond with valid JSON matching this schema:
 {
@@ -781,6 +797,43 @@ Respond with a JSON plan."""
                     f"Unknown step type '{step_type}', expected 'skill' or 'playbook'"
                 )
 
+    def _strip_redundant_emit_result(self, plan: LLMPlanResponse) -> None:
+        """Remove standalone emit_result after a playbook with emit_result (BUG-0024)."""
+        from ag.playbooks import get_playbook as get_pb
+
+        # Identify playbooks that already contain emit_result internally
+        playbooks_with_emit: set[str] = set()
+        for step in plan.steps:
+            if step.type == "playbook" and step.playbook:
+                pb = get_pb(step.playbook)
+                if pb and any(s.skill_name == "emit_result" for s in pb.steps):
+                    playbooks_with_emit.add(step.playbook)
+
+        if not playbooks_with_emit:
+            return
+
+        original_count = len(plan.steps)
+        filtered: list[PlannedStep] = []
+        saw_playbook_with_emit = False
+        for step in plan.steps:
+            if step.type == "playbook" and step.playbook in playbooks_with_emit:
+                saw_playbook_with_emit = True
+                filtered.append(step)
+            elif step.type == "skill" and step.skill == "emit_result" and saw_playbook_with_emit:
+                correction = (
+                    "Removed redundant emit_result after playbook that already "
+                    "produces output internally"
+                )
+                logger.warning(correction)
+                self._last_validation_corrections.append(correction)
+                # Don't append — skip this step
+            else:
+                saw_playbook_with_emit = False
+                filtered.append(step)
+
+        if len(filtered) < original_count:
+            plan.steps = filtered
+
     def _build_v2_playbook(self, task: TaskSpec, plan: LLMPlanResponse) -> Playbook:
         """Convert V2 plan response to Playbook with mixed step types."""
         plan_id = f"v2plan_{uuid4().hex[:8]}"
@@ -883,3 +936,317 @@ Respond with a JSON plan."""
             raw_steps=raw_steps,
             validation_corrections=self._last_validation_corrections,
         )
+
+
+# ---------------------------------------------------------------------------
+# V3Planner Implementation (AF-0121, ADR-0009)
+# ---------------------------------------------------------------------------
+
+
+class LLMFeasibilityResponse(BaseModel):
+    """Schema for LLM feasibility assessment response."""
+
+    level: str = Field(..., description="Feasibility level")
+    score: float = Field(..., ge=0.0, le=1.0, description="Feasibility score 0–1")
+    reason: str = Field(..., description="Why this level was assigned")
+    capability_gaps: list[dict[str, Any]] = Field(
+        default_factory=list, description="Missing capabilities"
+    )
+    recommendations: list[str] = Field(default_factory=list, description="User recommendations")
+
+    model_config = {"extra": "ignore"}
+
+
+class V3Planner(V2Planner):
+    """LLM-based planner with feasibility assessment (AF-0121, ADR-0009).
+
+    Two-phase approach:
+    1. Feasibility assessment — evaluate if the task can be done with available capabilities
+    2. Conditional plan generation — only generate a plan if feasible
+
+    Extends V2Planner: all plan generation logic is inherited.
+    """
+
+    # Feasibility threshold: below this score, do not generate a plan
+    NOT_FEASIBLE_THRESHOLD = 0.3
+
+    def plan(self, task: TaskSpec) -> Playbook:
+        """Generate plan with feasibility assessment gate.
+
+        Phase 1: Assess feasibility. If NOT_FEASIBLE, raise PlannerError.
+        Phase 2: Generate plan via V2Planner.plan().
+
+        Returns:
+            Playbook with feasibility metadata in playbook.metadata
+
+        Raises:
+            PlannerError: If task is not feasible or plan generation fails
+        """
+
+        # Phase 1: Feasibility assessment
+        assessment = self._assess_feasibility(task)
+        self._last_feasibility: FeasibilityAssessment | None = assessment
+
+        if assessment.level.value == "not_feasible":
+            gaps_text = ""
+            if assessment.capability_gaps:
+                gap_lines = [
+                    f"  - {g.missing_capability}: {g.description}"
+                    for g in assessment.capability_gaps
+                ]
+                gaps_text = "\nCapability gaps:\n" + "\n".join(gap_lines)
+            raise PlannerError(
+                f"Task is not feasible (score: {assessment.score:.2f}). "
+                f"{assessment.reason}{gaps_text}"
+            )
+
+        # Phase 2: Generate plan via V2Planner
+        playbook = super().plan(task)
+
+        # Attach feasibility metadata to playbook
+        playbook.metadata["feasibility_level"] = assessment.level.value
+        playbook.metadata["feasibility_score"] = assessment.score
+        if assessment.capability_gaps:
+            playbook.metadata["capability_gaps"] = [
+                g.model_dump() for g in assessment.capability_gaps
+            ]
+        if assessment.recommendations:
+            playbook.metadata["recommendations"] = assessment.recommendations
+
+        # For PARTIALLY_FEASIBLE, add warnings about gaps
+        if assessment.level.value == "partially_feasible":
+            existing_warnings = playbook.metadata.get("warnings", [])
+            gap_warnings = [
+                f"Gap: {g.missing_capability} — {g.description}" for g in assessment.capability_gaps
+            ]
+            playbook.metadata["warnings"] = existing_warnings + gap_warnings
+
+        return playbook
+
+    def _assess_feasibility(self, task: TaskSpec) -> "FeasibilityAssessment":
+        """Phase 1: LLM feasibility assessment.
+
+        Returns:
+            FeasibilityAssessment with level, score, gaps, recommendations
+        """
+        from ag.core.run_trace import (
+            CapabilityGap,
+            FeasibilityAssessment,
+            FeasibilityLevel,
+        )
+
+        catalog = self._get_skill_catalog()
+        playbook_catalog = self._get_playbook_catalog()
+
+        prompt = self._build_feasibility_prompt(task, catalog, playbook_catalog)
+
+        try:
+            response = self.provider.chat(
+                messages=[
+                    ChatMessage(
+                        role=MessageRole.SYSTEM,
+                        content=self._get_feasibility_system_prompt(),
+                    ),
+                    ChatMessage(role=MessageRole.USER, content=prompt),
+                ],
+            )
+        except Exception as e:
+            logger.error(f"Feasibility LLM call failed: {e}")
+            raise PlannerError(f"Feasibility assessment failed: {e}") from e
+
+        try:
+            parsed = self._parse_feasibility_response(response.content)
+        except Exception as e:
+            logger.error(f"Failed to parse feasibility response: {e}")
+            raise PlannerError(f"Failed to parse feasibility response: {e}") from e
+
+        # Map string level to enum
+        level_map = {lv.value: lv for lv in FeasibilityLevel}
+        level = level_map.get(parsed.level, FeasibilityLevel.NOT_FEASIBLE)
+
+        # Build typed CapabilityGap models from raw dicts
+        gaps = []
+        for gap_dict in parsed.capability_gaps:
+            try:
+                gaps.append(CapabilityGap.model_validate(gap_dict))
+            except ValidationError:
+                logger.warning(f"Skipping malformed capability gap: {gap_dict}")
+
+        # AF-0126: Extract LLM call metadata from response
+        feas_model = getattr(response, "model", None)
+        feas_total = getattr(response, "tokens_used", None)
+        feas_input = getattr(response, "input_tokens", None)
+        feas_output = getattr(response, "output_tokens", None)
+
+        return FeasibilityAssessment(
+            level=level,
+            score=parsed.score,
+            reason=parsed.reason,
+            capability_gaps=gaps,
+            recommendations=parsed.recommendations,
+            llm_model=feas_model,
+            llm_tokens=feas_total,
+            llm_input_tokens=feas_input,
+            llm_output_tokens=feas_output,
+        )
+
+    def _get_feasibility_system_prompt(self) -> str:
+        """System prompt for feasibility assessment."""
+        return """You are a feasibility assessor for an agent system. Your job is to evaluate
+whether a task can be performed with the available skills and playbooks.
+
+Evaluate honestly. If capabilities are missing, identify them clearly.
+
+Feasibility levels:
+- fully_feasible (score 0.8-1.0): All needed capabilities are available
+- mostly_feasible (score 0.6-0.8): Most capabilities available, minor gaps with workarounds
+- partially_feasible (score 0.3-0.6): Significant gaps, only partial completion possible
+- not_feasible (score 0.0-0.3): Critical capabilities missing, task cannot be performed
+
+Respond with valid JSON matching this schema:
+{
+  "level": "fully_feasible",
+  "score": 0.95,
+  "reason": "All required capabilities are available",
+  "capability_gaps": [
+    {
+      "missing_capability": "capability_name",
+      "description": "What it would do",
+      "required_for": "Which part of the task",
+      "workaround": "Alternative approach or null"
+    }
+  ],
+  "recommendations": ["optional suggestions"]
+}"""
+
+    def _build_feasibility_prompt(
+        self,
+        task: TaskSpec,
+        skill_catalog: list[dict[str, Any]],
+        playbook_catalog: list[dict[str, Any]],
+    ) -> str:
+        """Build user prompt for feasibility assessment."""
+        skills_text = []
+        for skill in skill_catalog:
+            skills_text.append(f"- {skill['name']}: {skill['description']}")
+        skills_str = "\n".join(skills_text) if skills_text else "(none)"
+
+        playbook_lines = []
+        for pb in playbook_catalog:
+            steps_str = " → ".join(pb["steps"]) if pb["steps"] else "(no skills)"
+            playbook_lines.append(f"- {pb['name']}: {pb['description']} [{steps_str}]")
+        playbooks_str = "\n".join(playbook_lines) if playbook_lines else "(none)"
+
+        return f"""Assess the feasibility of this task given the available capabilities:
+
+**Task:** {task.prompt}
+
+**Available Skills:**
+{skills_str}
+
+**Available Playbooks:**
+{playbooks_str}
+
+Can this task be completed with the available skills and playbooks?
+Identify any capability gaps and provide a feasibility assessment."""
+
+    def _parse_feasibility_response(self, content: str) -> LLMFeasibilityResponse:
+        """Parse LLM feasibility response."""
+        json_str = content.strip()
+        if json_str.startswith("```"):
+            lines = json_str.split("\n")
+            json_lines = []
+            in_block = False
+            for line in lines:
+                if line.startswith("```") and not in_block:
+                    in_block = True
+                    continue
+                if line.startswith("```") and in_block:
+                    break
+                if in_block:
+                    json_lines.append(line)
+            json_str = "\n".join(json_lines)
+
+        # Clean JSON (reuse same patterns as V2)
+        cleaned_lines: list[str] = []
+        for line in json_str.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith("//"):
+                continue
+            comment_pos = line.find("//")
+            if comment_pos > 0:
+                prefix = line[:comment_pos]
+                if prefix.count('"') % 2 == 0:
+                    line = prefix.rstrip()
+            cleaned_lines.append(line)
+        json_str = "\n".join(cleaned_lines)
+        json_str = re.sub(r",\s*([}\]])", r"\1", json_str)
+
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise PlannerError(f"Invalid JSON in feasibility response: {e}") from e
+
+        try:
+            return LLMFeasibilityResponse.model_validate(data)
+        except ValidationError as e:
+            raise PlannerError(f"Feasibility response doesn't match schema: {e}") from e
+
+    def plan_with_metadata(self, task: TaskSpec) -> PlanningResult:
+        """Generate plan with feasibility metadata (AF-0121)."""
+        self._last_feasibility = None
+        started_at = datetime.now(UTC)
+        playbook = self.plan(task)
+        ended_at = datetime.now(UTC)
+        duration_ms = int((ended_at - started_at).total_seconds() * 1000)
+
+        # Extract LLM metadata
+        model_used = None
+        input_tokens = None
+        output_tokens = None
+        total_tokens = None
+        if self._last_response is not None:
+            model_used = getattr(self._last_response, "model", None)
+            input_tokens = getattr(self._last_response, "input_tokens", None)
+            output_tokens = getattr(self._last_response, "output_tokens", None)
+            total_tokens = getattr(self._last_response, "tokens_used", None)
+
+        raw_steps: list[dict[str, Any]] = []
+        confidence: float | None = None
+        if self._last_plan_response is not None:
+            confidence = self._last_plan_response.confidence
+            for step in self._last_plan_response.steps:
+                raw_steps.append(
+                    {
+                        "type": step.type,
+                        "skill": step.skill,
+                        "playbook": step.playbook,
+                        "rationale": step.rationale,
+                    }
+                )
+
+        result = PlanningResult(
+            playbook=playbook,
+            planner_name="V3Planner",
+            started_at=started_at,
+            ended_at=ended_at,
+            duration_ms=duration_ms,
+            model_used=model_used,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+            confidence=confidence,
+            raw_steps=raw_steps,
+            validation_corrections=self._last_validation_corrections,
+        )
+
+        # Attach feasibility info to result
+        if self._last_feasibility is not None:
+            result.feasibility_level = self._last_feasibility.level.value
+            result.feasibility_score = self._last_feasibility.score
+            result.feasibility_model = self._last_feasibility.llm_model
+            result.feasibility_tokens = self._last_feasibility.llm_tokens
+            result.feasibility_input_tokens = self._last_feasibility.llm_input_tokens
+            result.feasibility_output_tokens = self._last_feasibility.llm_output_tokens
+
+        return result

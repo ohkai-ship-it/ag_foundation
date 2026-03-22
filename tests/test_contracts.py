@@ -1012,7 +1012,7 @@ class TestAccumulatedChaining:
 class TestInlinePlanConfirmRun:
     """Contract: ag run "prompt" generates a plan inline, confirms, then executes.
 
-    The default `ag run "prompt"` path must call V2Planner, display the plan,
+    The default `ag run "prompt"` path must call V3Planner, display the plan,
     prompt for confirmation, and only execute on approval. --yes auto-approves,
     --dry-run shows the plan and exits, --json auto-approves with JSON output.
     """
@@ -1052,6 +1052,24 @@ class TestInlinePlanConfirmRun:
             metadata={"confidence": 0.85, "warnings": [], "estimated_tokens": 3000},
         )
 
+    def _mock_plan_result(self):
+        from datetime import UTC, datetime
+
+        from ag.core.planner import PlanningResult
+
+        pb = self._mock_playbook()
+        now = datetime.now(UTC)
+        return PlanningResult(
+            playbook=pb,
+            planner_name="V3Planner",
+            started_at=now,
+            ended_at=now,
+            duration_ms=100,
+            confidence=0.85,
+            feasibility_level="mostly_feasible",
+            feasibility_score=0.85,
+        )
+
     def test_dry_run_shows_plan_and_exits(self, _workspace) -> None:
         """ag run --dry-run shows plan summary and exits with code 0."""
         from unittest.mock import MagicMock, patch
@@ -1064,12 +1082,12 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.V2Planner") as mock_planner_cls,
+            patch("ag.core.V3Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(app, ["run", "--dry-run", "-w", "test-ws", "Research test"])
@@ -1092,12 +1110,12 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.V2Planner") as mock_planner_cls,
+            patch("ag.core.V3Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(
@@ -1121,12 +1139,12 @@ class TestInlinePlanConfirmRun:
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.V2Planner") as mock_planner_cls,
+            patch("ag.core.V3Planner") as mock_planner_cls,
         ):
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             result = runner.invoke(app, ["run", "-w", "test-ws", "Research test"], input="n\n")
@@ -1151,10 +1169,23 @@ class TestInlinePlanConfirmRun:
         mock_trace.to_json.return_value = "{}"
         mock_trace.steps = []
         mock_trace.error = None
+        mock_trace.workspace_id = "test-ws"
+        mock_trace.duration_ms = 500
+        mock_trace.planning = None
+        mock_trace.pipeline = None
+        mock_trace.playbook = MagicMock()
+        mock_trace.playbook.name = "v1plan_test"
+        mock_trace.playbook.version = "1.0"
+        mock_trace.verifier = MagicMock()
+        mock_trace.verifier.status = VerifierStatus.PASSED
+        mock_trace.verifier.evidence = None
+        mock_trace.verifier.llm_call = None
+        mock_trace.execution = None
+        mock_trace.workspace_source = None
 
         with (
             patch("ag.providers.registry.get_provider") as mock_get_provider,
-            patch("ag.core.V2Planner") as mock_planner_cls,
+            patch("ag.core.V3Planner") as mock_planner_cls,
             patch("ag.cli.main.create_runtime") as mock_create_rt,
             patch("ag.cli.main._get_run_store") as mock_get_rs,
             patch("ag.cli.main._get_artifact_store") as mock_get_as,
@@ -1162,7 +1193,7 @@ class TestInlinePlanConfirmRun:
             mock_provider = MagicMock()
             mock_get_provider.return_value = mock_provider
             mock_planner = MagicMock()
-            mock_planner.plan.return_value = self._mock_playbook()
+            mock_planner.plan_with_metadata.return_value = self._mock_plan_result()
             mock_planner_cls.return_value = mock_planner
 
             mock_runtime = MagicMock()
@@ -1192,10 +1223,10 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        # The --plan path should NOT invoke V2Planner
-        with patch("ag.core.V2Planner") as mock_planner_cls:
+        # The --plan path should NOT invoke V3Planner
+        with patch("ag.core.V3Planner") as mock_planner_cls:
             result = runner.invoke(app, ["run", "--plan", "plan_nonexistent", "-w", "test-ws"])
-            # It should fail because plan doesn't exist, but should NOT call V2Planner
+            # It should fail because plan doesn't exist, but should NOT call V3Planner
             mock_planner_cls.assert_not_called()
             assert result.exit_code != 0
 
@@ -1211,7 +1242,7 @@ class TestInlinePlanConfirmRun:
         assert "cannot be combined" in result.output.lower()
 
     def test_playbook_flag_bypasses_planner(self, _workspace) -> None:
-        """ag run --playbook uses explicit playbook, does not invoke V2Planner."""
+        """ag run --playbook uses explicit playbook, does not invoke V3Planner."""
         from unittest.mock import patch
 
         from typer.testing import CliRunner
@@ -1220,8 +1251,8 @@ class TestInlinePlanConfirmRun:
 
         runner = CliRunner()
 
-        with patch("ag.core.V2Planner") as mock_planner_cls:
-            # Will fail because playbook doesn't exist, but verifies V2Planner not called
+        with patch("ag.core.V3Planner") as mock_planner_cls:
+            # Will fail because playbook doesn't exist, but verifies V3Planner not called
             runner.invoke(app, ["run", "--playbook", "nonexistent", "-w", "test-ws", "test"])
             mock_planner_cls.assert_not_called()
 

@@ -1010,7 +1010,7 @@ class TestVerifierFailurePaths:
         assert "successfully" in message.lower()
 
     def test_empty_steps_with_failure_status(self) -> None:
-        """Empty steps list with FAILURE status → verifier fails."""
+        """BUG-0020: Empty steps list → verifier fails."""
         from ag.core.run_trace import FinalStatus
         from ag.core.runtime import V0Verifier
 
@@ -1020,10 +1020,10 @@ class TestVerifierFailurePaths:
         status, message = verifier.verify_components(steps, FinalStatus.FAILURE)
 
         assert status == "failed"
-        assert "failure" in message.lower()
+        assert "no steps executed" in message.lower()
 
     def test_empty_steps_with_success_status(self) -> None:
-        """Empty steps list with SUCCESS status → verifier passes (edge case)."""
+        """BUG-0020: Empty steps list must fail even with SUCCESS final status."""
         from ag.core.run_trace import FinalStatus
         from ag.core.runtime import V0Verifier
 
@@ -1032,8 +1032,9 @@ class TestVerifierFailurePaths:
 
         status, message = verifier.verify_components(steps, FinalStatus.SUCCESS)
 
-        # This is an edge case - no steps, but success. Verifier passes.
-        assert status == "passed"
+        # BUG-0020: A run that did nothing is never a success
+        assert status == "failed"
+        assert "no steps executed" in message.lower()
 
     def test_deterministic_behavior(self) -> None:
         """Identical inputs produce identical outputs (determinism test)."""
@@ -1061,6 +1062,71 @@ class TestVerifierFailurePaths:
         first_result = results[0]
         for result in results[1:]:
             assert result == first_result, "Verifier should be deterministic"
+
+
+class TestBUG0020EmptyPlanGuards:
+    """BUG-0020: Empty plan must never report success.
+
+    Tests that V0Verifier, V1Verifier, and V1Orchestrator all reject
+    runs with zero executed steps.
+    """
+
+    def test_v1_verifier_fails_on_empty_steps(self) -> None:
+        """V1Verifier.verify_components with empty steps returns failed."""
+        from ag.core.run_trace import FinalStatus
+        from ag.core.verifier import V1Verifier
+
+        verifier = V1Verifier()
+        status, message = verifier.verify_components([], FinalStatus.SUCCESS)
+
+        assert status == "failed"
+        assert "no steps executed" in message.lower()
+
+    def test_v1_verifier_fails_on_empty_steps_with_failure_status(self) -> None:
+        """V1Verifier empty steps + FAILURE status → still reports 'no steps'."""
+        from ag.core.run_trace import FinalStatus
+        from ag.core.verifier import V1Verifier
+
+        verifier = V1Verifier()
+        status, message = verifier.verify_components([], FinalStatus.FAILURE)
+
+        assert status == "failed"
+        assert "no steps executed" in message.lower()
+
+    def test_v1_orchestrator_fails_on_empty_plan(
+        self,
+        run_store: SQLiteRunStore,
+        artifact_store: SQLiteArtifactStore,
+    ) -> None:
+        """V1Orchestrator returns FAILURE trace for playbook with zero steps."""
+        from ag.core.orchestrator import V1Orchestrator
+        from ag.core.playbook import Budgets, Playbook, ReasoningMode
+        from ag.core.run_trace import FinalStatus, VerifierStatus
+        from ag.core.task_spec import ExecutionMode, TaskSpec
+
+        empty_playbook = Playbook(
+            playbook_version="0.1",
+            name="empty_test",
+            version="1.0.0",
+            description="Playbook with no steps",
+            reasoning_modes=[ReasoningMode.DIRECT],
+            budgets=Budgets(max_steps=1, max_tokens=None, max_duration_seconds=60),
+            steps=[],
+        )
+
+        task = TaskSpec(
+            prompt="Test empty plan",
+            workspace_id="bug0020-ws",
+            mode=ExecutionMode.MANUAL,
+        )
+
+        orchestrator = V1Orchestrator()
+        trace = orchestrator.run(task, empty_playbook)
+
+        assert trace.final == FinalStatus.FAILURE
+        assert trace.error == "No executable steps in plan"
+        assert trace.verifier.status == VerifierStatus.FAILED
+        assert len(trace.steps) == 0
 
 
 class TestVerifierFailurePathsE2E:
@@ -1369,3 +1435,398 @@ class TestPipelineManifest:
         # Must not raise even though "pipeline" is absent
         trace = RT.model_validate(raw)
         assert trace.pipeline is None
+
+
+# ---------------------------------------------------------------------------
+# AF-0123: V2Verifier semantic quality checks
+# ---------------------------------------------------------------------------
+
+
+class TestV2VerifierGracefulDegradation:
+    """V2Verifier without provider behaves exactly like V1Verifier."""
+
+    def test_no_provider_passes_clean_trace(self) -> None:
+        """V2Verifier(provider=None) passes on clean steps."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier()  # No provider
+        now = datetime.now(UTC)
+        steps = [
+            Step(step_id="s0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+        ]
+        status, message = verifier.verify_components(steps, FinalStatus.SUCCESS)
+        assert status == "passed"
+
+    def test_no_provider_fails_on_error_step(self) -> None:
+        """V2Verifier(provider=None) fails on required step error — same as V1."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier()
+        now = datetime.now(UTC)
+        steps = [
+            Step(
+                step_id="s0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="broken",
+            ),
+        ]
+        status, _ = verifier.verify_components(steps, FinalStatus.FAILURE)
+        assert status == "failed"
+
+    def test_no_provider_empty_steps(self) -> None:
+        """V2Verifier(provider=None) fails on empty steps — BUG-0020 guard."""
+        from ag.core.run_trace import FinalStatus
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier()
+        status, msg = verifier.verify_components([], FinalStatus.SUCCESS)
+        assert status == "failed"
+        assert "No steps executed" in msg
+
+    def test_no_provider_verify_full_trace(self) -> None:
+        """V2Verifier.verify() with no provider delegates to V1."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import (
+            FinalStatus,
+            PlaybookMetadata,
+            RunTrace,
+            Step,
+            StepType,
+            Verifier,
+            VerifierStatus,
+        )
+        from ag.core.verifier import V2Verifier
+
+        now = datetime.now(UTC)
+        trace = RunTrace(
+            workspace_id="ws-test",
+            mode="supervised",
+            playbook=PlaybookMetadata(name="test", version="1.0.0"),
+            started_at=now,
+            steps=[
+                Step(step_id="s0", step_number=0, step_type=StepType.SKILL_CALL, started_at=now),
+            ],
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now, message="ok"),
+            final=FinalStatus.SUCCESS,
+        )
+        verifier = V2Verifier()
+        status, _ = verifier.verify(trace)
+        assert status == "passed"
+
+
+class TestV2VerifierWithProvider:
+    """V2Verifier with a mock provider runs semantic checks."""
+
+    @staticmethod
+    def _make_mock_provider(response_content: str):
+        """Create a mock provider returning fixed content."""
+        from unittest.mock import MagicMock
+
+        from ag.providers.base import ChatResponse
+
+        provider = MagicMock()
+        provider.chat.return_value = ChatResponse(
+            content=response_content,
+            model="mock-model",
+            provider="mock",
+        )
+        return provider
+
+    @staticmethod
+    def _make_trace(steps=None, final=None):
+        """Build a minimal RunTrace for testing."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import (
+            FinalStatus,
+            PlaybookMetadata,
+            RunTrace,
+            Step,
+            StepType,
+            Verifier,
+            VerifierStatus,
+        )
+
+        now = datetime.now(UTC)
+        if steps is None:
+            steps = [
+                Step(
+                    step_id="s0",
+                    step_number=0,
+                    step_type=StepType.SKILL_CALL,
+                    skill_name="summarize",
+                    input_summary="Summarize docs",
+                    output_summary="Here is a summary of the docs.",
+                    started_at=now,
+                ),
+            ]
+        return RunTrace(
+            workspace_id="ws-test",
+            mode="supervised",
+            playbook=PlaybookMetadata(name="test", version="1.0.0"),
+            started_at=now,
+            steps=steps,
+            verifier=Verifier(status=VerifierStatus.PASSED, checked_at=now, message="ok"),
+            final=final or FinalStatus.SUCCESS,
+        )
+
+    def test_semantic_pass_all_high_scores(self) -> None:
+        """All semantic scores above threshold → pass."""
+        import json
+
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 0.9,
+                    "relevance_reason": "Directly addresses the task",
+                    "completeness_score": 0.85,
+                    "completeness_missing": [],
+                    "consistency_score": 0.95,
+                    "consistency_issues": [],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, _ = verifier.verify(trace)
+        assert status == "passed"
+        assert provider.chat.called
+
+    def test_semantic_fail_low_relevance(self) -> None:
+        """Low relevance score → verification fails."""
+        import json
+
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 0.2,
+                    "relevance_reason": "Output is off-topic",
+                    "completeness_score": 0.9,
+                    "completeness_missing": [],
+                    "consistency_score": 0.9,
+                    "consistency_issues": [],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, msg = verifier.verify(trace)
+        assert status == "failed"
+        assert "relevance" in msg.lower()
+
+    def test_semantic_fail_low_completeness(self) -> None:
+        """Low completeness score → verification fails."""
+        import json
+
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 0.9,
+                    "relevance_reason": "Good",
+                    "completeness_score": 0.2,
+                    "completeness_missing": ["executive summary", "conclusions"],
+                    "consistency_score": 0.9,
+                    "consistency_issues": [],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, msg = verifier.verify(trace)
+        assert status == "failed"
+        assert "completeness" in msg.lower()
+
+    def test_semantic_fail_low_consistency(self) -> None:
+        """Low consistency score → verification fails."""
+        import json
+
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 0.9,
+                    "relevance_reason": "Good",
+                    "completeness_score": 0.9,
+                    "completeness_missing": [],
+                    "consistency_score": 0.3,
+                    "consistency_issues": ["contradicts source material"],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, msg = verifier.verify(trace)
+        assert status == "failed"
+        assert "consistency" in msg.lower()
+
+    def test_llm_error_graceful_degradation(self) -> None:
+        """LLM call throws → graceful degradation to V1 result."""
+        from unittest.mock import MagicMock
+
+        provider = MagicMock()
+        provider.chat.side_effect = RuntimeError("LLM down")
+
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, _ = verifier.verify(trace)
+        # V1 mechanical checks pass → still pass despite LLM failure
+        assert status == "passed"
+
+    def test_malformed_json_graceful_degradation(self) -> None:
+        """LLM returns garbage → graceful degradation to V1 result."""
+        provider = self._make_mock_provider("not valid json at all {{{")
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace()
+        status, _ = verifier.verify(trace)
+        assert status == "passed"  # V1 passes, LLM parse error → degrade
+
+    def test_v1_fails_semantic_not_run(self) -> None:
+        """V1 failure short-circuits — semantic checks still run but can't save it."""
+        import json
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import FinalStatus, Step, StepType
+
+        now = datetime.now(UTC)
+        error_steps = [
+            Step(
+                step_id="s0",
+                step_number=0,
+                step_type=StepType.SKILL_CALL,
+                started_at=now,
+                error="failed",
+                required=True,
+            ),
+        ]
+        # Semantic scores are all high — but V1 already failed
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 1.0,
+                    "relevance_reason": "Perfect",
+                    "completeness_score": 1.0,
+                    "completeness_missing": [],
+                    "consistency_score": 1.0,
+                    "consistency_issues": [],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        verifier = V2Verifier(provider=provider)
+        trace = self._make_trace(steps=error_steps, final=FinalStatus.FAILURE)
+        status, _ = verifier.verify(trace)
+        assert status == "failed"
+
+    def test_custom_thresholds(self) -> None:
+        """Custom thresholds change pass/fail boundary."""
+        import json
+
+        response = json.dumps(
+            [
+                {
+                    "step_number": 0,
+                    "relevance_score": 0.55,
+                    "relevance_reason": "Marginal",
+                    "completeness_score": 0.55,
+                    "completeness_missing": [],
+                    "consistency_score": 0.55,
+                    "consistency_issues": [],
+                }
+            ]
+        )
+        provider = self._make_mock_provider(response)
+        from ag.core.verifier import V2Verifier
+
+        # With default thresholds (0.6/0.5/0.7), this would fail relevance + consistency
+        # With lowered thresholds, it passes
+        verifier = V2Verifier(
+            provider=provider,
+            relevance_threshold=0.5,
+            completeness_threshold=0.5,
+            consistency_threshold=0.5,
+        )
+        trace = self._make_trace()
+        status, _ = verifier.verify(trace)
+        assert status == "passed"
+
+
+class TestSemanticVerificationModel:
+    """Test SemanticVerification Pydantic model (AF-0123)."""
+
+    def test_valid_model(self) -> None:
+        from ag.core.run_trace import SemanticVerification
+
+        sv = SemanticVerification(
+            relevance_score=0.9,
+            relevance_reason="Good",
+            completeness_score=0.8,
+            completeness_missing=[],
+            consistency_score=0.95,
+            consistency_issues=[],
+            overall_pass=True,
+            llm_model="gpt-4o-mini",
+            llm_tokens_used=150,
+            evaluation_ms=500,
+        )
+        assert sv.overall_pass is True
+        assert sv.relevance_score == 0.9
+
+    def test_score_bounds(self) -> None:
+        """Scores must be 0.0–1.0."""
+        from pydantic import ValidationError
+
+        from ag.core.run_trace import SemanticVerification
+
+        with pytest.raises(ValidationError):
+            SemanticVerification(
+                relevance_score=1.5,  # out of bounds
+                completeness_score=0.5,
+                consistency_score=0.5,
+                overall_pass=False,
+            )
+
+    def test_extra_fields_forbidden(self) -> None:
+        """Extra fields are rejected."""
+        from pydantic import ValidationError
+
+        from ag.core.run_trace import SemanticVerification
+
+        with pytest.raises(ValidationError):
+            SemanticVerification(
+                relevance_score=0.5,
+                completeness_score=0.5,
+                consistency_score=0.5,
+                overall_pass=True,
+                extra_field="not allowed",
+            )

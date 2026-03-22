@@ -43,7 +43,7 @@ Each sprint folder:
 | Sprint 12 | Closed | [Sprint12_autonomy_boundaries](documentation/Sprint12_autonomy_boundaries/) |
 | Sprint 13 | Closed | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
 | Sprint 14 | Closed | [Sprint14_pipeline_trace_hardening](documentation/Sprint14_pipeline_trace_hardening/) |
-| Sprint 15 | In Progress | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
+| Sprint 15 | Closed | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
 
 ---
 
