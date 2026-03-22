@@ -175,6 +175,57 @@ class SkillRegistry:
         except Exception as e:
             return False, f"Skill execution failed: {e}", {"error": str(e)}
 
+    def execute_raw(
+        self,
+        name: str,
+        parameters: dict[str, Any],
+        context: SkillContext | None = None,
+    ) -> SkillOutput:
+        """Execute a skill and return the raw SkillOutput object (AF-0116).
+
+        Unlike execute(), this returns the typed SkillOutput directly without
+        calling to_legacy_tuple(). Used by V1Executor for output validation.
+
+        Args:
+            name: Skill name
+            parameters: Skill parameters
+            context: Optional SkillContext
+
+        Returns:
+            SkillOutput object from skill execution
+
+        Raises:
+            KeyError: If skill not found
+            ValueError: If input validation fails
+            RuntimeError: If skill execution fails
+        """
+        skill_info = self._skills.get(name)
+        if skill_info is None:
+            raise KeyError(f"Skill not found: {name}")
+
+        skill = skill_info.skill
+        ctx = context or SkillContext()
+
+        # Validate context requirements
+        try:
+            skill.validate_context(ctx)
+        except ValueError as e:
+            raise ValueError(f"Context validation failed: {e}") from e
+
+        # Parse and validate input
+        try:
+            schema_fields = set(skill_info.input_schema.model_fields.keys())
+            filtered_params = {k: v for k, v in parameters.items() if k in schema_fields}
+            input_data = skill_info.input_schema.model_validate(filtered_params)
+        except Exception as e:
+            raise ValueError(f"Invalid input: {e}") from e
+
+        # Execute skill and return raw output
+        try:
+            return skill.execute(input_data, ctx)
+        except Exception as e:
+            raise RuntimeError(f"Skill execution failed: {e}") from e
+
     def list_skills(self) -> list[str]:
         """List all registered skill names."""
         return sorted(self._skills.keys())
