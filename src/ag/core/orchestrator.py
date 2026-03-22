@@ -21,6 +21,7 @@ from ag.core.run_trace import (
     Artifact,
     FinalStatus,
     LLMExecution,
+    PipelineManifest,
     PlanningMetadata,
     PlaybookMetadata,
     RunTrace,
@@ -593,6 +594,7 @@ class V1Orchestrator(V0Orchestrator):
         playbook: Playbook,
         workspace_source: str | None = None,
         planning: PlanningMetadata | None = None,
+        pipeline: PipelineManifest | None = None,
     ) -> RunTrace:
         """Execute a playbook with per-step verification (AF-0117).
 
@@ -611,6 +613,7 @@ class V1Orchestrator(V0Orchestrator):
             playbook: The playbook to execute
             workspace_source: How the workspace was resolved (AF-0030)
             planning: Optional planning metadata (AF-0119)
+            pipeline: Optional pipeline manifest (AF-0120)
         """
         # Expand PLAYBOOK steps to skill steps
         expanded_playbook = Playbook(
@@ -897,6 +900,7 @@ class V1Orchestrator(V0Orchestrator):
             mode=task.mode,
             playbook=PlaybookMetadata(name=expanded_playbook.name, version=expanded_playbook.version),
             planning=planning,  # AF-0119: Include planning metadata
+            pipeline=pipeline,  # AF-0120: Include pipeline manifest
             started_at=started_at,
             ended_at=ended_at,
             duration_ms=duration_ms,

@@ -20,7 +20,7 @@ from ag.core.orchestrator import (
 from ag.core.planner import PlanningResult, V0Planner
 from ag.core.playbook import Playbook
 from ag.core.recorder import V0Recorder
-from ag.core.run_trace import PlanningLLMCall, PlanningMetadata, RunTrace
+from ag.core.run_trace import PipelineManifest, PlanningLLMCall, PlanningMetadata, RunTrace
 from ag.core.task_spec import Budgets, Constraints, ExecutionMode, TaskSpec
 from ag.core.verifier import V0Verifier, V1Verifier
 from ag.skills import SkillRegistry
@@ -149,11 +149,30 @@ class Runtime:
         else:
             selected_playbook = self._planner.plan(task)
 
-        # Execute (pass planning metadata if orchestrator is V1 and supports it)
-        if isinstance(self._orchestrator, V1Orchestrator) and planning_metadata is not None:
-            # V1Orchestrator with planning support (AF-0119)
+        # AF-0120: Build pipeline manifest from component class names
+        pipeline_manifest = PipelineManifest(
+            planner=self._planner.__class__.__name__,
+            orchestrator=self._orchestrator.__class__.__name__,
+            executor=getattr(self._orchestrator, "_executor", None).__class__.__name__
+            if hasattr(self._orchestrator, "_executor") and self._orchestrator._executor is not None
+            else None,
+            verifier=getattr(self._orchestrator, "_verifier", None).__class__.__name__
+            if hasattr(self._orchestrator, "_verifier") and self._orchestrator._verifier is not None
+            else None,
+            recorder=getattr(self._orchestrator, "_recorder", None).__class__.__name__
+            if hasattr(self._orchestrator, "_recorder") and self._orchestrator._recorder is not None
+            else None,
+        )
+
+        # Execute (pass planning metadata and pipeline manifest if orchestrator is V1)
+        if isinstance(self._orchestrator, V1Orchestrator):
+            # V1Orchestrator with planning support (AF-0119) and pipeline manifest (AF-0120)
             trace = self._orchestrator.run(
-                task, selected_playbook, workspace_source=workspace_source, planning=planning_metadata
+                task,
+                selected_playbook,
+                workspace_source=workspace_source,
+                planning=planning_metadata,
+                pipeline=pipeline_manifest,
             )
         else:
             trace = self._orchestrator.run(task, selected_playbook, workspace_source=workspace_source)

@@ -399,6 +399,24 @@ class AutonomyMetadata(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+class PipelineManifest(BaseModel):
+    """Pipeline component manifest for a run (AF-0120).
+
+    Records which component versions (V0/V1/V2) were used for execution.
+    Enables reproducibility and debugging of behavior differences.
+    """
+
+    planner: str | None = Field(
+        default=None, description="Planner class name (V0Planner, V1Planner, V2Planner)"
+    )
+    orchestrator: str | None = Field(default=None, description="Orchestrator class name")
+    executor: str | None = Field(default=None, description="Executor class name")
+    verifier: str | None = Field(default=None, description="Verifier class name")
+    recorder: str | None = Field(default=None, description="Recorder class name")
+
+    model_config = {"extra": "forbid"}
+
+
 class RunTrace(BaseModel):
     """v0.1 RunTrace — the evidence log for a single run.
 
@@ -445,6 +463,10 @@ class RunTrace(BaseModel):
     # AF-0101: Autonomy mode tracking (additive field)
     autonomy: AutonomyMetadata | None = Field(
         default=None, description="Autonomy mode and policy info (AF-0101)"
+    )
+    # AF-0120: Pipeline component manifest (additive field)
+    pipeline: PipelineManifest | None = Field(
+        default=None, description="Pipeline component versions (AF-0120)"
     )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Additional run metadata")
 

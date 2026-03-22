@@ -1252,3 +1252,120 @@ class TestVerifierFailurePathsE2E:
 
         # checked_at should be set
         assert trace.verifier.checked_at is not None
+
+
+# ---------------------------------------------------------------------------
+# Pipeline Manifest Tests (AF-0120)
+# ---------------------------------------------------------------------------
+
+
+class TestPipelineManifest:
+    """AF-0120: Pipeline component manifest is recorded in each RunTrace.
+
+    Verifies that the pipeline block:
+    - Is always present after execution
+    - Accurately records the class names of all 5 components
+    - Is backward-compatible (None on old traces)
+    - Round-trips through JSON serialization
+    """
+
+    def test_pipeline_manifest_present_in_trace(self, runtime: "Runtime") -> None:
+        """RunTrace includes a pipeline block after execution."""
+        trace = runtime.execute(
+            prompt="Test pipeline manifest presence",
+            workspace="ws-pipeline",
+            mode="manual",
+        )
+
+        assert trace.pipeline is not None
+
+    def test_pipeline_manifest_all_components(self, runtime: "Runtime") -> None:
+        """Pipeline block contains all 5 component names."""
+        trace = runtime.execute(
+            prompt="Test all pipeline components",
+            workspace="ws-pipeline-components",
+            mode="manual",
+        )
+
+        assert trace.pipeline is not None
+        assert trace.pipeline.planner is not None
+        assert trace.pipeline.orchestrator is not None
+        assert trace.pipeline.executor is not None
+        assert trace.pipeline.verifier is not None
+        assert trace.pipeline.recorder is not None
+
+    def test_pipeline_manifest_correct_class_names(self, runtime: "Runtime") -> None:
+        """Pipeline block records the correct default component class names."""
+        trace = runtime.execute(
+            prompt="Test pipeline class names",
+            workspace="ws-pipeline-names",
+            mode="manual",
+        )
+
+        assert trace.pipeline is not None
+        assert trace.pipeline.planner == "V0Planner"
+        assert trace.pipeline.orchestrator == "V1Orchestrator"
+        assert trace.pipeline.executor == "V0Executor"
+        assert trace.pipeline.verifier == "V1Verifier"
+        assert trace.pipeline.recorder == "V0Recorder"
+
+    def test_pipeline_manifest_in_json_output(self, runtime: "Runtime") -> None:
+        """Pipeline block survives JSON round-trip and appears in serialised output."""
+        trace = runtime.execute(
+            prompt="Test pipeline JSON",
+            workspace="ws-pipeline-json",
+            mode="manual",
+        )
+
+        json_str = trace.to_json()
+        assert '"pipeline"' in json_str
+        assert '"planner"' in json_str
+        assert "V0Planner" in json_str
+
+        # Full round-trip
+        from ag.core.run_trace import RunTrace as RT
+
+        restored = RT.from_json(json_str)
+        assert restored.pipeline is not None
+        assert restored.pipeline.planner == trace.pipeline.planner
+        assert restored.pipeline.orchestrator == trace.pipeline.orchestrator
+        assert restored.pipeline.executor == trace.pipeline.executor
+        assert restored.pipeline.verifier == trace.pipeline.verifier
+        assert restored.pipeline.recorder == trace.pipeline.recorder
+
+    def test_pipeline_manifest_backward_compat(self) -> None:
+        """Old traces without pipeline block still deserialise successfully."""
+        from datetime import UTC, datetime
+
+        from ag.core.run_trace import (
+            ExecutionMode,
+            FinalStatus,
+            VerifierStatus,
+        )
+        from ag.core.run_trace import (
+            RunTrace as RT,
+        )
+
+        # Build a minimal valid trace dict without a pipeline key
+        now = datetime.now(UTC).isoformat()
+        raw = {
+            "run_id": "old-run-001",
+            "workspace_id": "ws-old",
+            "mode": ExecutionMode.MANUAL.value,
+            "playbook": {"name": "default_v0", "version": "1.0.0"},
+            "started_at": now,
+            "ended_at": now,
+            "steps": [],
+            "artifacts": [],
+            "verifier": {
+                "status": VerifierStatus.PASSED.value,
+                "checked_at": now,
+                "message": "ok",
+                "evidence": {},
+            },
+            "final": FinalStatus.SUCCESS.value,
+        }
+
+        # Must not raise even though "pipeline" is absent
+        trace = RT.model_validate(raw)
+        assert trace.pipeline is None
