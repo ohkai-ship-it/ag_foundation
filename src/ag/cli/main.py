@@ -232,6 +232,13 @@ def format_verifier(status: VerifierStatus) -> str:
 
 def _display_trace_extras(trace: "RunTrace", console: "Console") -> None:
     """Display execution metadata and semantic scores from a trace (AF-0126, BUG-0023)."""
+    # AF-0126: Feasibility LLM call
+    if trace.planning and trace.planning.feasibility_llm_call:
+        flc = trace.planning.feasibility_llm_call
+        tokens = flc.total_tokens or 0
+        model = flc.model or "?"
+        console.print(f"  Feasibility LLM: {model} · {tokens} tokens")
+
     # AF-0126: Execution section (repairs)
     if trace.execution and trace.execution.total_repair_attempts > 0:
         em = trace.execution
@@ -1473,6 +1480,16 @@ def runs_show(
                         console.print(f"  Model:      {lc.model}")
                 if trace.planning.confidence is not None:
                     console.print(f"  Confidence: {trace.planning.confidence:.0%}")
+                if trace.planning.feasibility_llm_call:
+                    flc = trace.planning.feasibility_llm_call
+                    f_total = flc.total_tokens or 0
+                    f_inp = flc.input_tokens or 0
+                    f_out = flc.output_tokens or 0
+                    console.print(
+                        f"  Feasibility: {f_total} tokens (input: {f_inp}, output: {f_out})"
+                    )
+                    if flc.model:
+                        console.print(f"  Feas. Model: {flc.model}")
                 console.print()
 
             # AF-0122: Pipeline section

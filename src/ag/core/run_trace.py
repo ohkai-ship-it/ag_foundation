@@ -47,6 +47,11 @@ class FeasibilityAssessment(BaseModel):
     recommendations: list[str] = Field(
         default_factory=list, description="Recommendations for the user"
     )
+    # AF-0126: LLM call metadata for feasibility assessment
+    llm_model: str | None = Field(default=None, description="Model used for feasibility check")
+    llm_tokens: int | None = Field(default=None, ge=0, description="Total tokens used")
+    llm_input_tokens: int | None = Field(default=None, ge=0, description="Input tokens")
+    llm_output_tokens: int | None = Field(default=None, ge=0, description="Output tokens")
 
     model_config = {"extra": "forbid"}
 
@@ -487,6 +492,10 @@ class PlanningMetadata(BaseModel):
     )
     feasibility_score: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Feasibility score (AF-0121)"
+    )
+    # AF-0126: Feasibility LLM call (separate from planning LLM call)
+    feasibility_llm_call: PlanningLLMCall | None = Field(
+        default=None, description="LLM call details for feasibility assessment (AF-0126)"
     )
 
     model_config = {"extra": "forbid"}

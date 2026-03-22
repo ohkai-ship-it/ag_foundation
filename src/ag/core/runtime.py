@@ -151,6 +151,7 @@ class Runtime:
                     confidence=plan_result.confidence,
                     feasibility_level=plan_result.feasibility_level,
                     feasibility_score=plan_result.feasibility_score,
+                    feasibility_llm_call=self._build_feasibility_llm_call(plan_result),
                 )
         elif hasattr(self._planner, "plan_with_metadata"):
             # AF-0119: Use plan_with_metadata() to capture planning trace
@@ -213,6 +214,20 @@ class Runtime:
             )
 
         return trace
+
+    @staticmethod
+    def _build_feasibility_llm_call(
+        plan_result: PlanningResult,
+    ) -> PlanningLLMCall | None:
+        """Build a PlanningLLMCall from feasibility token fields (AF-0126)."""
+        if not (plan_result.feasibility_model or plan_result.feasibility_tokens):
+            return None
+        return PlanningLLMCall(
+            model=plan_result.feasibility_model,
+            input_tokens=plan_result.feasibility_input_tokens,
+            output_tokens=plan_result.feasibility_output_tokens,
+            total_tokens=plan_result.feasibility_tokens,
+        )
 
     def close(self) -> None:
         """Close underlying storage connections."""

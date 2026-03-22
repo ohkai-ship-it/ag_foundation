@@ -117,6 +117,11 @@ class PlanningResult:
     # AF-0121: Feasibility assessment fields
     feasibility_level: str | None = None
     feasibility_score: float | None = None
+    # AF-0126: Feasibility LLM call info
+    feasibility_model: str | None = None
+    feasibility_tokens: int | None = None
+    feasibility_input_tokens: int | None = None
+    feasibility_output_tokens: int | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -1067,12 +1072,22 @@ class V3Planner(V2Planner):
             except ValidationError:
                 logger.warning(f"Skipping malformed capability gap: {gap_dict}")
 
+        # AF-0126: Extract LLM call metadata from response
+        feas_model = getattr(response, "model", None)
+        feas_total = getattr(response, "tokens_used", None)
+        feas_input = getattr(response, "input_tokens", None)
+        feas_output = getattr(response, "output_tokens", None)
+
         return FeasibilityAssessment(
             level=level,
             score=parsed.score,
             reason=parsed.reason,
             capability_gaps=gaps,
             recommendations=parsed.recommendations,
+            llm_model=feas_model,
+            llm_tokens=feas_total,
+            llm_input_tokens=feas_input,
+            llm_output_tokens=feas_output,
         )
 
     def _get_feasibility_system_prompt(self) -> str:
@@ -1229,5 +1244,9 @@ Identify any capability gaps and provide a feasibility assessment."""
         if self._last_feasibility is not None:
             result.feasibility_level = self._last_feasibility.level.value
             result.feasibility_score = self._last_feasibility.score
+            result.feasibility_model = self._last_feasibility.llm_model
+            result.feasibility_tokens = self._last_feasibility.llm_tokens
+            result.feasibility_input_tokens = self._last_feasibility.llm_input_tokens
+            result.feasibility_output_tokens = self._last_feasibility.llm_output_tokens
 
         return result
