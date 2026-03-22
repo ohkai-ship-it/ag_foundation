@@ -30,6 +30,7 @@ from ag.core import (
 from ag.providers.base import ChatResponse, LLMProvider, MessageRole
 from ag.skills import SkillRegistry
 from ag.skills.base import Skill, SkillContext, SkillInput, SkillOutput
+from ag.skills.registry import create_default_registry
 
 # ---------------------------------------------------------------------------
 # Test Fixtures
@@ -1676,3 +1677,105 @@ class TestV3PlannerFeasibility:
 
         with pytest.raises(PlannerError, match="Invalid JSON"):
             planner.plan(task_spec)
+
+
+# ---------------------------------------------------------------------------
+# BUG-0024: Planner strips redundant emit_result after playbook
+# ---------------------------------------------------------------------------
+
+
+class TestBUG0024RedundantEmitResult:
+    """BUG-0024: Planner removes emit_result after playbooks that already contain it."""
+
+    @pytest.fixture
+    def full_registry(self) -> SkillRegistry:
+        """Registry with real skills including emit_result."""
+        return create_default_registry()
+
+    def test_strips_emit_result_after_playbook(
+        self, mock_provider: MagicMock, full_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """Trailing emit_result after research_v0 (which contains emit_result) is removed."""
+        from ag.core.planner import V2Planner
+
+        plan_json = json.dumps(
+            {
+                "steps": [
+                    {
+                        "type": "playbook",
+                        "playbook": "research_v0",
+                        "params": {},
+                        "rationale": "Research",
+                    },
+                    {
+                        "type": "skill",
+                        "skill": "emit_result",
+                        "params": {},
+                        "rationale": "Produce output",
+                    },
+                ],
+                "estimated_tokens": 5000,
+                "confidence": 0.85,
+            }
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, full_registry)
+        result = planner.plan(task_spec)
+
+        # Only the playbook step should remain — emit_result stripped
+        assert len(result.steps) == 1
+        assert result.steps[0].step_type == PlaybookStepType.PLAYBOOK
+        assert result.steps[0].skill_name == "research_v0"
+
+    def test_keeps_emit_result_for_skill_only_plan(
+        self, mock_provider: MagicMock, full_registry: SkillRegistry, task_spec: TaskSpec
+    ) -> None:
+        """emit_result is preserved when plan uses only individual skills."""
+        from ag.core.planner import V2Planner
+
+        plan_json = json.dumps(
+            {
+                "steps": [
+                    {
+                        "type": "skill",
+                        "skill": "zero_skill",
+                        "params": {},
+                        "rationale": "Process",
+                    },
+                    {
+                        "type": "skill",
+                        "skill": "emit_result",
+                        "params": {},
+                        "rationale": "Produce output",
+                    },
+                ],
+                "estimated_tokens": 1000,
+                "confidence": 0.9,
+            }
+        )
+        mock_provider.chat.return_value = ChatResponse(
+            content=plan_json,
+            model="mock-model",
+            provider="mock",
+            tokens_used=50,
+            finish_reason="stop",
+            created_at=None,
+            raw_response=None,
+        )
+
+        planner = V2Planner(mock_provider, full_registry)
+        result = planner.plan(task_spec)
+
+        # Both steps preserved — no playbook in plan
+        assert len(result.steps) == 2
+        assert result.steps[0].skill_name == "zero_skill"
+        assert result.steps[1].skill_name == "emit_result"

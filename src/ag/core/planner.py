@@ -594,6 +594,7 @@ class V2Planner(V1Planner):
             raise PlannerError(f"Failed to parse LLM response: {e}") from e
 
         self._validate_v2_steps(plan_response)
+        self._strip_redundant_emit_result(plan_response)
         playbook = self._build_v2_playbook(task, plan_response)
 
         logger.info(
@@ -640,6 +641,9 @@ Rules:
 4. Prefer playbooks when the task closely matches a playbook's use case
 5. Use individual skills when playbooks don't fit or for additional steps
 6. You can mix playbooks and skills in a single plan
+7. Playbooks are self-contained — their internal step sequences already produce
+   output (check each playbook's steps list). NEVER add a standalone emit_result
+   step after a playbook step that already contains emit_result internally.
 
 Respond with valid JSON matching this schema:
 {
@@ -787,6 +791,43 @@ Respond with a JSON plan."""
                 raise PlannerError(
                     f"Unknown step type '{step_type}', expected 'skill' or 'playbook'"
                 )
+
+    def _strip_redundant_emit_result(self, plan: LLMPlanResponse) -> None:
+        """Remove standalone emit_result after a playbook with emit_result (BUG-0024)."""
+        from ag.playbooks import get_playbook as get_pb
+
+        # Identify playbooks that already contain emit_result internally
+        playbooks_with_emit: set[str] = set()
+        for step in plan.steps:
+            if step.type == "playbook" and step.playbook:
+                pb = get_pb(step.playbook)
+                if pb and any(s.skill_name == "emit_result" for s in pb.steps):
+                    playbooks_with_emit.add(step.playbook)
+
+        if not playbooks_with_emit:
+            return
+
+        original_count = len(plan.steps)
+        filtered: list[PlannedStep] = []
+        saw_playbook_with_emit = False
+        for step in plan.steps:
+            if step.type == "playbook" and step.playbook in playbooks_with_emit:
+                saw_playbook_with_emit = True
+                filtered.append(step)
+            elif step.type == "skill" and step.skill == "emit_result" and saw_playbook_with_emit:
+                correction = (
+                    "Removed redundant emit_result after playbook that already "
+                    "produces output internally"
+                )
+                logger.warning(correction)
+                self._last_validation_corrections.append(correction)
+                # Don't append — skip this step
+            else:
+                saw_playbook_with_emit = False
+                filtered.append(step)
+
+        if len(filtered) < original_count:
+            plan.steps = filtered
 
     def _build_v2_playbook(self, task: TaskSpec, plan: LLMPlanResponse) -> Playbook:
         """Convert V2 plan response to Playbook with mixed step types."""
