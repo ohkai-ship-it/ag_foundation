@@ -38,7 +38,7 @@ Examining `trace.json` for run `8cec9c63-3dfc-40cc-a497-9e7e3e84cae7`:
 
 - Changing the planner's behavior or LLM selection
 - Recording intermediate LLM retries (save for V1Executor scope)
-- Persisting raw LLM prompts in production (security concern — consider redaction)
+- Persisting raw LLM prompts or full LLM responses in RunTrace (security concern — decided 2026-03-22: record parsed plan steps only, not raw LLM response; avoids prompt/user-data leakage, keeps configuration simple vs env-var toggles)
 
 ---
 
@@ -61,8 +61,8 @@ Add a `planning` block to `RunTrace`:
     "output_tokens": 645,
     "total_tokens": 11978
   },
-  "raw_plan_steps": [...],
-  "validation_corrections": [],
+  "raw_plan_steps": [...],       // parsed steps only (no raw LLM response)
+  "validation_corrections": [],  // auto-corrections applied (e.g. BUG-0018)
   "confidence": 0.85
 }
 ```

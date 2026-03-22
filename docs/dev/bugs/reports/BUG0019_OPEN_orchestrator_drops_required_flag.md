@@ -94,14 +94,18 @@ V1Orchestrator's `_expand_steps()` method creates new `Step` objects from `Playb
 
 ## Proposed fix
 
-In V1Orchestrator `_expand_steps()`, when creating a `Step` from a `PlaybookStep`, propagate the `required` field:
+**Decision (2026-03-22, Kai):** Use AND logic — the sub-step is required only if *both* the parent step and the playbook author agree.
+
+In V1Orchestrator `_expand_steps()`, change the `required` assignment:
 
 ```python
-Step(
+inlined = PlaybookStep(
     ...
-    required=playbook_step.required,  # ← add this
+    required=step.required and sub_step.required,  # AND logic
 )
 ```
+
+Rationale: The playbook author knows which steps are optional (e.g., `load_documents` is `required=False` in `research_v0`). A parent step cannot promote an author-declared-optional sub-step to required — that overrides domain knowledge. AND is the conservative choice.
 
 One-line fix in the orchestrator expansion code.
 

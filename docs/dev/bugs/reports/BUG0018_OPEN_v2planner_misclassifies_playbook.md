@@ -89,9 +89,15 @@ When the LLM returns `{"type": "skill", "skill": "research_v0"}` and `research_v
 
 ## Proposed fix
 
+**Decision (2026-03-22, Kai):** Auto-correct + warn (maximize success rate; LLM retry is expensive and may repeat the same error).
+
 ### Fix 1: Cross-check validation in `_validate_v2_steps()` (required)
 
-For skill steps: if `skill_registry.has(name)` fails, check `get_pb(name)`. If found, auto-correct type to `"playbook"` and log warning. Vice versa for playbook steps.
+Add bi-directional cross-check with these rules:
+1. `type=skill` but name exists only as playbook → auto-correct to `type=playbook`, log warning
+2. `type=playbook` but name exists only as skill → auto-correct to `type=skill`, log warning
+3. Name exists in *neither* namespace → raise `PlannerError` (current behavior, correct)
+4. Name exists in *both* namespaces → trust the declared type (unlikely edge case, but safe)
 
 ### Fix 2: Improve V2 system prompt (recommended)
 

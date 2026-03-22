@@ -94,7 +94,7 @@ class V1Executor:
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Validation engine | Pydantic `model_validate` (direct) | Simpler than wiring SchemaValidator for V1; SchemaValidator used for V2+ repair loops |
-| Retry strategy | Re-invoke skill with same input | Idempotent retry; LLM calls are non-deterministic, so retry may produce valid output |
+| Retry strategy | Re-invoke skill with same input | Idempotent retry; LLM calls are non-deterministic, so retry may produce valid output. V2 consideration: add `skill_info.is_deterministic` flag to skip retry for deterministic skills (no benefit from retry). |
 | Max attempts | 2 retries (3 total, matching `DEFAULT_MAX_VALIDATION_ATTEMPTS`) | Conservative; bounded by existing constant |
 | Where to validate | In Executor, before returning | Keeps validation coupled to execution; orchestrator doesn't need to know |
 | Trace recording | `StepType.VERIFICATION` step per attempt | Uses existing enum value that's currently unused |

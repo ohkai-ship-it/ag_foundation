@@ -52,7 +52,7 @@ This means:
 - Verification runs after each step, before output chains to the next step
 - Failed required step → stop execution (existing behavior, now with richer error data)
 - Failed optional step → continue, but record verification result (BUG-0017 fix)
-- Verification results visible as `VERIFICATION` steps interleaved with `SKILL_CALL` steps in trace
+- Verification results visible as `VERIFICATION` steps interleaved with `SKILL_CALL` steps in trace (Option A — interleaved, decided 2026-03-22: preserves causal ordering in the trace event log; callers can filter by `StepType` when they only want skill steps)
 - Runtime flow matches architecture: `Executor → Verifier → Recorder` per step
 
 ---
