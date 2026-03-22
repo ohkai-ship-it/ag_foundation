@@ -141,9 +141,9 @@ Evidence: `bug_triage.md`
 
 ### Review metadata
 - **Reviewed by:** Jeff + Kai
-- **Date:** YYYY-MM-DD
+- **Date:** 2026-03-22
 - **Scope:** Sprint14
-- **Decision:** _(pending Jeff + Kai)_
+- **Decision:** ACCEPT WITH FOLLOW-UPS
 
 ---
 
@@ -188,14 +188,27 @@ Evidence: `bug_triage.md`
   - **P2** `pytest -W error` intermittently fails due to `ddgs`/`primp` SSL socket GC noise (pre-existing, not S14 regression; see `bug_triage.md`)
   - **P2** 7 pre-existing ruff lint errors fixed during review (E501 ×4, E402 ×1, I001 ×1, E501+noqa ×1) — should have been caught at commit time
 - 🧩 Follow-ups (AF/BUG/ADR to create):
-  - AF recommended: fix `pytest -W error` SSL socket noise (mock at transport layer or GC teardown)
-  - AF-V3Planner implementation: per ADR-0009, ~7 steps scoped for S15
-  - Consider: ruff pre-commit hook to catch E501/E402 before commit
+  - BUG-0021: ddgs/primp SSL socket GC noise causes `pytest -W error` flakiness (P2)
+  - BUG-0020: Empty plan reports success (P0, already filed, Sprint 15)
+  - AF-0121: V3Planner feasibility assessment (P1, already filed, Sprint 15)
+  - AF-0123: V2Verifier LLM semantic checks (P1, already filed, Sprint 15)
+  - AF-0124: V2Executor LLM output repair (P2, already filed, Sprint 15)
 
 ---
 
 ### Decision rationale
-_(pending Jeff + Kai)_
+All 10 sprint items shipped (8 AFs + 2 BUGs). Full pipeline trace hardening
+delivered: executor validation, per-step verification, verifier evidence,
+planner attribution, pipeline manifest — all integrated and tested.
+
+Autonomy Gate: all checks pass. Truthful UX verified via 19 CLI tests +
+manual spot-check. Workspace isolation confirmed. Coverage 88% (above 85% threshold).
+
+Two P2 issues found — both pre-existing, neither S14 regressions:
+1. `pytest -W error` intermittent failure from ddgs/primp SSL socket GC noise → BUG-0021
+2. 7 pre-existing ruff lint errors fixed during review → addressed by new two-phase CI workflow in templates
+
+No P0 or P1 issues. Per gate rule: P2-only with follow-ups → ACCEPT WITH FOLLOW-UPS.
 
 Decision rule for autonomy-affecting sprints:
 - Open P0 Autonomy Gate failure => `REJECT`
@@ -204,6 +217,10 @@ Decision rule for autonomy-affecting sprints:
 ---
 
 ### Next actions
-- [ ] Close sprint (if ACCEPT/ACCEPT WITH FOLLOW-UPS)
-- [ ] Create follow-up AF/BUG/ADR items and update indices
-- [ ] If REJECT: specify blocking issues and required fixes
+- [x] Close sprint (ACCEPT WITH FOLLOW-UPS)
+- [x] Follow-up items created and indexed:
+  - BUG-0020 (P0, Sprint 15)
+  - BUG-0021 (P2, filed)
+  - AF-0121, AF-0123, AF-0124 (Sprint 15)
+- [ ] Merge feature branch to main
+- [ ] Update INDEX_SPRINTS: Sprint 14 → Closed
