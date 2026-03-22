@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0124
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P2
 - **Area:** Core Runtime / Executor
 - **Owner:** —

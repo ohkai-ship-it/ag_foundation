@@ -111,11 +111,11 @@ All pipeline components have Protocol interfaces in `interfaces.py` and versione
 | Component | Protocol | V0 Implementation | V1+ Implementation | Primary File |
 |-----------|----------|-------------------|-------------------|-------------|
 | TaskSpec | — (schema) | `TaskSpec` | — | `task_spec.py` |
-| Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` (ADR-0009) | `planner.py` |
+| Planner | `Planner` | `V0Planner` | `V1Planner` ✅, `V2Planner` ✅, `V3Planner` (AF-0121, Sprint 15) | `planner.py` |
 | Orchestrator | `Orchestrator` | `V0Orchestrator` | `V1Orchestrator` ✅ | `orchestrator.py` |
-| Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116) | `executor.py` |
-| Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115) | `verifier.py` |
-| Recorder | `Recorder` | `V0Recorder` | AF-0118 | `recorder.py` |
+| Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116), `V2Executor` (AF-0124, Sprint 15) | `executor.py` |
+| Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115), `V2Verifier` (AF-0123, Sprint 15) | `verifier.py` |
+| Recorder | `Recorder` | `V0Recorder` | `V1Recorder` ✅ (AF-0118) | `recorder.py` |
 
 > **Current state:** V0 Orchestrator, Executor, Verifier, and Recorder all live in `runtime.py`.
 > AF-0114 extracts them to dedicated files. `runtime.py` becomes the composition root (assembly/wiring only).

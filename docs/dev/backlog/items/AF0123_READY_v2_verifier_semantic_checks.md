@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0123
 - **Type:** Feature
-- **Status:** PROPOSED
+- **Status:** READY
 - **Priority:** P1
 - **Area:** Core Runtime / Verifier
 - **Owner:** —

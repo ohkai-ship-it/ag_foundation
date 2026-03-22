@@ -294,24 +294,29 @@ Exit criteria:
 ## Sprint 15 --- LLM Intelligence Layer (Gate C Target)
 
 Goal: Add LLM-powered semantic verification, output repair, and
-feasibility judgment. Achieve Gate C readiness.
+feasibility judgment. Fix the empty-plan-as-success bug. Achieve Gate C
+readiness.
 
 Scope focus:
-- AF-0104 V3 Planner: feasibility assessment (P1)
-- V2 Verifier: LLM semantic quality checks (P1) — new AF from AF-0115 roadmap
-- V2 Executor: LLM output repair (P2) — new AF from AF-0116 roadmap
+- BUG-0020 Empty plan reports success (P0)
+- AF-0121 V3Planner: feasibility assessment (P1)
+- AF-0123 V2Verifier: LLM semantic quality checks (P1)
+- AF-0124 V2Executor: LLM output repair (P2)
+- AF-0122 CLI planning and pipeline display (P2)
 
 Exit criteria:
+- Empty plan no longer reports success (BUG-0020)
 - Planner emits feasibility judgment (FULLY / MOSTLY / NOT_FEASIBLE)
 - Planner reports capability gaps and suggests workarounds
 - V2Verifier evaluates output relevance, completeness, consistency via LLM
 - V2Executor attempts LLM repair before full skill re-invocation
+- CLI displays planning tokens and pipeline manifest
 - Gate C conditions substantially met (see Gate table)
 
 Gate C target items addressed across Sprint 13-15:
 - (2) Replanning on step failure: AF-0117 (mixed plans in S13, per-step verification in S14)
-- (3) Feasibility judgment: AF-0104
-- (4) Strategy justification in trace: AF-0118 + V2 Verifier evidence
+- (3) Feasibility judgment: AF-0121
+- (4) Strategy justification in trace: AF-0118 + AF-0123 V2Verifier evidence
 - (5) V2Planner composition: AF-0103 + AF-0117 partial (playbooks + V1Orchestrator)
 - (1) Policy engine: deferred (not LLM-dependent)
 

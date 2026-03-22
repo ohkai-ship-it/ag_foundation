@@ -33,11 +33,11 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | — | [🔗](../bugs/reports/BUG0020_OPEN_empty_plan_reports_success.md) |
-| 2 | AF-0121 | P1 | PROPOSED | V3Planner: feasibility assessment | Core Runtime / Planner | — | [🔗](items/AF0121_PROPOSED_v3planner_feasibility_assessment.md) |
-| 3 | AF-0123 | P1 | PROPOSED | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | — | [🔗](items/AF0123_PROPOSED_v2_verifier_semantic_checks.md) |
-| 4 | AF-0124 | P2 | PROPOSED | V2Executor: LLM output repair | Core Runtime / Executor | — | [🔗](items/AF0124_PROPOSED_v2_executor_llm_repair.md) |
-| 5 | AF-0122 | P2 | PROPOSED | CLI planning and pipeline display | CLI | — | [🔗](items/AF0122_PROPOSED_cli_planning_pipeline_display.md) |
+| 1 | BUG-0020 | P0 | OPEN | Empty plan reports success | Core Runtime / Orchestrator / Verifier / CLI | Jacob | [🔗](../bugs/reports/BUG0020_OPEN_empty_plan_reports_success.md) |
+| 2 | AF-0121 | P1 | READY | V3Planner: feasibility assessment | Core Runtime / Planner | Jacob | [🔗](items/AF0121_READY_v3planner_feasibility_assessment.md) |
+| 3 | AF-0123 | P1 | READY | V2Verifier: LLM semantic quality checks | Core Runtime / Verifier | Jacob | [🔗](items/AF0123_READY_v2_verifier_semantic_checks.md) |
+| 4 | AF-0124 | P2 | READY | V2Executor: LLM output repair | Core Runtime / Executor | Jacob | [🔗](items/AF0124_READY_v2_executor_llm_repair.md) |
+| 5 | AF-0122 | P2 | READY | CLI planning and pipeline display | CLI | Jacob | [🔗](items/AF0122_READY_cli_planning_pipeline_display.md) |
 
 ### Sprint 14 Scope (pipeline_trace_hardening)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

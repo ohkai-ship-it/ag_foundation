@@ -1,7 +1,7 @@
 # AF-0122 — CLI planning and pipeline display
 # Version number: v0.1
 # Created: 2026-03-22
-# Status: PROPOSED
+# Status: READY
 # Priority: P2
 # Area: CLI
 
