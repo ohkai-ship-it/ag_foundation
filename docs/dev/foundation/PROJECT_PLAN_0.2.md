@@ -320,6 +320,54 @@ Gate C target items addressed across Sprint 13-15:
 - (5) V2Planner composition: AF-0103 + AF-0117 partial (playbooks + V1Orchestrator)
 - (1) Policy engine: deferred (not LLM-dependent)
 
+Exit status:
+✓ Gate C achieved (2026-03-22)
+✓ BUG-0020 fixed (empty plan no longer reports success)
+✓ V3Planner: feasibility judgment (FULLY / MOSTLY / PARTIALLY / NOT_FEASIBLE)
+✓ V2Verifier: LLM semantic quality checks (relevance, completeness, consistency)
+✓ V2Executor: LLM output repair on schema validation failure
+✓ AF-0125: Deterministic test provider (FakeLLMProvider)
+✓ AF-0126: Executor / verifier LLM trace enrichment
+✓ CLI: planning tokens, pipeline manifest, full audit trail
+
+------------------------------------------------------------------------
+
+## Sprint 16 --- Skill Catalog Expansion (Phase 3 Start)
+
+Goal: Bridge the gap between pipeline intelligence and task reachability by
+adding the `LangChainSkillAdapter` infrastructure and the first batch of
+external tools. The planner, verifier, and executor are now more capable
+than the skills they route to — this sprint closes that gap.
+
+Scope focus:
+- AF-0127 LangChain skill adapter infrastructure (P1)
+- AF-0128 First LangChain tool batch: file ops + Wikipedia (P1)
+
+**Track 1: Adapter infrastructure (AF-0127 — prerequisite)**
+- `LangChainSkillAdapter` class: generic bridge for any `langchain_core.tools.BaseTool`
+- YAML-driven loader: new tools through config alone, zero per-tool Python code
+- `FakeTool` test stub: deterministic testing without network or community packages
+- Skill registry integration: adapters registered identically to native skills
+- `langchain-core` added to dependencies (lightweight, base classes only)
+
+**Track 2: First tool batch (AF-0128 — builds on AF-0127)**
+- `write_file` (`WriteFileTool`) — write files within the active workspace
+- `read_file` (`ReadFileTool`) — read files within the active workspace
+- `list_directory` (`ListDirectoryTool`) — list directory contents
+- `delete_file` (`DeleteFileTool`) — delete files within the active workspace
+- `wikipedia` (`WikipediaQueryRun`) — factual lookup with structured output
+- Workspace isolation enforced for all file tools (`root_dir` scoping)
+- `langchain-community`, `wikipedia` added as optional extras
+
+Exit criteria:
+- `LangChainSkillAdapter` wraps any `BaseTool` and produces a valid ag skill
+- YAML loader resolves tool names to adapters; missing tools raise `SkillConfigError`
+- All 5 new skills appear in `ag skills` listing
+- File tools reject paths outside the active workspace (isolation invariant preserved)
+- `ag run -y "Look up Little Tokyo on Wikipedia and write a summary to output.md"` succeeds
+- All adapter tests pass without LLM or network calls (FakeTool isolation)
+- Full CI gate passes
+
 ------------------------------------------------------------------------
 
 # Autonomy Phase Gates (Required)
@@ -336,10 +384,10 @@ No sprint may claim autonomy progression while a P0 gate condition is unmet.
 
 ------------------------------------------------------------------------
 
-# Phase 3 --- Capability Expansion (Deferred Until Gate C)
+# Phase 3 --- Capability Expansion (Gate C Passed — Active)
 
-These areas remain deferred until guided autonomy proves reliable and
-Gate C prerequisites are met.
+These areas were deferred until Gate C. Gate C passed in Sprint 15 (2026-03-22).
+Phase 3 is now active, starting with skill catalog expansion in Sprint 16.
 
 ## Retrieval Interface Layer (RAG)
 - Retriever interface definition
@@ -468,3 +516,165 @@ falls back to research_v0. Skill breadth directly gates task reachability.
    callable programmatically, not just from the terminal.
 
 Path: skills/playbooks → Phase 3 capability layer → policy engine → Gate D
+
+------------------------------------------------------------------------
+
+## LangChain as skill source (2026-03-23)
+
+LangChain (`langchain-community`) is the most mature external skill catalog.
+The integration model: wrap a LangChain tool behind the ag skill interface.
+LangChain does the implementation; our pipeline handles schema validation,
+retry, LLM repair, trace recording, and auditability.
+
+### Skill comparison
+
+| Domain | Our skill | LangChain equivalent | Assessment |
+|---|---|---|---|
+| Web search | `web_search` — structured (urls, results, title, body, position), configurable engine/region/safe_search | `DuckDuckGoSearchResults`, `TavilySearchResults`, `SerpAPIWrapper` | **Ours is richer.** LangChain DDG returns flat strings. Tavily structured but needs API key. |
+| URL fetching | `fetch_web_content` — batch, failure tracking, configurable timeout/length | `WebBaseLoader`, `AsyncHtmlLoader`, `PlaywrightURLLoader` | **Comparable core; LC wider.** LC adds JS-rendered pages (Playwright) which ours cannot. |
+| Local file read | `load_documents` — glob, workspace-scoped, text/MD only | `TextLoader`, `DirectoryLoader`, `PyPDFLoader`, `CSVLoader`, `Docx2txtLoader`, and 50+ more | **LC much wider.** Ours handles text/MD. LC supports PDF, DOCX, CSV, Excel, PowerPoint, email formats, code files. |
+| LLM synthesis | `synthesize_research` — report + citations + key_findings output schema | `MapReduceDocumentsChain`, `RefineDocumentsChain` | **Ours is a complete packaged skill.** LC equivalents are lower-level chain primitives, not drop-in skills. Our output schema is more opinionated and audit-friendly. |
+| Artifact output | `emit_result` — workspace artifact with content contract, artifact_id | No equivalent | **Ours is unique.** LC has no workspace-scoped artifact emission concept. |
+| File write | ❌ | `WriteFileTool`, `AppendFileTool` | **Gap — easy win, no credentials needed.** |
+| File operations | ❌ | `CopyFileTool`, `MoveFileTool`, `DeleteFileTool`, `ListDirectoryTool` | **Gap.** Basic filesystem manipulation missing entirely. |
+| Code execution | ❌ | `PythonREPLTool`, `ShellTool`, `E2BDataAnalysisTool` | **Gap — high value, high risk.** Sandboxing required before adopting. |
+| Wikipedia | ❌ | `WikipediaQueryRun` | **Gap — easy win.** No API key, clean structured output. |
+| Academic search | ❌ | `ArxivQueryRun`, `PubMedQueryRun` | Gap. Useful for research workflows. |
+| Email | ❌ | `GmailToolkit` (read, send, search, draft) | Gap. Requires OAuth — credentials problem. |
+| Calendar | ❌ | `GoogleCalendarTool` | Gap. Same credentials problem. |
+| Structured data | ❌ | `PandasDataFrameTool` | Gap. CSV/tabular extraction. |
+| Database query | ❌ | `SQLDatabaseToolkit` | Gap. Phase 3 territory. |
+
+### Verdict
+
+Our 5 production skills are equal or better in their specific domains.
+The research pipeline (web_search → fetch_web_content → synthesize_research)
+is more structured and audit-capable than LangChain equivalents.
+`emit_result` has no LangChain analog.
+
+The entire gap is in breadth. File operations are the highest-value, lowest-risk
+entry point — no credentials, no sandboxing concerns, immediately useful.
+
+### Integration approach
+
+```python
+class LangChainSkillAdapter(BaseSkill):
+    def __init__(self, tool: BaseTool):
+        self.tool = tool
+
+    def execute(self, context: SkillContext) -> dict:
+        result = self.tool.run(context.params["input"])
+        return {"output": result}
+```
+
+LangChain tools return unstructured strings. The adapter must normalize
+their output into our declared output_schema. V2Executor's LLM repair
+provides a safety net for schema mismatches.
+
+### Risks
+
+- **Output schema mismatch** — LangChain tools return strings; adapter
+  normalization layer required.
+- **Sandboxing** — ShellTool/PythonREPLTool conflict with workspace
+  isolation invariant. Require explicit scoping before adoption.
+- **Credentials** — LC tools pick up secrets from environment variables.
+  Clashes with future workspace-scoped secrets model.
+- **Dependency weight** — `langchain-community` is large; check if
+  tool subsets can be installed independently.
+
+------------------------------------------------------------------------
+
+## LC Core components and advanced usage (2026-03-23)
+
+Beyond the skill adapter layer, `langchain-core` and companion packages expose
+several components that integrate naturally into our existing pipeline architecture.
+Analysis is based on the current V3Planner / V2Verifier / V2Executor internals
+(chat message lists, raw f-string prompts, manual JSON parsing, no text splitting).
+
+### Viable integrations (ordered by priority)
+
+**1. `PydanticOutputParser` / `JsonOutputParser` — high value, Sprint 16/17**
+
+V2Executor repair currently does `json.loads()` → `model_validate()` manually.
+`PydanticOutputParser` wraps exactly this pattern and adds one critical extra: it
+generates **format instructions** that can be prepended to the repair prompt,
+telling the LLM the target JSON schema _before_ it responds. This closes the most
+common repair failure mode (LLM doesn't know the expected structure).
+
+Drop-in replacement for the manual JSON extraction in V2Executor repair logic.
+Zero architecture change. High repair success rate improvement for low effort.
+
+**2. `RecursiveCharacterTextSplitter` — high value, Sprint 17 (RAG prerequisite)**
+
+`load_documents` loads entire files with no chunking. Any file over ~6K tokens
+silently overflows the LLM context window downstream in `synthesize_research`.
+`RecursiveCharacterTextSplitter` chunks at paragraph → sentence → word boundaries.
+
+Two benefits: (1) fixes the silent large-doc overflow problem immediately;
+(2) mandatory prerequisite for the Phase 3 RAG layer — vector stores require
+chunked documents. Self-contained change to `load_documents`. Ships as
+`langchain-text-splitters` (separate lightweight package, no community dependency).
+
+**3. Rich document loaders — Sprint 17 (companion to text splitting)**
+
+`load_documents` handles `.txt` and `.md` only. LangChain community loaders follow
+the same `Document` interface and slot directly into the existing skill:
+
+| Format | Class | Extra dependency |
+|---|---|---|
+| PDF | `PyPDFLoader` | `pypdf` |
+| DOCX | `Docx2txtLoader` | `docx2txt` |
+| CSV | `CSVLoader` | none |
+| HTML | `BSHTMLLoader` | `bs4` |
+| Excel | `UnstructuredExcelLoader` | `unstructured` |
+
+No new skill class required — loaders register in the existing `load_documents`
+dispatch table via the YAML config pattern from AF-0127.
+
+**4. `BaseCallbackHandler` — Sprint 17/18 (post AF-0126 refactor candidate)**
+
+LC callbacks fire automatically on every LLM call: `on_llm_start(prompt)`,
+`on_llm_end(response, token_counts)`, `on_tool_start/end`. A single
+`TraceCallbackHandler` registered with the provider would auto-capture token
+counts for planner, executor repair, and verifier calls in one place —
+instead of each component tracking its own tokens (which is what AF-0126 required).
+
+This is the cleanest long-term architecture for trace token aggregation. The tradeoff
+is that the `LLMProvider` protocol must wire callbacks through, which touches the
+provider layer. Worth evaluating after AF-0126 ships.
+
+**5. `ChatPromptTemplate` — Sprint 17+ (code quality, not functional)**
+
+All three pipeline components (V3Planner, V2Verifier, V2Executor) build prompts via
+raw f-strings in `_build_prompt()` / `_get_system_prompt()`. LC prompt templates add
+variable declaration, render-and-inspect testing, and reusable template instances.
+No functional improvement — a code quality and testability gain. Low urgency.
+
+**6. Embeddings + local vector stores — Phase 3 (RAG foundation)**
+
+`OpenAIEmbeddings` reuses the existing `OpenAIProvider` API key with zero new auth.
+`Chroma` is a local, file-based vector store: no server, naturally workspace-scoped,
+trivially mapped to the run-centered storage layout. `FAISS` is an alternative if
+Chroma is too heavy. These are not Sprint 16/17 work, but the path to RAG is
+low-friction given the existing OpenAI provider wiring.
+
+### What does not integrate
+
+| Component | Why not |
+|---|---|
+| LCEL / Runnable chains | Our orchestrator IS our pipeline chain. Two competing chain abstractions would conflict with V1Orchestrator. |
+| LC Agents (ReAct, OpenAI Functions) | Conflicts with V3Planner architecture. We have our own plan-execute-verify loop. |
+| LangSmith tracing | External SaaS dependency; we have a rigorous local trace contract (AF-0126). Not a fit. |
+| Conversation memory | We use run-based storage, not multi-turn session memory. No current use case. |
+| `ShellTool` / `PythonREPLTool` | Sandbox isolation prerequisite unmet. High risk without workspace scoping. |
+
+### Roadmap placement
+
+| Component | Package | Target |
+|---|---|---|
+| `PydanticOutputParser` | `langchain-core` | Sprint 16 or V2Executor hardening |
+| `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | Sprint 17 |
+| Rich document loaders (PDF, CSV, DOCX) | `langchain-community` | Sprint 17 |
+| `BaseCallbackHandler` trace integration | `langchain-core` | Sprint 17/18 |
+| `ChatPromptTemplate` | `langchain-core` | Sprint 17+ |
+| `OpenAIEmbeddings` + `Chroma` | `langchain-community`, `chromadb` | Phase 3 / Sprint 18+ |

@@ -28,6 +28,12 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ---
 ## Sprints *IN DESCENDING ORDER*
 
+### Sprint 16 Scope (skill_catalog_expansion)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0127 | P1 | READY | LangChain skill adapter | Skills / Plugin Architecture | Jacob | [🔗](items/AF0127_READY_langchain_skill_adapter.md) |
+| 2 | AF-0128 | P1 | READY | First LangChain tool batch | Skills / Capability Expansion | Jacob | [🔗](items/AF0128_READY_first_langchain_tool_batch.md) |
+
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
