@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v1.2
+# Version number: v1.3-pre (will be finalized by AF-0136 at S16 close)
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -11,11 +11,11 @@
 
 > **Location:** `/docs/dev/backlog/INDEX_BACKLOG.md`
 > **Naming (required):** `AF####_<STATUS>_<three_word_description>.md` in `/docs/dev/backlog/items/`
-> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
+> Status values: `PROPOSED | READY | BLOCKED | DONE | DROPPED`
 > **Linking convention:** Filename column uses clickable links: `[🔗](items/filename)`
 
 ## Status legend
-PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
+PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 
 ---
 
@@ -28,11 +28,24 @@ PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 16 Scope (skill_catalog_expansion)
+### Sprint 17 Scope (skill_catalog_expansion)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0127 | P1 | READY | LangChain skill adapter | Skills / Plugin Architecture | Jacob | [🔗](items/AF0127_READY_langchain_skill_adapter.md) |
 | 2 | AF-0128 | P1 | READY | First LangChain tool batch | Skills / Capability Expansion | Jacob | [🔗](items/AF0128_READY_first_langchain_tool_batch.md) |
+| 3 | AF-0137 | P1 | PROPOSED | Chat session gate: context refresh at session boundaries | Process / Governance | Jeff + Kai | [🔗](items/AF0137_PROPOSED_chat_session_gate.md) |
+
+### Sprint 16 Scope (governance_simplification)
+| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0129 | P0 | READY | Eliminate filename-status coupling | Process / Docs | Jacob | [🔗](items/AF0129_READY_eliminate_filename_status.md) |
+| 2 | AF-0130 | P1 | READY | Drop redundant sprint artifacts | Process / Docs | Jacob | [🔗](items/AF0130_READY_drop_sprint_artifacts.md) |
+| 3 | AF-0131 | P1 | READY | Template enhancements: time, model, docs impact | Process / Docs | Jacob | [🔗](items/AF0131_READY_template_enhancements.md) |
+| 4 | AF-0132 | P1 | READY | HITL framework in governance docs | Process / Governance | Jacob | [🔗](items/AF0132_READY_hitl_framework_docs.md) |
+| 5 | AF-0133 | P1 | READY | Copilot instructions: ToDo discipline | Process / Tooling | Jacob | [🔗](items/AF0133_READY_copilot_todo_discipline.md) |
+| 6 | AF-0134 | P1 | READY | Streamline INDEX files | Process / Docs | Jacob | [🔗](items/AF0134_READY_streamline_index_files.md) |
+| 7 | AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
+| 8 | AF-0136 | P1 | READY | Governance docs consolidation | Process / Docs | Jacob | [🔗](items/AF0136_READY_governance_docs_consolidation.md) |
 
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |
