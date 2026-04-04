@@ -2,7 +2,9 @@
 # Version: v0.1
 # Date: 2026-04-03
 # Authors: Kai (human), Jacob (Claude Opus 4, Copilot)
-# Status: DRAFT — awaiting approval
+# Reviewed by: Jeff (GitHub Copilot, Claude Sonnet 4.6)
+# Approved: 2026-04-04
+# Status: APPROVED
 
 ---
 
@@ -71,7 +73,7 @@ The human-in-the-loop makes one of three decisions at sprint close:
 | Decision | Action |
 |---|---|
 | **ACCEPTED** | Close sprint. Merge PR. |
-| **ACCEPT WITH FOLLOW-UPS** | Auto-create follow-up AFs in INDEX_BACKLOG. Close sprint. Merge PR. |
+| **ACCEPT WITH FOLLOW-UPS** | Create follow-up AFs and group in a follow-up sprint as '### SPrint XX Scope - Follow-up' in INDEX_BACKLOG. Close sprint. Merge PR. |
 | **REJECTED** | Sprint status → `Rejected`. Branch preserved (not deleted). No merge. Sprint description records rejection rationale + learnings. Human decides next step. |
 
 **Quickfix budget:** 30 min **total cumulative** for in-sprint fixes before close. Human-overridable ad hoc per §2.2.
@@ -197,6 +199,14 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
      - Rationale (1–2 sentences)
      - Follow-ups (AF IDs, if any)
      - PR link
+   - Sprint Cognitive Health (close — seven fields):
+     - Collapse events (INCOMPLETE_IMPL follow-ups): [N]
+     - Drift events (AF spec revised mid-implementation): [N, list AF IDs]
+     - Repair events: [informal, e.g. "3 attempts on BUG-0019"]
+     - Agent-initiated HITL gates: [G codes, or "none"]
+     - Negative test coverage added: [yes / no / partial]
+     - LLM avoidance events: AFs claiming AI functionality with no RunTrace evidence of a real LLM call [N, list AF IDs]
+     - Integration coverage: E2E test result at sprint close [pass / partial / fail — categorise any failures as unit-level vs. component-boundary wiring]
    - Learnings (optional, 2–3 bullets)
 2. **Archive** `SPRINT_PR_TEMPLATE.md` and `REVIEW_TEMPLATE.md` (move to `templates/archived/`)
 3. **Update SPRINT_MANUAL:**
@@ -219,6 +229,7 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
 
 #### Acceptance Criteria
 - [ ] New `SPRINT_DESCRIPTION_TEMPLATE.md` includes close/review section
+- [ ] New `SPRINT_DESCRIPTION_TEMPLATE.md` includes Sprint Cognitive Health section (seven fields)
 - [ ] `SPRINT_PR_TEMPLATE.md` and `REVIEW_TEMPLATE.md` moved to `templates/archived/`
 - [ ] SPRINT_MANUAL §6–§8 updated — no references to S##_PR_01 or S##_REVIEW_01 creation
 - [ ] Sprint 16 (or next sprint) successfully uses new template
@@ -243,7 +254,7 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
 #### Goal
 - Every AF, sprint, bug, and ADR records who (which model) worked on it and when
 - Timestamps capture actual work boundaries, not file creation time
-- Git timestamps remain a backup but are no longer the primary source
+- Git timestamps remain as another data source
 - Every AF includes a mandatory docs impact check (prevents drift)
 - Architectural decisions made within an AF are captured inline (prevents ADR gaps)
 
@@ -257,6 +268,11 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
    - [ ] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
    ```
    The agent checks at AF completion: "Did this AF change CLI commands? Update CLI_REFERENCE. Change architecture? Update ARCHITECTURE.md. Change project structure? Update README." If none apply, mark N/A. Cost: ~30 seconds. Prevention: drift.
+2b. **AF template** — add **AI Functionality Check** acceptance criterion (conditional):
+   ```
+   - [ ] AI functionality check: if this AF delivers or modifies AI functionality (LLM calls, planner, orchestrator, verifier), RunTrace evidence of a real LLM call is required (N/A if no AI functionality)
+   ```
+   Catches LLM Avoidance — the pattern where an AF claims AI functionality but the implementation is a structural shell with no actual LLM call. Cost: zero if N/A; one RunTrace reference if applicable.
 3. **AF template** — add **Decision Record** section (optional, filled when applicable):
    ```
    ## Decision Record (if applicable)
@@ -270,11 +286,12 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
    - `Models:` list
 5. **Bug report template** — add: `Models:`
 6. **ADR template** — add: `Models:`
-7. **Convention:** Agent logs `Started` when it genuinely begins implementation, `Completed` when acceptance criteria are met. Not at file creation.
+7. **Convention:** `gov.py new-af` leaves `Started:` blank — it is filled by the agent at the moment implementation of *that specific AF* begins, not at file creation. AF files may be created at sprint kickoff for the entire sprint scope; `Started:` is logged per-AF when the agent picks it up. `Completed:` is logged when acceptance criteria are met, just before the commit. The `Started:`→`Completed:` span is the per-AF active implementation duration: the smallest measurable velocity unit in the system.
 
 #### Acceptance Criteria
 - [ ] All four templates include `Started:`, `Completed:`, and `Models:` fields
 - [ ] AF template includes Docs Impact Check as a standard acceptance criterion
+- [ ] AF template includes AI Functionality Check (conditional — N/A if no AI functionality delivered)
 - [ ] AF template includes Decision Record section (marked "if applicable")
 - [ ] Format convention documented: ISO 8601 (e.g. `2026-04-03T14:30:00+02:00`)
 - [ ] Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`
@@ -349,6 +366,7 @@ No standardized task tracking per AF during implementation. Copilot creates ad h
 #### Acceptance Criteria
 - [ ] `.github/copilot-instructions.md` exists with ToDo discipline rule
 - [ ] Next AF executed by Copilot creates a properly titled ToDo list
+- [ ] Validated across at least 2 consecutive AFs in the first sprint under new rules
 
 #### Files Touched
 - `.github/copilot-instructions.md` (create or update)
@@ -387,6 +405,7 @@ INDEX files are cluttered with redundant columns (Filename duplicates the link) 
 - [ ] INDEX_BUGS has no `Filename` column
 - [ ] All links in INDEX files resolve to existing files
 - [ ] `test_documentation_drift.py` passes
+- [ ] No broken inbound links to INDEX from SPRINT_MANUAL, README, or sprint descriptions
 
 #### Files Touched
 - `docs/dev/backlog/INDEX_BACKLOG.md` (restructure)
@@ -417,7 +436,7 @@ All ceremony is manual. Even with simplified naming (AF-0129) and streamlined IN
 | `gov.py new-af 0129 "Description" --priority P1 --sprint 16` | Creates AF file from template + adds INDEX row + sets `Started:` timestamp |
 | `gov.py new-bug 0025 "Description" --severity P1` | Creates bug file from template + adds INDEX row |
 | `gov.py status af 0129 DONE` | Updates internal `Status:` field + INDEX row + sets `Completed:` if DONE |
-| `gov.py check` | Validates: all INDEX links resolve, all internal statuses match INDEX, no orphans, no phantoms |
+| `gov.py check` | Validates: all INDEX links resolve, all internal statuses match INDEX, no orphans, no phantoms. Warns on cognitive health thresholds: collapse events > 2, agent-initiated gates = "none" for 2 consecutive sprints, or LLM avoidance events > 0 |
 | `gov.py follow-up 0129 "Follow-up description"` | Creates follow-up AF (for ACCEPT WITH FOLLOW-UPS workflow) |
 
 2. **Manual editing remains a valid fallback** — the script is a convenience, not a gate
@@ -430,6 +449,7 @@ All ceremony is manual. Even with simplified naming (AF-0129) and streamlined IN
 - [ ] `python scripts/gov.py status` updates both file and INDEX correctly
 - [ ] Script has `--help` for all subcommands
 - [ ] Zero external dependencies
+- [ ] `gov.py check` produces no false positives on legacy-format filenames (pre-AF-0129 convention)
 
 #### Files Touched
 - `scripts/gov.py` (new)
@@ -513,7 +533,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D1 | **No batch rename** — existing files keep old names, new files use new convention | Preserve history; evolution visible in file system; zero blast radius |
 | D2 | 30 min total cumulative quickfix budget, human-overridable | Prevents scope creep while respecting human authority |
 | D3 | REJECTED = branch preserved, human decides next step | Maximum flexibility; no destructive auto-undo |
-| D4 | ACCEPT WITH FOLLOW-UPS = auto-create follow-up AFs | Ensures nothing falls through the cracks |
+| D4 | ACCEPT WITH FOLLOW-UPS = auto-create follow-up AFs and follow up sprint table | Ensures nothing falls through the cracks |
 | D5 | Chat = temporary amendment, not permanent governance change | Preserves documented governance integrity while enabling flexibility |
 | D6 | `gov.py`: argparse, stdlib only, no auto-commit | Minimal dependencies; git operations stay under human control |
 | D7 | Model field format: `<Model Name> (<Platform>)` | E.g. `Claude Opus 4 (Copilot)` — traceable across tools |
@@ -527,6 +547,8 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D15 | ADR criteria: inline Decision Record for single-AF scope, full ADR for cross-cutting | Inline = no overhead; full ADR when affects 2+ modules, sets reusable pattern, or constrains future work |
 | D16 | CLI_REFERENCE abstraction deferred to deployable sprint | Not every project has a CLI; needs Reference Docs Registry concept (opt-in mechanism) |
 | D17 | Inter-sprint planning commits via housekeeping branch + minimal PR | Docs-only; no sprint apparatus needed; must merge before next sprint starts |
+| D18 | Sprint Cognitive Health section in sprint description template | Captures 7 failure mode signals from existing artifacts; enables longitudinal analysis without external tooling; `gov.py check` warns on threshold violations |
+| D19 | LLM Avoidance and Partial Wiring added to Cognitive Health in v0.1, not deferred | Both failure modes empirically confirmed across 15 sprints (planner went 10 sprints without an LLM call; partial wiring was the largest single bug category). Instrument immediately to get data from first sprint under new rules rather than waiting for a v0.2 iteration |
 
 ---
 
