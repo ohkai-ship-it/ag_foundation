@@ -1,0 +1,479 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sprint Velocity  ag_foundation (Full Timeline)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 40px auto; padding: 0 20px; color: #222; }
+    h1 { font-size: 1.3rem; margin-bottom: 4px; }
+    .meta { color: #555; font-size: 0.85rem; margin-bottom: 36px; line-height: 1.6; }
+    h2 { font-size: 1rem; margin: 44px 0 2px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    .note { font-size: 0.82rem; color: #666; margin: 4px 0 12px; line-height: 1.6; }
+    canvas { display: block; width: 100% !important; }
+    .legend { font-size: 0.8rem; color: #444; margin-top: 8px; display: flex; gap: 20px; flex-wrap: wrap; }
+    .swatch { display: inline-block; width: 12px; height: 12px; margin-right: 4px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+<h1>ag_foundation  Sprint Velocity (S00S15, full project timeline)</h1>
+<p class="meta">
+  <strong>Data sources:</strong> git log author timestamps (high confidence for S05S15); sprint DESCRIPTION.md and backlog INDEX (medium confidence for S00S04).<br>
+  <strong>Known limitation:</strong> S03 and S04 have no individual git commits in the main repo  those sprints ran in the "legacy" branch/system. Their dates and item counts come from the backlog INDEX only.<br>
+  <strong>Timeline x-axis:</strong> days elapsed since project start (2026-02-24 00:00). Hover bars for details.
+</p>
+
+<h2>Chart 1  Full Project Timeline (all sprints)</h2>
+<p class="note">
+  Blue = active development (first commit  merge). Orange = design/planning gap between sprints.
+  Light grey (diagonal) = estimated period  no git commits (S03+S04).
+  Dark grey = overnight inactive within a sprint (S07, S08, S11, S13).
+  <br>Key contrasts: The 7.5-day S10S11 gap (architectural design of V1Planner) vs the 11-min S13S14 and 28-min S14S15 gaps. Sprints 1215 all hit in the last 1.5 days of the chart.
+</p>
+<canvas id="c1" height="360"></canvas>
+<div class="legend">
+  <span><span class="swatch" style="background:steelblue"></span>Development</span>
+  <span><span class="swatch" style="background:rgba(255,140,0,0.5)"></span>Design / planning gap</span>
+  <span><span class="swatch" style="background:rgba(0,0,0,0.07);border:1px solid #ccc"></span>Overnight inactive</span>
+  <span><span class="swatch" style="background:rgba(160,160,160,0.4);border:1px dashed #999"></span>Estimated  no git data</span>
+</div>
+
+<h2>Chart 2  Work Items Shipped per Sprint</h2>
+<p class="note">
+  AFs + BUGs closed per sprint. Hover a bar to see the sprint goal.
+  S03 count (11 items) is from backlog docs only  no git confirmation.
+  S05 count (9 items) includes 4 primary scope AFs + 5 follow-ups completed in the same multi-day session.
+  The cumulative total at project end: 148 items across 16 sprints.
+</p>
+<canvas id="c2" height="220"></canvas>
+
+<h2>Chart 3  Implementation Velocity (items / hour)</h2>
+<p class="note">
+  Single-session sprints with reliable git timestamps only.
+  <strong>Excluded:</strong> S07 (overnight gap makes wall-clock misleading  active coding ~4.7h in two bursts);
+  S08 (results review deferred to next morning); S11 and S13 (overnight gaps).
+  S05 excluded (2-day session with unclear break points).
+  S06 included: 5 items in 2h 9m (rate: 2.3/hr), but note it's a short session with no review overhead.
+  Rates are planning-commit to merge.
+</p>
+<canvas id="c3" height="220"></canvas>
+
+<h2>Chart 4  Sprint Duration: Planning Commit to Merge (hours)</h2>
+<p class="note">
+  Total elapsed time (planning commit → merge commit) per sprint, all sprints with reliable git timestamps.
+  S03 and S04 excluded — no implementation git commits exist for those sprints.
+  <strong>Light blue bars</strong> = overnight sprints: wall-clock includes inactive periods — actual implementation time is shorter (see per-sprint breakdowns in SPRINT_VELOCITY_ANALYSIS_0.2.md).
+  For S14's per-phase breakdown (implementation vs review+docs), see Chart 5.
+</p>
+<canvas id="c4" height="280"></canvas>
+<div class="legend" style="margin-top:6px">
+  <span><span class="swatch" style="background:steelblue"></span>Single-session sprint (no overnight gap)</span>
+  <span><span class="swatch" style="background:rgba(135,185,215,0.9)"></span>Overnight sprint (wall-clock includes inactive time)</span>
+</div>
+
+<h2>Chart 5  Sprint 14: Per-Item Timing Waterfall</h2>
+<p class="note">
+  Sprint 14 was the densest sprint by items/hour (2.8/hr).
+  Each bar = elapsed minutes from plan start (2026-03-22 13:12), based on git author timestamps.
+  The bar shows [start, end] cumulative minutes for each item.
+  "Ritual" = sprint start checklist (11 min). "Review" (teal, 98m) = review + documentation phase  longer than all implementation combined (87m).
+  Average per implementation commit: ~10 minutes.
+</p>
+<canvas id="c5" height="260"></canvas>
+
+<h2>Chart 6  Cumulative Items Over Calendar Time</h2>
+<p class="note">
+  Orange points = approximate (AF counts from backlog; bug counts estimated).
+  Blue points = confirmed from git analysis (S09–S15 item counts git-verified).
+  v0.1 anchor of 87 items at S08 close was circular (148−61); v0.2 corrects to ~74–79 (bottom-up from backlog INDEX).
+  The steep segment at the right is March 21–22: 4 back-to-back sprints (S12–S15) delivering 33 items.
+</p>
+<canvas id="c6" height="240"></canvas>
+
+<script>
+//  Sprint goals (shown in tooltips) 
+const GOALS = {
+  'S00/S01': 'S00: kickoff docs, vision, runtime skeleton (docs). S01: Python bootstrap, contracts v0.1, storage baseline, CLI v0, artifact registry (Feb 24)',
+  'S02+S02H': 'S02: OpenAI integration, provider abstraction, CLI globals, recording interface. Hardening: storage lifecycle, coverage 95%, env config, workspace lifecycle (Feb 2426)',
+  'S03+S04 ~': 'S03: CLI hardening  workspace policy, run ID fix, verifier hardening, truthfulness (11 AFs). S04: Process hardening  docs skeleton, backlog/sprint migration, CI enforcement (7 AFs). No git commits in main repo  dates estimated.',
+  'S05': 'High-pressure skills: strategic_brief, evidence capture, schema verifier loop, artifact export (4 primary + 5 follow-up AFs). Gate A validation sprint.',
+  'S06': 'Skill foundation: workspace folder restructure, skill definition framework (schemas+protocols), schema inventory, contract inventory (5 AFs). Single 2h 9m session.',
+  'S07': 'summarize_v0 playbook: first skill set (load_documents, summarize_docs, emit_result), E2E integration test, LLM model tracking in RunTrace, skill docs (5 AFs)',
+  'S08': 'Skills/playbooks maturity: V1 framework removal, research_v0 playbook (new skills: web_search, structure_research), web search skill (8 AFs)',
+  'S09': 'Reliability + Safety Hardening: playbook artifacts in trace, policy hook validation, test suite audit, DB filename audit (10 AFs + BUG-0007)',
+  'S10': 'Gate B Readiness: 10 AFs across providers (Claude/local stubs), storage, CLI audit, verifier loop bounds, citation model. Gate B achieved.',
+  'S11': 'Guided Autonomy Enablement: V1Planner (LLM-based skill composition), ag plan CLI, --plan execution workflow, plan approval (8 AFs + BUG-0016). Two-day sprint.',
+  'S12': 'Autonomy Boundaries: planner robustness (JSON repair, placeholder strip), workspace-aware pattern detection, multi-emit chaining, plan artifacts (7 AFs)',
+  'S13': 'Intelligent Pipeline Foundation: V2Planner with playbook awareness, V1Orchestrator for mixed plans, inline plan confirm (AF-0112 via separate PR) (5 AFs)',
+  'S14': 'Smart Verification Pipeline: per-step verification in V1Orchestrator, planner trace + LLM attribution, feasibility study. 10 items in 87-minute burst. Peak: 2.8 items/hr.',
+  'S15': 'LLM Intelligence Layer: V3Planner (structured JSON), V2Verifier (schema-aware), pipeline display in CLI, truthfulness fixes (11 AFs + 4 BUGs). Gate C achieved.',
+};
+
+//  Chart 1: Timeline  days from 2026-02-24 00:00 
+//
+// How to read the x-axis: each integer = one calendar day from project start.
+// 0 = Feb 24, 8 = Mar 4, 14 = Mar 10, 15 = Mar 11, 16 = Mar 12, 24 = Mar 20,
+// 25 = Mar 21, 26 = Mar 22, 27 = Mar 23.
+//
+// Each dataset is an array of [start_day, end_day] or null.
+// null = do not draw a bar for that sprint in this dataset.
+
+const TL_LABELS = ['S00/S01','S02+S02H','S03+S04 ~','S05','S06','S07','S08','S09','S10','S11','S12','S13','S14','S15'];
+
+// Active development spans
+const devSpans = [
+  [0.08, 0.97],   // S00/S01: Feb 24 02:00  23:13
+  [0.97, 2.67],   // S02+S02H: Feb 24 23:13  Feb 26 16:03
+  null,           // S03+S04: no git commits
+  [8.89, 9.90],   // S05: Mar 4 21:21  Mar 5 21:40
+  [10.70, 10.79], // S06: Mar 6 16:45  18:54 (2h 9m)
+  [12.01, 12.54], // S07: Mar 8 00:20  12:58 (wall-clock, incl overnight)
+  [13.52, 14.57], // S08: Mar 9 12:29  Mar 10 13:44 (wall-clock, incl overnight)
+  [15.47, 15.69], // S09: Mar 11 11:20  16:38 (5h 18m)
+  [16.66, 16.99], // S10: Mar 12 15:49  23:44 (7h 55m)
+  [24.43, 25.53], // S11: Mar 20 10:16  Mar 21 12:38 (wall-clock, 2-day sprint)
+  [25.72, 25.87], // S12: Mar 21 17:21  20:46 (3h 25m)
+  [25.98, 26.54], // S13: Mar 21 23:35  Mar 22 13:01 (wall-clock, incl overnight)
+  [26.55, 26.70], // S14: Mar 22 13:12  16:46 (3h 34m)
+  [26.72, 26.93], // S15: Mar 22 17:14  22:19 (5h 5m)
+];
+
+// Design/planning gaps  shown on the row of the sprint they precede
+// (i.e. gapSpans[i] is the gap that occurred right before sprint i started)
+const gapSpans = [
+  null,           // S00/S01: first sprint, no preceding gap
+  null,           // S02+S02H: immediately followed S01 same session
+  null,           // S03+S04: entirely estimated, no gap separation possible
+  [8.54, 8.89],  // S04 end  S05 start: ~7.5h  (Mar 4 13:45  Mar 4 21:21)
+  [9.90, 10.70], // S05  S06: ~19h (Mar 5 21:40  Mar 6 16:45)
+  [10.79, 12.01],// S06  S07: ~29h (Mar 6 18:54  Mar 8 00:20)
+  [12.54, 13.52],// S07  S08: ~23.5h (Mar 8 12:58  Mar 9 12:29)
+  [14.57, 15.47],// S08  S09: ~21.6h (Mar 10 13:44  Mar 11 11:20)
+  [15.69, 16.66],// S09  S10: ~23.4h (Mar 11 16:38  Mar 12 15:49)
+  [16.99, 24.43],// S10  S11: 7.5 days (Mar 12 23:44  Mar 20 10:16)  V1Planner design
+  [25.53, 25.72],// S11  S12: 4.7h (Mar 21 12:38  Mar 21 17:21)
+  [25.87, 25.98],// S12  S13: 2.5h (Mar 21 20:46  Mar 21 23:35)
+  [26.54, 26.55],// S13  S14: 11 min (Mar 22 13:01  Mar 22 13:12)
+  [26.70, 26.72],// S14  S15: 28 min (Mar 22 16:46  Mar 22 17:14)
+];
+
+// Estimated periods  no git data (shown as dashed grey)
+const estSpans = [
+  null,null,[2.67, 8.54],null,null,null,null,null,null,null,null,null,null,null
+];
+
+// Overnight inactive periods within a sprint
+const nightSpans = [
+  null,null,null,null,null,
+  [12.12, 12.45], // S07: Mar 8 02:58  10:50 (~7.9h overnight)
+  [13.68, 14.57], // S08: Mar 9 16:17  Mar 10 13:44 (~21.4h overnight)
+  null,null,
+  [24.75, 25.42], // S11: Mar 20 17:56  Mar 21 10:06 (~16.2h overnight)
+  null,
+  [26.01, 26.48], // S13: Mar 22 00:12  Mar 22 11:30 (~11.3h overnight)
+  null,null,
+];
+
+new Chart(document.getElementById('c1'), {
+  type: 'bar',
+  data: {
+    labels: TL_LABELS,
+    datasets: [
+      { label: 'Development', data: devSpans, backgroundColor: 'steelblue' },
+      { label: 'Design / planning gap', data: gapSpans, backgroundColor: 'rgba(255,140,0,0.5)' },
+      { label: 'Overnight inactive', data: nightSpans, backgroundColor: 'rgba(0,0,0,0.07)', borderColor:'#bbb', borderWidth:1 },
+      { label: 'Estimated  no git data', data: estSpans, backgroundColor: 'rgba(160,160,160,0.35)', borderColor:'#999', borderWidth:1 },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          title(items) { return items[0].label; },
+          label(c) {
+            const v = c.raw;
+            if (!v || !Array.isArray(v)) return '';
+            const hrs = ((v[1] - v[0]) * 24).toFixed(1);
+            return `${c.dataset.label}: ${hrs}h`;
+          },
+          afterBody(items) {
+            const label = items[0].chart.data.labels[items[0].dataIndex];
+            return GOALS[label] ? [GOALS[label]] : [];
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        min: 0, max: 27.5,
+        ticks: {
+          maxTicksLimit: 28,
+          callback(v) {
+            const m = {
+              0:'Feb 24', 1:'Feb 25', 2:'Feb 26', 3:'Feb 27', 4:'Feb 28',
+              5:'Mar 1', 6:'Mar 2', 7:'Mar 3', 8:'Mar 4', 9:'Mar 5',
+              10:'Mar 6', 11:'Mar 7', 12:'Mar 8', 13:'Mar 9', 14:'Mar 10',
+              15:'Mar 11',16:'Mar 12',17:'Mar 13',18:'Mar 14',19:'Mar 15',
+              20:'Mar 16',21:'Mar 17',22:'Mar 18',23:'Mar 19',24:'Mar 20',
+              25:'Mar 21',26:'Mar 22',27:'Mar 23'
+            };
+            return m[v] !== undefined ? m[v] : '';
+          }
+        },
+        title: { display: true, text: 'Calendar date (days elapsed from 2026-02-24)' }
+      },
+      y: {
+        ticks: { font: { size: 11 } }
+      }
+    }
+  }
+});
+
+//  Chart 2: Items per sprint 
+const SPRINTS2  = ['S00','S01','S02','S02H','S03~','S04','S05','S06','S07','S08','S09','S10','S11','S12','S13','S14','S15'];
+const ITEMS2    = [3,    7,    6,    6,     11,    7,    9,    5,    5,    8,    10,   10,   8,    7,    5,    10,   11];
+const GOALS2    = [
+  'Kickoff: foundation docs, IoT-in-space vision, runtime skeleton (docs only)',
+  'Bootstrap: Python packaging, contracts v0.1, storage baseline (SQLite), CLI v0, artifact registry v0',
+  'OpenAI API integration, provider abstraction (Claude/local stubs), CLI global options, recording interface',
+  'S02 Hardening: storage lifecycle, coverage 95%, env config hardening, workspace lifecycle, test discipline',
+  'S03 (LEGACY  11 AFs from backlog): CLI hardening  workspace policy, run ID, verifier, truthfulness, workspace errors',
+  'Process hardening: /docs/dev skeleton, backlog/bugs/sprint migration, CI (ruff + pytest + coverage)',
+  'High-pressure skills: strategic_brief, evidence capture (EvidenceRef), schema verifier loop, artifact export + 5 follow-ups',
+  'Skill foundation: workspace folder restructure, skill definition framework, schema inventory, contract inventory hardening',
+  'summarize_v0 playbook: load_documents + summarize_docs + emit_result, E2E test, LLM model tracking, skill docs',
+  'Skills/playbooks maturity: V1 framework removal, research_v0 playbook, playbooks registry cleanup, web search skill',
+  'Reliability + Safety hardening: playbook artifacts in trace, policy hook validation, test suite audit, DB filename audit',
+  'Gate B readiness: 10 AFs across providers, storage, CLI, verifier, citations  GATE B ACHIEVED',
+  'Guided Autonomy Enablement: V1Planner (LLM-based), ag plan CLI, --plan flag, plan approval workflow  2-day sprint',
+  'Autonomy Boundaries: planner JSON repair, placeholder stripping, workspace-aware patterns, multi-emit chaining',
+  'Intelligent Pipeline Foundation: V2Planner + V1Orchestrator, playbook awareness, inline plan confirm (AF-0112)',
+  'Smart Verification Pipeline: per-step verification, planner trace+LLM attribution, feasibility study  PEAK VELOCITY 2.8/hr',
+  'LLM Intelligence Layer: V3Planner, V2Verifier, pipeline display, truthfulness fixes  GATE C ACHIEVED',
+];
+
+new Chart(document.getElementById('c2'), {
+  type: 'bar',
+  data: {
+    labels: SPRINTS2,
+    datasets: [{
+      label: 'Items shipped',
+      data: ITEMS2,
+      backgroundColor: SPRINTS2.map((s,i) => i < 4 ? 'rgba(70,130,180,0.4)' : i === 4 ? 'rgba(150,150,150,0.5)' : 'steelblue')
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: {
+        label(c) { return ` ${c.raw} items`; },
+        afterLabel(c) { return GOALS2[c.dataIndex]; }
+      }}
+    },
+    scales: { y: { min: 0, title: { display: true, text: 'Items shipped (AFs + BUGs)' } } }
+  }
+});
+
+//  Chart 3: Velocity 
+const VEL_LABELS = ['S06','S09','S10','S12','S14','S15'];
+const VEL_DATA   = [2.3,  1.9,  1.3,  2.0,  2.8,  2.2];
+const VEL_NOTES  = [
+  'S06: 5 AFs in 2h 9m (2026-03-06). First sprint with exclusively same-session commits. No review overhead captured.',
+  'S09: 10 AFs in 5h 18m (2026-03-11 11:2016:38). Single uninterrupted session.',
+  'S10: 10 AFs in 7h 55m (2026-03-12 15:4923:44). Longest single-session sprint. Gate B achieved at close.',
+  'S12: 7 AFs in 3h 25m (2026-03-21 17:2120:46). Immediately followed S11 (4.7h gap). Fastest stable start-to-merge.',
+  'S14: 10 AFs in 3h 34m (2026-03-22 13:1216:46). Core implementation: 9 items in 87 minutes. PEAK SPRINT.',
+  'S15: 11 AFs in 5h 5m (2026-03-22 17:1422:19). Primary scope closed in ~90 min; 6 additional items filed and resolved in same session. Gate C.',
+];
+
+new Chart(document.getElementById('c3'), {
+  type: 'bar',
+  data: {
+    labels: VEL_LABELS,
+    datasets: [{ label: 'Items / hr', data: VEL_DATA, backgroundColor: ['teal','steelblue','steelblue','steelblue','navy','steelblue'] }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: {
+        label(c) { return ` ${c.raw} items/hr`; },
+        afterLabel(c) { return VEL_NOTES[c.dataIndex]; }
+      }}
+    },
+    scales: {
+      y: { min: 0, max: 3.5, title: { display: true, text: 'Items / hr (planning-commit to merge)' } }
+    }
+  }
+});
+
+//  Chart 4: Total elapsed time per sprint (planning commit → merge) 
+const C4_LABELS    = ['S00/S01','S02+S02H','S05','S06','S07','S08','S09','S10','S11','S12','S13','S14','S15'];
+const C4_ELAPSED   = [0.83, 40.83, 24.28, 2.15, 12.63, 25.25, 5.30, 7.92, 26.37, 3.42, 13.43, 3.57, 5.08];
+const C4_ITEMS     = [10, 12, 12, 5, 5, 8, 10, 10, 8, 7, 5, 10, 11];
+const C4_OVERNIGHT = [false, true, true, false, true, true, false, false, true, false, true, false, false];
+const C4_NOTES     = [
+  'S00/S01: Feb 24 01:59–02:49. First 5 PRs merged in one 50-minute burst. Pre-staged branches.',
+  'S02+S02H: Feb 24 23:13 – Feb 26 16:03. ~41h wall-clock spans two days. Internal commits not visible; endpoints only.',
+  'S05: Mar 4 21:23 – Mar 5 21:40. Overnight sprint (night session + morning bug-fix + evening close).',
+  'S06: Mar 6 16:45–18:54. Single 2h 9m session. No PR merge commit — committed directly.',
+  'S07: Mar 8 00:20–12:58. Overnight sprint (coding 00:59–02:39; merge after ~10h overnight gap).',
+  'S08: Mar 9 12:29 – Mar 10 13:44. Overnight sprint (active ~4h Mar 9; merge next morning).',
+  'S09: Mar 11 11:20–16:38. Single 5h 18m session. No overnight gap.',
+  'S10: Mar 12 15:49–23:44. Single 7h 55m session. Gate B achieved.',
+  'S11: Mar 20 10:16 – Mar 21 12:38. Two-day sprint (active ~6h across two days).',
+  'S12: Mar 21 17:21–20:46. Single 3h 25m session. Fastest stable sprint.',
+  'S13: Mar 21 23:35 – Mar 22 13:01. Overnight sprint (coding ~40min night + ~90min morning).',
+  'S14: Mar 22 13:12–16:46. Single 3h 34m session. Peak velocity: 2.8 items/hr. See Chart 5 for per-item breakdown.',
+  'S15: Mar 22 17:14–22:19. Single 5h 5m session. Primary scope in ~90 min. Gate C achieved.',
+];
+
+new Chart(document.getElementById('c4'), {
+  type: 'bar',
+  data: {
+    labels: C4_LABELS,
+    datasets: [{
+      label: 'Total elapsed (hours)',
+      data: C4_ELAPSED,
+      backgroundColor: C4_OVERNIGHT.map(n => n ? 'rgba(135,185,215,0.9)' : 'steelblue'),
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label(c) {
+            const h = c.raw;
+            const items = C4_ITEMS[c.dataIndex];
+            return ` ${h}h elapsed  •  ${items} items`;
+          },
+          afterLabel(c) {
+            const lines = [C4_NOTES[c.dataIndex]];
+            if (C4_OVERNIGHT[c.dataIndex]) lines.push('⚠ Wall-clock includes overnight inactive period');
+            return lines;
+          }
+        }
+      }
+    },
+    scales: {
+      y: { min: 0, title: { display: true, text: 'Hours (planning commit → merge)' } }
+    }
+  }
+});
+
+//  Chart 5: Sprint 14 waterfall 
+// Floating bars: [cumulative_start, cumulative_end] in minutes from plan start (13:12)
+const s14Labels = ['Plan\n13:12','Ritual\n13:23','BUG-019\n13:29','BUG-018\n13:33','AF-116\n13:41','AF-117\n13:49','AF-118\n13:53','AF-119\n14:08','AF-120\n14:40','AF-096\n14:51','AF-104\n14:56','Review\n16:30'];
+const s14Deltas = [11, 11, 6, 4, 8, 8, 4, 15, 32, 11, 5, 98];
+const s14Bars = [];
+let cum = 0;
+s14Deltas.forEach(d => { s14Bars.push([cum, cum + d]); cum += d; });
+
+const s14Notes = [
+  'Sprint 14 plan written. First commit: 13:12.',
+  'Sprint start ritual: mark AFs READY, update indexes. +11m',
+  'BUG-0019 fix: graceful PlannerError for empty steps (infeasible task). +6m from ritual.',
+  'BUG-0018 fix: cross-check validation + auto-correct in V2Planner. +4m',
+  'AF-0116: empty step AF (scoped earlier). +8m',
+  'AF-0117: V1Orchestrator per-step verification. +8m',
+  'AF-0118: (scoped AF). +4m',
+  'AF-0119: Planner trace + LLM attribution. +15m',
+  'AF-0120: (largest single item). +32m',
+  'AF-0096 (carry-over). +11m',
+  'AF-0104: V3Planner feasibility study (ADR). +5m  end of 87-minute implementation phase',
+  'Review + docs phase: S14_REVIEW_01, PR prep, sprint close. +98m  longer than all implementation.',
+];
+
+new Chart(document.getElementById('c5'), {
+  type: 'bar',
+  data: {
+    labels: s14Labels,
+    datasets: [{
+      label: 'Elapsed minutes',
+      data: s14Bars,
+      backgroundColor: s14Bars.map((_,i) => i === s14Bars.length-1 ? 'teal' : 'steelblue'),
+      borderColor: s14Bars.map((_,i) => i === s14Bars.length-1 ? 'teal' : 'steelblue'),
+      borderWidth: 1,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label(c) {
+            const v = c.raw;
+            return `+${v[1]-v[0]}m elapsed (total: ${v[1]}m from 13:12)`;
+          },
+          afterLabel(c) { return s14Notes[c.dataIndex]; }
+        }
+      }
+    },
+    scales: {
+      y: { title: { display: true, text: 'Cumulative minutes from sprint plan start (13:12)' } },
+      x: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+//  Chart 6: Cumulative items over time 
+// Orange/hollow = approximate (S00S08). Blue = confirmed from git analysis (S09S15).
+// Anchor: 87 items confirmed at S08 close (from git velocity analysis).
+// Earlier counts estimated from backlog AF tables + approximate bug counts.
+const CUM_LABELS = [
+  'Feb 24\nS00/S01','Feb 26\nS02+S02H','Mar 4\nS03+S04','Mar 5\nS05',
+  'Mar 6\nS06','Mar 8\nS07','Mar 10\nS08',
+  'Mar 11\nS09','Mar 12\nS10','Mar 21\nS11','Mar 21\nS12','Mar 22\nS13','Mar 22\nS14','Mar 22\nS15'
+];
+const CUM_DATA = [10, 24, 40, 51, 57, 63, 87, 97, 107, 115, 122, 127, 137, 148];
+const CUM_CONF = [false,false,false,false,false,false,false,true,true,true,true,true,true,true];
+
+new Chart(document.getElementById('c6'), {
+  type: 'line',
+  data: {
+    labels: CUM_LABELS,
+    datasets: [{
+      label: 'Cumulative items',
+      data: CUM_DATA,
+      borderColor: 'steelblue',
+      backgroundColor: 'rgba(70,130,180,0.08)',
+      fill: true,
+      tension: 0.1,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      pointBackgroundColor: CUM_DATA.map((_,i) => CUM_CONF[i] ? 'steelblue' : 'orange'),
+      pointBorderColor:     CUM_DATA.map((_,i) => CUM_CONF[i] ? 'steelblue' : 'darkorange'),
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label(c) { return ` ${c.raw} total items`; },
+          afterLabel(c) {
+            return CUM_CONF[c.dataIndex]
+              ? '(S09–S15: item counts confirmed from git commit log)'
+              : '(S00–S08: bottom-up count from backlog INDEX: ~67 AFs + ~7 attributed bugs = ~74–79 items. v0.1 figure of 87 (148−61 circular) withdrawn in v0.2 — not independently git-verified)';
+          }
+        }
+      }
+    },
+    scales: {
+      y: { min: 0, title: { display: true, text: 'Cumulative items (AFs + BUGs)' } },
+      x: { ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>
