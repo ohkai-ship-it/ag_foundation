@@ -90,7 +90,7 @@ These are preserved exactly as-is:
 - **1-commit-per-AF discipline**
 - **1-PR-per-sprint discipline**
 - **CI gate before commit** (ruff, pytest, coverage)
-- **Sprint description as single source of sprint truth**
+- **Sprint folder structure:** two MECE artifacts — `S##_DESCRIPTION.md` (planning, written at kickoff, stable during sprint) + `S##_REVIEW.md` (outcomes, written at close) — no redundancy between files
 - **Autonomy gates** (kept as-is; genericization deferred to deployable sprint)
 - **Existing file names** — all files created before this plan keep their current names
 
@@ -182,24 +182,33 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
 **Priority:** P1 | **Phase:** 2 | **Dependencies:** None | **Area:** Process / Docs
 
 #### Problem
-`S##_PR_01.md` duplicates the GitHub PR body. `S##_REVIEW_01.md` with its 46-item checklist duplicates the checks already mandated by SPRINT_MANUAL §8 (Sprint Close Ritual) and §9 (Autonomy Gate). For a solo-developer project, the review document is pure ceremony — the review IS the PR merge.
+`S##_PR_01.md` duplicates the GitHub PR body verbatim — no additional value. `S##_REVIEW_01.md`'s 46-item checklist duplicates checks already mandated by SPRINT_MANUAL §8 and §9. The deeper problem is that the current design merges *planning data* (goals, scope, AF list) with *outcomes data* (what shipped, review decision, cognitive health) into one mutating `S##_DESCRIPTION.md`. A mutating artifact is worse at both jobs: the plan is harder to use as a reference mid-sprint; the review harder to write at close because it shares space with stable planning content.
 
 #### Goal
-- GitHub PR is the canonical PR artifact (no separate file)
-- Review functions are absorbed into S##_DESCRIPTION.md and SPRINT_MANUAL
-- Sprint folder contains: `S##_DESCRIPTION.md` + `artifacts/` (no PR or review docs)
-- Review rigor is preserved — same checks, fewer files
+- GitHub PR is the canonical PR artifact (no separate `S##_PR_01` file)
+- **MECE split:** `S##_DESCRIPTION.md` is the *planning* artifact; new lightweight `S##_REVIEW.md` is the *outcomes* artifact
+- `S##_DESCRIPTION.md` — written at kickoff, stable during sprint: goal, scope, AF list, implementation notes
+- `S##_REVIEW.md` — written at sprint close: work items table, review decision, cognitive health, learnings
+- Sprint folder contains: `S##_DESCRIPTION.md` + `S##_REVIEW.md` + `artifacts/`
+- Review rigour preserved — same checks, cleaner separation
 
 #### Changes
-1. **Rewrite `SPRINT_DESCRIPTION_TEMPLATE.md`** — streamlined format:
-   - Sprint metadata (goal, scope, dates, branch, models)
+1. **Simplify `SPRINT_DESCRIPTION_TEMPLATE.md`** — pure planning artifact:
+   - Sprint metadata (ID, name, dates, branch, Status, models)
+   - Sprint goal
+   - Scope (P0/P1/P2 AF list)
+   - Sprint start checklist
+   - PR plan
    - Work items table (filled during sprint)
-   - Close section:
-     - Review decision: `ACCEPTED` / `ACCEPT WITH FOLLOW-UPS` / `REJECTED`
-     - Rationale (1–2 sentences)
-     - Follow-ups (AF IDs, if any)
-     - PR link
-   - Sprint Cognitive Health (close — seven fields):
+   - Implementation notes (space for mid-sprint decisions and observations)
+   - *(No close section — outcomes belong in `S##_REVIEW.md`)*
+2. **Create `SPRINT_REVIEW_TEMPLATE.md`** — new lightweight outcomes artifact:
+   - Sprint reference (ID, name, PR link)
+   - Work items table: `ID | Title | Status | Notes`
+   - Review decision: `ACCEPTED` / `ACCEPT WITH FOLLOW-UPS` / `REJECTED`
+   - Rationale (1–2 sentences)
+   - Follow-ups (AF IDs, if any)
+   - Sprint Cognitive Health (seven fields):
      - Collapse events (INCOMPLETE_IMPL follow-ups): [N]
      - Drift events (AF spec revised mid-implementation): [N, list AF IDs]
      - Repair events: [informal, e.g. "3 attempts on BUG-0019"]
@@ -208,36 +217,45 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
      - LLM avoidance events: AFs claiming AI functionality with no RunTrace evidence of a real LLM call [N, list AF IDs]
      - Integration coverage: E2E test result at sprint close [pass / partial / fail — categorise any failures as unit-level vs. component-boundary wiring]
    - Learnings (optional, 2–3 bullets)
-2. **Archive** `SPRINT_PR_TEMPLATE.md` and `REVIEW_TEMPLATE.md` (move to `templates/archived/`)
-3. **Update SPRINT_MANUAL:**
+3. **Archive** `SPRINT_PR_TEMPLATE.md` and old `REVIEW_TEMPLATE.md` (move to `templates/archived/`)
+4. **Update SPRINT_MANUAL:**
    - §6: Reference GitHub PR directly, remove S##_PR_01 creation steps
    - §7: Remove post-merge doc creation
+   - §8: Sprint close ritual: create and fill `S##_REVIEW.md`, make review decision, merge PR
    - §8: Add review decision rules (ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED)
    - §8: Add quickfix budget rule (30 min cumulative, human-overridable)
-4. **Review function mapping** (how each check migrates):
+5. **Review function mapping** (how each check migrates):
 
 | Review function | Old home | New home |
 |---|---|---|
 | CI gate | REVIEW_01 checklist | SPRINT_MANUAL §8 (unchanged) |
 | INDEX consistency | REVIEW_01 checklist | SPRINT_MANUAL §8 + `gov.py check` |
-| Evidence verification | REVIEW_01 checklist | S##_DESCRIPTION close section |
+| Evidence verification | REVIEW_01 checklist | `S##_REVIEW.md` |
 | Autonomy gate | REVIEW_01 checklist | SPRINT_MANUAL §9 (unchanged) |
-| Decision record | REVIEW_01 summary | S##_DESCRIPTION close section |
+| Decision record | REVIEW_01 summary | `S##_REVIEW.md` |
 | Follow-up items | REVIEW_01 action items | Filed as new AF/BUG items |
+| Cognitive health | (new) | `S##_REVIEW.md` |
 
-5. **Historical files untouched** — S01-S15 PR and review docs remain as-is
+6. **Historical files untouched** — S01-S15 PR and review docs remain as-is
 
 #### Acceptance Criteria
-- [ ] New `SPRINT_DESCRIPTION_TEMPLATE.md` includes close/review section
-- [ ] New `SPRINT_DESCRIPTION_TEMPLATE.md` includes Sprint Cognitive Health section (seven fields)
-- [ ] `SPRINT_PR_TEMPLATE.md` and `REVIEW_TEMPLATE.md` moved to `templates/archived/`
+- [ ] `SPRINT_DESCRIPTION_TEMPLATE.md` is a pure planning artifact (no close/review section)
+- [ ] `SPRINT_REVIEW_TEMPLATE.md` (new) exists with: work items table, review decision (ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED), rationale, follow-ups, PR link
+- [ ] `SPRINT_REVIEW_TEMPLATE.md` includes Sprint Cognitive Health section (seven fields)
+- [ ] `SPRINT_REVIEW_TEMPLATE.md` includes Learnings section (optional, 2–3 bullets)
+- [ ] `SPRINT_PR_TEMPLATE.md` and old `REVIEW_TEMPLATE.md` moved to `templates/archived/`
 - [ ] SPRINT_MANUAL §6–§8 updated — no references to S##_PR_01 or S##_REVIEW_01 creation
-- [ ] Sprint 16 (or next sprint) successfully uses new template
+- [ ] SPRINT_MANUAL §8: sprint close ritual creates `S##_REVIEW.md`, fills it, then makes review decision
+- [ ] SPRINT_MANUAL §8 includes review decision rules (ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED)
+- [ ] SPRINT_MANUAL §8 includes quickfix budget rule (30 min cumulative, human-overridable)
+- [ ] Sprint 17 (first sprint under new rules) uses the new template pair
 
 #### Files Touched
-- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md` (rewrite)
+- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md` (simplify — remove close section, add Status field)
+- `docs/dev/sprints/templates/SPRINT_REVIEW_TEMPLATE.md` (new)
 - `docs/dev/sprints/templates/SPRINT_PR_TEMPLATE.md` (archive)
 - `docs/dev/sprints/templates/REVIEW_TEMPLATE.md` (archive)
+- `docs/dev/sprints/templates/archived/` (create folder)
 - `docs/dev/foundation/SPRINT_MANUAL.md` (§6, §7, §8)
 
 #### Risk
@@ -287,6 +305,25 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
 5. **Bug report template** — add: `Models:`
 6. **ADR template** — add: `Models:`
 7. **Convention:** `gov.py new-af` leaves `Started:` blank — it is filled by the agent at the moment implementation of *that specific AF* begins, not at file creation. AF files may be created at sprint kickoff for the entire sprint scope; `Started:` is logged per-AF when the agent picks it up. `Completed:` is logged when acceptance criteria are met, just before the commit. The `Started:`→`Completed:` span is the per-AF active implementation duration: the smallest measurable velocity unit in the system.
+8. **AF status vocabulary** — update `BACKLOG_ITEM_TEMPLATE.md` Status field to the canonical 5 values (IN_PROGRESS removed):
+   - `PROPOSED` — not yet human-approved
+   - `READY` — approved, can be implemented
+   - `BLOCKED` — needs human approval to unblock (non-terminal: after human approval can move to any status)
+   - `DONE` — implemented
+   - `DROPPED` — no longer relevant
+   Update `INDEX_BACKLOG.md` header and status legend accordingly.
+9. **Bug status vocabulary** — update `BUG_REPORT_TEMPLATE.md` to canonical 3 values:
+   - `OPEN` — reported, not yet fixed (covers all pre-fix states)
+   - `FIXED` — fix committed and CI passes
+   - `DROPPED` — no longer relevant
+   Remove `IN_PROGRESS` (same rationale as D21) and `VERIFIED` (never occurred as a distinct status in S01–S15; CI gate + HITL G4 cover verification without a separate status gate). Update `INDEX_BUGS.md` status legend (coordinate with AF-0134).
+10. **Sprint status vocabulary** — update `SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0130):
+    - Rename `State:` → `Status:` for consistency with all other governance files
+    - Canonical 3 values: `PLANNED | DONE | REJECTED`
+    - `PLANNED` — description written, sprint not yet started
+    - `DONE` — merged and closed (covers ACCEPTED and ACCEPT WITH FOLLOW-UPS outcomes; detail lives in `S##_REVIEW.md`)
+    - `REJECTED` — rejected at review, branch preserved per D3
+    Remove `Draft`, `Ready`, `In Progress`, `In Review`, `Accepted`, `Closed`. Update `INDEX_SPRINTS.md` legend (coordinate with AF-0134).
 
 #### Acceptance Criteria
 - [ ] All four templates include `Started:`, `Completed:`, and `Models:` fields
@@ -295,10 +332,13 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
 - [ ] AF template includes Decision Record section (marked "if applicable")
 - [ ] Format convention documented: ISO 8601 (e.g. `2026-04-03T14:30:00+02:00`)
 - [ ] Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`
+- [ ] AF status vocabulary: exactly 5 values (PROPOSED / READY / BLOCKED / DONE / DROPPED), IN_PROGRESS removed from template and INDEX_BACKLOG
+- [ ] Bug status vocabulary: exactly 3 values (OPEN / FIXED / DROPPED), IN_PROGRESS and VERIFIED removed from template and INDEX_BUGS
+- [ ] Sprint `State:` → `Status:` renamed; exactly 3 values (PLANNED / DONE / REJECTED); old values removed from template and INDEX_SPRINTS
 
 #### Files Touched
 - `docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
-- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md`
+- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0130)
 - `docs/dev/bugs/templates/BUG_REPORT_TEMPLATE.md`
 - `docs/dev/decisions/templates/ADR_TEMPLATE.md`
 
@@ -502,6 +542,12 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
    - Consequences: reduced overhead, simpler onboarding, automation opportunity
 4. **README.md** — update project structure section, test count, coverage
 5. **ARCHITECTURE.md** — verify Implementation Map is current; update if stale
+6. **Governance System Version bump** — set version to `v1.3` in all governance doc headers:
+   - `docs/dev/backlog/INDEX_BACKLOG.md` (currently v1.2)
+   - `docs/dev/sprints/INDEX_SPRINTS.md` (currently v0.5)
+   - `docs/dev/bugs/INDEX_BUGS.md`
+   - `docs/dev/decisions/INDEX_DECISIONS.md`
+   - All files under `docs/dev/backlog/templates/`, `docs/dev/sprints/templates/`, `docs/dev/bugs/templates/`, `docs/dev/decisions/templates/`
 
 #### Acceptance Criteria
 - [ ] No references to old naming convention (`AF####_<STATUS>_desc.md`) in SPRINT_MANUAL
@@ -512,12 +558,18 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 - [ ] SPRINT_MANUAL §8 includes living reference docs sweep checklist
 - [ ] SPRINT_MANUAL §8 includes ADR creation criteria (inline vs. full)
 - [ ] ARCHITECTURE.md Implementation Map reflects current codebase
+- [ ] All governance INDEX files and templates carry Governance System Version v1.3
+- [ ] No templates or INDEX files reference IN_PROGRESS as a valid status value
 
 #### Files Touched
 - `docs/dev/foundation/SPRINT_MANUAL.md` (rewrite affected sections)
 - `docs/dev/foundation/FOLDER_STRUCTURE_0.3.md` (new)
 - `docs/dev/decisions/files/ADR010_governance_simplification.md` (new)
-- `docs/dev/decisions/INDEX_DECISIONS.md` (add ADR-0010 row)
+- `docs/dev/decisions/INDEX_DECISIONS.md` (add ADR-0010 row; bump to v1.3)
+- `docs/dev/backlog/INDEX_BACKLOG.md` (bump to v1.3)
+- `docs/dev/sprints/INDEX_SPRINTS.md` (bump to v1.3)
+- `docs/dev/bugs/INDEX_BUGS.md` (bump to v1.3)
+- All template files under `docs/dev/*/templates/` (bump to v1.3)
 - `README.md` (update project structure, test count, coverage)
 - `ARCHITECTURE.md` (verify and update Implementation Map)
 
@@ -539,7 +591,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D7 | Model field format: `<Model Name> (<Platform>)` | E.g. `Claude Opus 4 (Copilot)` — traceable across tools |
 | D8 | Historical files (S01–S15) untouched | No retroactive cleanup; clean break going forward |
 | D9 | Deployable template kit: separate follow-up sprint | Validate improvements first by running a real sprint under new rules |
-| D10 | Template versions bump to v0.3 | Tracks the governance generation |
+| D10 | Governance System Version (GSV): all governance INDEX files and templates share one version number, bumped together on any sprint that includes structural governance changes | Supersedes per-file versioning; a single GSV makes clear which governance generation is in use. Rule: GSV bumps on structural change (new fields, new sections, changed conventions); content-only changes (status updates, new rows) do not bump. After S16: v1.3 |
 | D11 | This sprint runs under **old rules** | Can't reliably use rules you're still writing; next sprint validates new rules |
 | D12 | Autonomy gates stay as-is; genericized in deployable sprint | Current project needs them; others may not — defer to template kit |
 | D13 | Docs Impact Check in AF template | ~30 sec cost per AF; prevents documentation drift (README 3 phases stale, inventory docs 1 month stale) |
@@ -549,7 +601,10 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D17 | Inter-sprint planning commits via housekeeping branch + minimal PR | Docs-only; no sprint apparatus needed; must merge before next sprint starts |
 | D18 | Sprint Cognitive Health section in sprint description template | Captures 7 failure mode signals from existing artifacts; enables longitudinal analysis without external tooling; `gov.py check` warns on threshold violations |
 | D19 | LLM Avoidance and Partial Wiring added to Cognitive Health in v0.1, not deferred | Both failure modes empirically confirmed across 15 sprints (planner went 10 sprints without an LLM call; partial wiring was the largest single bug category). Instrument immediately to get data from first sprint under new rules rather than waiting for a v0.2 iteration |
-
+| D20 | Governance System Version (GSV) v1.3 assigned to all governance docs after S16 | Unifies per-file versioning (INDEX_BACKLOG v1.2, INDEX_SPRINTS v0.5, templates v0.2) into a single system version. Starting from S16 close, GSV tracks governance generations — one number tells you which ruleset is in effect |
+| D21 | `IN_PROGRESS` removed from status vocabulary — 5 canonical values only | IN_PROGRESS duplicates information already visible from git history and active agent context. Status is for human-visible gates, not agent workflow state. The 5 remaining values map to human decisions: PROPOSED (needs approval) → READY (approved) → DONE (complete). BLOCKED is a non-terminal waiting state — after human approval it can move to any other status. Only DONE and DROPPED are true terminals. || D22 | MECE description/review split: `S##_DESCRIPTION.md` = planning artifact, `S##_REVIEW.md` = outcomes artifact | A mutating file that serves as both plan and outcomes record is worse at both jobs. Clean separation lets each file be written once with a stable purpose — plan at kickoff, review at close. Cognitive health and review decision belong in REVIEW; goal and scope belong in DESCRIPTION |
+| D23 | Bug status simplified to 3 values: OPEN / FIXED / DROPPED | VERIFIED was never used as a distinct terminal status in S01–S15 — CI gate + HITL G4 cover verification without a separate status gate. IN_PROGRESS removed for same reason as D21 |
+| D24 | Sprint status normalised to 3 values: PLANNED / DONE / REJECTED; `State:` field renamed to `Status:` | State/Status inconsistency eliminated. Six prior values (Draft / Ready / In Progress / In Review / Accepted / Closed) collapsed to three human-visible resting points. ACTIVE removed — same category as IN_PROGRESS: agent workflow state, not a governance gate |
 ---
 
 ## 7. Scope Boundaries
@@ -593,7 +648,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 |---|---|---|---|
 | Per status change (new files) | 3 edits (rename + metadata + INDEX) | 2 edits (metadata + INDEX), or 1 command via `gov.py` | 33–66% |
 | Per status change (legacy files) | 3 edits (rename + metadata + INDEX) | 3 edits (unchanged — legacy convention) | 0% |
-| Sprint close ceremony | ~20 min (PR doc + review doc + INDEX alignment) | ~5 min (fill description close section + merge PR) | 75% |
+| Sprint close ceremony | ~20 min (PR doc + review doc + INDEX alignment) | ~5 min (fill `S##_REVIEW.md` + merge PR) | 75% |
 | Per-sprint total ceremony | 30–50 min | ~10 min | 66–80% |
 | Status mismatch debugging (new files) | Ad hoc (BUG-0022, BUG-0023) | Eliminated (status not in filename) | 100% |
 

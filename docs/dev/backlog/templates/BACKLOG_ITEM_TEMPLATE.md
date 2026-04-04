@@ -25,14 +25,19 @@
 > The full gate runs once, right before `git commit`.
 
 > **File naming (required):** `AF####_<STATUS>_<three_word_description>.md`
-> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
+> Status values: `PROPOSED | READY | BLOCKED | DONE | DROPPED`
+> - `PROPOSED` — not yet human-approved
+> - `READY` — approved, can be implemented
+> - `BLOCKED` — needs human approval to unblock
+> - `DONE` — implemented
+> - `DROPPED` — no longer relevant
 
 ---
 
 ## Metadata
 - **ID:** AF####
 - **Type:** Foundation | Docs | Architecture | Feature | Refactor | Process
-- **Status:** PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED
+- **Status:** PROPOSED | READY | BLOCKED | DONE | DROPPED
 - **Priority:** P0 | P1 | P2
 - **Area:** Docs | CLI | Kernel | Skills | Storage | Process | Testing | CI
 - **Owner:** Kai | Jeff | Jacob
