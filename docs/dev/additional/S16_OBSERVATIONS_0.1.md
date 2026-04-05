@@ -25,6 +25,26 @@ The goal statement "All governance docs internally consistent with new rules" wa
 
 **Lesson:** Goal statements must be unambiguous about scope boundaries. Agents interpret maximally — if a goal can be read as "touch everything," it will be.
 
+### 1.4 Misunderstanding of approval gates
+
+Jacob treats G4 (AF completion approval) as "I cannot initiate a commit until the user tells me to" — a passive blocker. The correct behavior is proactive: "I've completed AF-0129. Here's what changed: [summary]. All AC met. Approve for commit?"
+
+**Consequence:** The commit discipline failure (§1.2) is partly caused by this misunderstanding. If Jacob had proactively presented each completed AF and asked for sign-off, the uncommitted backlog would never have accumulated. Instead, he waited passively, and nobody triggered the commits.
+
+**Correct gate behavior:**
+- Agent DRIVES the flow — completes work, presents result, recommends action, asks for approval
+- Human DECIDES — approve, reject, or request changes
+- Agent EXECUTES the approved action (commit, move to next AF, etc.)
+
+**Wrong gate behavior:**
+- Agent completes work, stops, waits silently
+- Human initiates the next action ("commit now")
+- Agent passively follows
+
+**Root cause:** The HITL gate definitions (G1–G15) say "Agent MUST Stop and Wait" — Jacob reads "stop and wait" literally as "go silent until spoken to." The phrasing should be "Agent MUST present result and request approval before proceeding." The gate is a checkpoint, not a wall.
+
+**Fix needed:** Rephrase HITL gate descriptions in SPRINT_MANUAL / FOUNDATION_MANUAL to clarify that gates are proactive agent-initiated checkpoints, not passive blockers. This is a v1.4 improvement for gvs_development.
+
 ---
 
 ## 2) Process Improvements Identified

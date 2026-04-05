@@ -342,11 +342,23 @@ After step 4, the agent opens the project and executes Sprint 1. Everything from
 3. **Testing framework:** Reuse pytest? Standalone linter? Both?
 4. **GVS sprint cadence:** Same cadence as ag_foundation, or independent?
 5. **Retroactive CHANGELOG depth:** Document v1.0–v1.3 from memory, or start clean at v1.3?
-6. **Copilot instructions:** How do GVS base instructions compose with client-specific instructions?
+6. **Copilot instructions and vendor specificity:** `.github/copilot-instructions.md` is a VS Code / GitHub Copilot feature — convenient but vendor-specific. Open questions:
+    - **Vendor lock-in:** GVS should not depend on a single AI tooling vendor. But copilot-instructions are currently the most practical way to give agents persistent workspace rules. Should GVS standardize on a vendor-neutral format and treat copilot-instructions as one possible delivery mechanism?
+    - **Composition:** How do GVS base instructions compose with client-specific instructions? Does GVS ship a fragment clients include, or do clients write their own referencing GVS rules?
+    - **Multi-workspace consistency:** ag_foundation and convergent/gvs_development both need copilot-instructions that work without contradicting each other. The governance references must point to the correct paths in each workspace.
+    - **Near-term requirement:** For Sprint 17 / GVS Sprint 1, copilot-instructions must work on both sides (ag_foundation pointing to its local governance docs, convergent pointing to `gvs_version_fixed/version1.3/`) without conflict. Solve the pragmatic case first, design the general solution later.
 7. **external_inputs/ format:** Free-form files? Structured template? What metadata is required?
 8. **Verification gap:** gvs_development has no CI gate (no source code). Options: (a) skip CI passes, (b) test against ag_foundation as harness, (c) build portable governance tests. Option (c) recommended — creates gvs_development's own test suite.
 9. **Project-type scope:** Should GVS support non-coding projects? If yes, verification passes must be pluggable (not hardcoded pytest/ruff).
 10. **GVS runtime (Phase 3):** When to introduce `gvs verify` / `gvs gate` CLI tooling? This makes gvs_development a hybrid (docs + code) project and partially reintroduces the bootstrap paradox at the tooling layer.
+11. **Client version upgrade path:** v1.3 and v1.4 have fundamentally different folder structures (v1.3 = monolithic flat `docs/dev/`, v1.4 = `hidden_layer/` + `user/` split). When a client like ag_foundation wants to upgrade from v1.3 → v1.4, how does that work cleanly? Key sub-questions:
+    - **Migration tooling:** Is there a `gvs upgrade` command, a migration script per version pair, or a manual runbook?
+    - **Content mapping:** Which v1.3 files map to `hidden_layer/` vs `user/` in v1.4? Who decides — the server ships a mapping, or the client figures it out?
+    - **In-flight work:** Can a client upgrade mid-sprint, or only between sprints?
+    - **Backward compatibility:** Must v1.4 server still accept v1.3-structured clients, or is upgrade mandatory?
+    - **Rollback:** If the upgrade breaks something, can the client revert to v1.3 cleanly?
+    - **Testing:** How does the client verify the upgrade succeeded? Governance test suite from v1.4 should validate the new structure.
+    - **Precedent:** This is the FIRST version transition — whatever we do for v1.3→v1.4 sets the pattern for all future upgrades. Design it deliberately.
 
 ---
 

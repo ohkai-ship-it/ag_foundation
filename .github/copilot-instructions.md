@@ -25,3 +25,12 @@ When working on an AF (Action Feature), always create a ToDo checklist:
 - Foundation rules: `/docs/dev/foundation/FOUNDATION_MANUAL.md`
 - Sprint execution: `/docs/dev/foundation/SPRINT_MANUAL.md`
 - HITL Framework: FOUNDATION_MANUAL §10
+
+## HITL Gate Behavior
+
+At every HITL gate (G1–G15), you MUST proactively:
+1. Summarize what you completed
+2. State what comes next
+3. Explicitly ask for approval to proceed
+
+Never go silent and wait. You drive the conversation — a gate is a checkpoint, not a wall.

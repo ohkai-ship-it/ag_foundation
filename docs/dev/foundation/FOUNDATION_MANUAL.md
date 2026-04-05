@@ -471,13 +471,13 @@ When behavior changes:
 ### 9.1 If Unsure
 - Propose 2–3 options
 - Recommend one
-- Wait for decision before proceeding
+- Present to human and ask for decision
 
 ### 9.2 If Invariant Conflict Detected
 - **STOP immediately**
 - Document the conflict
-- Escalate to Kai/Jeff
-- Do not proceed with workarounds
+- Escalate to Kai/Jeff with clear summary and proposed resolution
+- Ask for decision before proceeding
 
 ### 9.3 Prohibited Actions
 - No silent shortcuts (undocumented workarounds)
@@ -489,8 +489,8 @@ When behavior changes:
 ### 9.4 Escalation Path
 1. Document the issue clearly
 2. Create bug report if appropriate
-3. Notify in chat immediately
-4. Wait for explicit resolution
+3. Present the issue in chat with proposed resolution
+4. Ask for decision before proceeding
 
 ### 9.5 When to Block PR
 A PR must be blocked if:
@@ -507,27 +507,34 @@ A PR must be blocked if:
 
 This framework is a first-class governance component, not an afterthought.
 
-### 10.1 Mandatory Gates (Agent MUST Stop and Wait)
+### 10.1 Mandatory Gates (Agent MUST Present Result and Request Approval)
 
-| # | Gate | Trigger | Location |
+At every gate, the agent MUST:
+1. Summarize what was completed
+2. State readiness for the next action
+3. Explicitly ask for approval to proceed
+
+A gate is a **checkpoint where the agent drives the conversation**, not a wall where the agent goes silent.
+
+| # | Gate | Trigger | Agent Action |
 |:--:|---|---|---|
-| G1 | Sprint scope approval | Before any implementation begins | SPRINT_MANUAL §0.2 ("proceed") |
-| G2 | Clarifying questions | Scope is ambiguous or unclear | SPRINT_MANUAL §0.2, FOUNDATION_MANUAL §9.1 |
-| G3 | Pre-implementation confirmation | Scope, INDEX, statuses verified | SPRINT_MANUAL §0.2 |
-| G4 | AF completion approval | After each AF — present result, wait for human approval before next AF | SPRINT_MANUAL §4 |
-| G5 | Review decision | Before sprint close | SPRINT_MANUAL §8 |
-| G6 | Destructive actions | force push, branch deletion, data drops | Always |
-| G7 | Rule exceptions | Agent proposes any deviation from documented rules | Always |
-| G8 | Escalation: blocked work | Tests fail with no clear fix | SPRINT_MANUAL §4.4 |
-| G9 | Escalation: invariant conflict | Core invariant may be violated | FOUNDATION_MANUAL §1, §9.2 |
-| G10 | Escalation: scope creep | Work exceeds documented AF scope | SPRINT_MANUAL escalation |
-| G11 | Escalation: unclear approach | Cannot determine correct implementation | SPRINT_MANUAL escalation, FOUNDATION_MANUAL §9.1 |
-| G12 | Escalation: blocking dependency | External dependency prevents progress | SPRINT_MANUAL escalation |
-| G13 | Autonomy gate (start) | Sprint touches planner/orchestrator/verifier/execution | SPRINT_MANUAL §9.1 |
-| G14 | Autonomy gate (close) | P0 autonomy items must be resolved before close | SPRINT_MANUAL §9.4 |
-| G15 | PR block | CI fails, coverage drops, truthful UX violated, workspace isolation violated, INDEX not updated | FOUNDATION_MANUAL §9.5 |
+| G1 | Sprint scope approval | Before any implementation begins | Present scope summary, confirm readiness, ask "May I proceed?" |
+| G2 | Clarifying questions | Scope is ambiguous or unclear | Present specific questions, propose defaults if possible, ask for answers |
+| G3 | Pre-implementation confirmation | Scope, INDEX, statuses verified | Present verification results, confirm all clear, ask "Ready to start implementation?" |
+| G4 | AF completion approval | After each AF is implemented | Present AF summary (files changed, tests passed, key decisions), ask "Approve and move to next AF?" |
+| G5 | Review decision | Before sprint close | Present review summary, ask for ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT |
+| G6 | Destructive actions | force push, branch deletion, data drops | Describe the destructive action and its impact, ask for explicit confirmation |
+| G7 | Rule exceptions | Agent proposes any deviation from documented rules | Explain the deviation, justify it, ask for approval |
+| G8 | Escalation: blocked work | Tests fail with no clear fix | Present the failure, propose 2–3 options, recommend one, ask for decision |
+| G9 | Escalation: invariant conflict | Core invariant may be violated | Identify the conflict, explain consequences, ask for resolution |
+| G10 | Escalation: scope creep | Work exceeds documented AF scope | Flag the excess, propose trim or expansion, ask for decision |
+| G11 | Escalation: unclear approach | Cannot determine correct implementation | Present the ambiguity, propose options, ask which to pursue |
+| G12 | Escalation: blocking dependency | External dependency prevents progress | Describe the blocker, propose workaround or wait, ask for decision |
+| G13 | Autonomy gate (start) | Sprint touches planner/orchestrator/verifier/execution | Present autonomy impact assessment, ask for approval to proceed |
+| G14 | Autonomy gate (close) | P0 autonomy items must be resolved before close | Present autonomy checklist status, ask for close approval |
+| G15 | PR block | CI fails, coverage drops, truthful UX violated, workspace isolation violated, INDEX not updated | Present the blocking issue, propose fix, ask for approval |
 
-**Escalation procedure (G8–G12):** Document issue → propose 2–3 options → recommend one → wait for explicit decision. Do not proceed with workarounds.
+**Escalation procedure (G8–G12):** Document issue → propose 2–3 options → recommend one → present to human and ask for decision. Never go silent.
 
 ### 10.2 Human Rights (Exercisable at Any Time via Chat)
 

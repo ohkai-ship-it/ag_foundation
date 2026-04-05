@@ -48,6 +48,9 @@ dmypy.json
 # Ruff
 .ruff_cache/
 
+# Backup / archive snapshots
+docs/dev_bkup/
+
 # ag_foundation specific
 *.db
 *.sqlite

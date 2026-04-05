@@ -32,7 +32,7 @@ Read these documents completely before starting:
 - [ ] Update all index files
 - [ ] Confirm no filename ↔ status mismatches exist
 - [ ] Ask clarifying questions in chat if anything unclear
-- [ ] **Wait for explicit "proceed" from Kai before implementation**
+- [ ] **Present verification summary to Kai and ask for explicit "proceed" before implementation**
 
 ---
 
@@ -403,7 +403,7 @@ At sprint close, create `S##_REVIEW.md` from `SPRINT_REVIEW_TEMPLATE.md`:
 1. Fill work items table (all AFs with final status)
 2. Fill Sprint Cognitive Health section (see §8.8)
 3. Fill Learnings (optional)
-4. Wait for human review decision (G5 — FOUNDATION_MANUAL §10)
+4. Present review summary to human and request review decision (G5 — FOUNDATION_MANUAL §10)
 
 **Review decisions:**
 
@@ -557,8 +557,8 @@ ag runs list --workspace <ws>           # List runs
 1. Document the issue clearly
 2. Propose 2–3 options if possible
 3. Recommend one option
-4. Wait for explicit decision
-5. Do not proceed with workarounds
+4. Present to human and ask for decision
+5. Never go silent — always drive the conversation toward resolution
 
 ---
 

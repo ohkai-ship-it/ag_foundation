@@ -24,20 +24,25 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 | ID | Priority | Status | Title | Area | Owner | Link |
 |---:|:--:|:--|---|---|---|---|
 | AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
-| AF-0139 | P1 | READY | GVS folder structure seed | Process / Governance | Kai | [🔗](items/AF0139_READY_gvs_folder_structure_seed.md) |
 | AF-0140 | P0 | DONE | GVS convergent folder creation | Process / Governance | Kai | [✅](items/AF0140_DONE_gvs_convergent_folder_creation.md) |
-| AF-0141 | P0 | READY | GVS v1.3 export clean | Process / Governance | Jacob | [🔗](items/AF0141_READY_gvs_v1_3_export_clean.md) |
-| AF-0142 | P1 | READY | ag_foundation GVS handoff docs | Process / Docs | Jacob | [🔗](items/AF0142_READY_ag_foundation_gvs_handoff_docs.md) |
+| AF-0143 | P0 | READY | HITL active approval gates | Process / Governance | Jacob | [🔗](items/AF0143_READY_hitl_active_approval_gates.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 17 Scope (skill_catalog_expansion)
+### Sprint XX Scope (skill_catalog_expansion)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0127 | P1 | READY | LangChain skill adapter | Skills / Plugin Architecture | Jacob | [🔗](items/AF0127_READY_langchain_skill_adapter.md) |
 | 2 | AF-0128 | P1 | READY | First LangChain tool batch | Skills / Capability Expansion | Jacob | [🔗](items/AF0128_READY_first_langchain_tool_batch.md) |
 | 3 | AF-0137 | P1 | PROPOSED | Chat session gate: context refresh at session boundaries | Process / Governance | Jeff + Kai | [🔗](items/AF0137_PROPOSED_chat_session_gate.md) |
+
+### Sprint 17 Scope (gvs_migration)
+| Order | ID | Priority | Status | Title | Area | Owner | Link |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0141 | P0 | READY | GVS v1.3 export clean | Process / Governance | Jacob | [🔗](items/AF0141_READY_gvs_v1_3_export_clean.md) |
+| 2 | AF-0142 | P1 | READY | ag_foundation GVS handoff docs | Process / Docs | Jacob | [🔗](items/AF0142_READY_ag_foundation_gvs_handoff_docs.md) |
+<!-- AF-0139 (GVS folder structure seed) carried over to convergent/GVS workspace for execution in GVS Sprint 1 -->
 
 ### Sprint 16 Scope (governance_simplification)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |
