@@ -1,5 +1,12 @@
 # BACKLOG ITEM — AF#### — <three_word_description>
-# Version number: v0.2
+# Version number: v1.3
+# Created:
+# Started:
+# Completed:
+# Status:
+# Priority:
+# Area:
+# Models:
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -24,15 +31,26 @@
 > Do NOT run the full suite on every save. Targeted tests keep feedback fast.
 > The full gate runs once, right before `git commit`.
 
-> **File naming (required):** `AF####_<STATUS>_<three_word_description>.md`
-> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
+> **File naming (required):** `AF####_<three_word_description>.md` (new convention — no status token)
+> Legacy files: `AF####_<STATUS>_<three_word_description>.md` (existing files keep this format)
+> Status values: `PROPOSED | READY | BLOCKED | DONE | DROPPED`
+> - `PROPOSED` — not yet human-approved
+> - `READY` — approved, can be implemented
+> - `BLOCKED` — needs human approval to unblock
+> - `DONE` — implemented
+> - `DROPPED` — no longer relevant
+>
+> **Timing convention:** `Started:` filled when agent begins AF work (not at file creation).
+> `Completed:` filled when AC met, before commit.
+> Format: ISO 8601 (e.g. `2026-04-04T14:30:00+02:00`).
+> Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`.
 
 ---
 
 ## Metadata
 - **ID:** AF####
 - **Type:** Foundation | Docs | Architecture | Feature | Refactor | Process
-- **Status:** PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED
+- **Status:** PROPOSED | READY | BLOCKED | DONE | DROPPED
 - **Priority:** P0 | P1 | P2
 - **Area:** Docs | CLI | Kernel | Skills | Storage | Process | Testing | CI
 - **Owner:** Kai | Jeff | Jacob
@@ -67,7 +85,9 @@ Explicitly out of scope.
     - [ ] `pytest -W error`  
     - [ ] coverage thresholds met (`pytest --cov=src/ag --cov-report=term-missing`)
 - [ ] Evidence included (as applicable): tests + RunTrace ID(s)
-- [ ] Completion section filled below (mandatory when Status = Done)
+- [ ] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
+- [ ] AI functionality check: if this AF delivers or modifies AI functionality (LLM calls, planner, orchestrator, verifier), RunTrace evidence of a real LLM call is required (N/A if no AI functionality)
+- [ ] Completion section filled below (mandatory when Status = DONE)
 
 ---
 
@@ -159,3 +179,10 @@ Provide exact commands and results summary.
 - [ ] I can reproduce a run (or it’s docs-only)
 - [ ] Tests were run and results are documented
 - [ ] Any contract changes are documented in cornerstone docs
+
+---
+
+## Decision Record (if applicable)
+- **Decision:** What was decided?
+- **Alternatives considered:** What else was possible?
+- **Rationale:** Why this choice?

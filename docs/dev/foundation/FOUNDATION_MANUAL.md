@@ -421,6 +421,10 @@ Proposed → Accepted → Superseded
 Draft → Ready → In Progress → In Review → Accepted → Closed
 ```
 
+### 7.7 Historical Record Immutability
+
+Pre-v1.3 governance entries (INDEX rows, AF/BUG files, sprint docs) retain their original layout and naming conventions. Do not retroactively rename, restructure, or normalize historical records to match current conventions. New conventions take effect from the sprint following their introduction.
+
 ---
 
 ## 8. Evidence & Truthfulness Requirements
@@ -496,6 +500,63 @@ A PR must be blocked if:
 - Workspace isolation violated
 - Index not updated
 - Filename ↔ status mismatch exists
+
+---
+
+## 10. Human-in-the-Loop (HITL) Framework
+
+This framework is a first-class governance component, not an afterthought.
+
+### 10.1 Mandatory Gates (Agent MUST Stop and Wait)
+
+| # | Gate | Trigger | Location |
+|:--:|---|---|---|
+| G1 | Sprint scope approval | Before any implementation begins | SPRINT_MANUAL §0.2 ("proceed") |
+| G2 | Clarifying questions | Scope is ambiguous or unclear | SPRINT_MANUAL §0.2, FOUNDATION_MANUAL §9.1 |
+| G3 | Pre-implementation confirmation | Scope, INDEX, statuses verified | SPRINT_MANUAL §0.2 |
+| G4 | AF completion approval | After each AF — present result, wait for human approval before next AF | SPRINT_MANUAL §4 |
+| G5 | Review decision | Before sprint close | SPRINT_MANUAL §8 |
+| G6 | Destructive actions | force push, branch deletion, data drops | Always |
+| G7 | Rule exceptions | Agent proposes any deviation from documented rules | Always |
+| G8 | Escalation: blocked work | Tests fail with no clear fix | SPRINT_MANUAL §4.4 |
+| G9 | Escalation: invariant conflict | Core invariant may be violated | FOUNDATION_MANUAL §1, §9.2 |
+| G10 | Escalation: scope creep | Work exceeds documented AF scope | SPRINT_MANUAL escalation |
+| G11 | Escalation: unclear approach | Cannot determine correct implementation | SPRINT_MANUAL escalation, FOUNDATION_MANUAL §9.1 |
+| G12 | Escalation: blocking dependency | External dependency prevents progress | SPRINT_MANUAL escalation |
+| G13 | Autonomy gate (start) | Sprint touches planner/orchestrator/verifier/execution | SPRINT_MANUAL §9.1 |
+| G14 | Autonomy gate (close) | P0 autonomy items must be resolved before close | SPRINT_MANUAL §9.4 |
+| G15 | PR block | CI fails, coverage drops, truthful UX violated, workspace isolation violated, INDEX not updated | FOUNDATION_MANUAL §9.5 |
+
+**Escalation procedure (G8–G12):** Document issue → propose 2–3 options → recommend one → wait for explicit decision. Do not proceed with workarounds.
+
+### 10.2 Human Rights (Exercisable at Any Time via Chat)
+
+| Right | Description |
+|---|---|
+| **Ad hoc rule override** | Modify any operational parameter for the current situation (e.g., "stretch quickfix budget to 60 min") |
+| **Scope change** | Add, remove, or reprioritize AFs mid-sprint |
+| **Stop work** | Halt any activity immediately |
+| **Override recommendation** | Agent advises, human decides. Human decision is final. |
+
+### 10.3 Constitutional Principle
+
+> **Chat messages are temporary amendments.**
+> They apply to the current situation only and do not modify documented workflows.
+> Permanent changes to governance documents always require a formal AF with review.
+
+Example: If the human says "stretch quickfix budget to 60 min this time," that's valid for *this sprint only*. Next sprint reverts to the documented 30 min rule unless an AF formally changes it.
+
+### 10.4 Review Decisions
+
+The human-in-the-loop makes one of three decisions at sprint close:
+
+| Decision | Action |
+|---|---|
+| **ACCEPTED** | Close sprint. Merge PR. |
+| **ACCEPT WITH FOLLOW-UPS** | Create follow-up AFs. Close sprint. Merge PR. |
+| **REJECTED** | Sprint status → `REJECTED`. Branch preserved (not deleted). No merge. Sprint description records rejection rationale + learnings. Human decides next step. |
+
+**Quickfix budget:** 30 min **total cumulative** for in-sprint fixes before close. Human-overridable ad hoc per §10.2.
 
 ---
 

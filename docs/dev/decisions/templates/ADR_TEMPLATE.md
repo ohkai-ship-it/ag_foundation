@@ -1,5 +1,6 @@
 # ADR### — <three_word_description>
-# Version number: v0.2
+# Version number: v1.3
+# Models:
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -12,7 +13,7 @@
 > - Interfaces remain swappable
 > - See "Guardrails / invariants" section below
 
-> **File naming (required):** `ADR###_<STATUS>_<three_word_description>.md`
+> **File naming (required):** `ADR###_<three_word_description>.md`
 > Status values: `PROPOSED | ACCEPTED | SUPERSEDED | DEPRECATED`
 
 ---

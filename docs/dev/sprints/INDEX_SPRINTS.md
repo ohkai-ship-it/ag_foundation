@@ -1,5 +1,6 @@
 # INDEX_SPRINTS
-# Version number: v0.5
+# Version number: v1.3
+<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -17,9 +18,8 @@
 ## Structure (new)
 Each sprint folder:
 - `/docs/dev/sprints/documentation/Sprint##_three_word_description/`
-  - `S##_DESCRIPTION.md` (plan + report)
-  - `S##_REVIEW_01.md`
-  - `S##_PR_01.md`
+  - `S##_DESCRIPTION.md` (planning artifact)
+  - `S##_REVIEW.md` (outcomes artifact, written at sprint close)
   - `artifacts/` (review outputs, traces, logs)
 
 ---
@@ -44,6 +44,7 @@ Each sprint folder:
 | Sprint 13 | Closed | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
 | Sprint 14 | Closed | [Sprint14_pipeline_trace_hardening](documentation/Sprint14_pipeline_trace_hardening/) |
 | Sprint 15 | Closed | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
+| Sprint 16 | Closed | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
 
 ---
 

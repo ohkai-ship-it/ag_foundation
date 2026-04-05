@@ -40,7 +40,7 @@
 - **Priority:** P1
 - **Area:** Skills / Plugin Architecture
 - **Owner:** Jacob
-- **Target sprint:** Sprint 16
+- **Target sprint:** Sprint 17 — skill_catalog_expansion
 
 ---
 

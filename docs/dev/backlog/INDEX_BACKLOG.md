@@ -1,38 +1,55 @@
 # INDEX_BACKLOG
-# Version number: v1.2
+# Version number: v1.3
+<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
-> Filename status must match internal status.
+> Status must match between internal file metadata and INDEX row.
 > Update required:
 > - at sprint start ritual
 > - whenever status changes
 > See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
 
 > **Location:** `/docs/dev/backlog/INDEX_BACKLOG.md`
-> **Naming (required):** `AF####_<STATUS>_<three_word_description>.md` in `/docs/dev/backlog/items/`
-> Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
-> **Linking convention:** Filename column uses clickable links: `[🔗](items/filename)`
+> **Naming:** See SPRINT_MANUAL §2 for naming conventions (legacy and new).
+> Status values: `PROPOSED | READY | BLOCKED | DONE | DROPPED`
+> **Linking convention:** Link column is the sole file reference: `[🔗](items/filename)` or `[✅](items/filename)`
 
 ## Status legend
-PROPOSED → READY → IN_PROGRESS → DONE (or BLOCKED / DROPPED)
+PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 
 ---
 
-## Active backlog (current)
-
-### Backlog (unprioritized) *KEEP ALWAYS ON TOP*
-| ID | Priority | Status | Title | Area | Owner | Filename |
+## Backlog (unprioritized) *KEEP ALWAYS ON TOP*
+| ID | Priority | Status | Title | Area | Owner | Link |
 |---:|:--:|:--|---|---|---|---|
+| AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
+| AF-0139 | P1 | READY | GVS folder structure seed | Process / Governance | Kai | [🔗](items/AF0139_READY_gvs_folder_structure_seed.md) |
+| AF-0140 | P0 | DONE | GVS convergent folder creation | Process / Governance | Kai | [✅](items/AF0140_DONE_gvs_convergent_folder_creation.md) |
+| AF-0141 | P0 | READY | GVS v1.3 export clean | Process / Governance | Jacob | [🔗](items/AF0141_READY_gvs_v1_3_export_clean.md) |
+| AF-0142 | P1 | READY | ag_foundation GVS handoff docs | Process / Docs | Jacob | [🔗](items/AF0142_READY_ag_foundation_gvs_handoff_docs.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
 
-### Sprint 16 Scope (skill_catalog_expansion)
-| Order | ID | Priority | Status | Title | Area | Owner | Filename |
+### Sprint 17 Scope (skill_catalog_expansion)
+| Order | ID | Priority | Status | Title | Area | Owner | Link |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0127 | P1 | READY | LangChain skill adapter | Skills / Plugin Architecture | Jacob | [🔗](items/AF0127_READY_langchain_skill_adapter.md) |
 | 2 | AF-0128 | P1 | READY | First LangChain tool batch | Skills / Capability Expansion | Jacob | [🔗](items/AF0128_READY_first_langchain_tool_batch.md) |
+| 3 | AF-0137 | P1 | PROPOSED | Chat session gate: context refresh at session boundaries | Process / Governance | Jeff + Kai | [🔗](items/AF0137_PROPOSED_chat_session_gate.md) |
+
+### Sprint 16 Scope (governance_simplification)
+| Order | ID | Priority | Status | Title | Area | Owner | Link |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0129 | P0 | DONE | Eliminate filename-status coupling | Process / Docs | Jacob | [✅](items/AF0129_DONE_eliminate_filename_status.md) |
+| 2 | AF-0130 | P1 | DONE | Drop redundant sprint artifacts | Process / Docs | Jacob | [✅](items/AF0130_DONE_drop_sprint_artifacts.md) |
+| 3 | AF-0131 | P1 | DONE | Template enhancements: time, model, docs impact | Process / Docs | Jacob | [✅](items/AF0131_DONE_template_enhancements.md) |
+| 4 | AF-0132 | P1 | DONE | HITL framework in governance docs | Process / Governance | Jacob | [✅](items/AF0132_DONE_hitl_framework_docs.md) |
+| 5 | AF-0133 | P1 | DONE | Copilot instructions: ToDo discipline | Process / Tooling | Jacob | [✅](items/AF0133_DONE_copilot_todo_discipline.md) |
+| 6 | AF-0134 | P1 | DONE | Streamline INDEX files | Process / Docs | Jacob | [✅](items/AF0134_DONE_streamline_index_files.md) |
+| 7 | AF-0138 | P1 | DONE | v1.3 transition brief | Process / Docs | Jacob | [✅](items/AF0138_DONE_v1_3_transition_brief.md) |
+| 8 | AF-0136 | P1 | DONE | Governance docs consolidation | Process / Docs | Jacob | [✅](items/AF0136_DONE_governance_docs_consolidation.md) |
 
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

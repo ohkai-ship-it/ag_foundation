@@ -1,17 +1,18 @@
 # INDEX_DECISIONS
-# Version number: v0.4
+# Version number: v1.3
+<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
-> Filename status must match internal status.
+> Status must match between internal file metadata and INDEX row.
 > Update required:
 > - at sprint start ritual
 > - whenever status changes
 > See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
 
 > **Location:** `/docs/dev/decisions/INDEX_DECISIONS.md`
-> **Naming (required):** `ADR###_<STATUS>_<three_word_description>.md` in `/docs/dev/decisions/files/`
-> **Linking convention:** Filename column uses clickable links: `[🔗](files/filename)`
+> **Naming:** See SPRINT_MANUAL §2 for naming conventions (legacy and new).
+> **Linking convention (new entries):** Link column is the sole file reference: `[🔗](files/filename)`
 
 ---
 
@@ -27,6 +28,7 @@
 | ADR-0007 | PROPOSED | Configuration state separation | [🔗](files/ADR007_PROPOSED_configuration_state_separation.md) |
 | ADR-0008 | ACCEPTED | CLI global flags | [🔗](files/ADR008_ACCEPTED_cli_global_flags.md) |
 | ADR-0009 | ACCEPTED | V3Planner feasibility design | [🔗](files/ADR009_ACCEPTED_v3planner_feasibility_design.md) |
+| ADR-0010 | ACCEPTED | Governance simplification | [🔗](files/ADR010_governance_simplification.md) |
 
 ---
 

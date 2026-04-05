@@ -1,5 +1,6 @@
 # BUG REPORT — BUG#### — <three_word_description>
-# Version number: v0.2
+# Version number: v1.3
+# Models:
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -12,14 +13,15 @@
 > - INDEX update rule (status ↔ filename integrity)
 > - Evidence capture requirement (RunTrace ID for CLI/runtime bugs)
 
-> **File naming (required):** `BUG####_<STATUS>_<three_word_description>.md`
-> Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
+> **File naming (required):** `BUG####_<three_word_description>.md` (new convention — no status token)
+> Legacy files: `BUG####_<STATUS>_<three_word_description>.md` (existing files keep this format)
+> Status values: `OPEN | FIXED | DROPPED`
 
 ---
 
 ## Metadata
 - **ID:** BUG####
-- **Status:** OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED
+- **Status:** OPEN | FIXED | DROPPED
 - **Severity:** P0 | P1 | P2
 - **Area:** CLI | Core Runtime | Orchestrator | Skills | Storage | Docs | Process | CI
 - **Reported by:** <name>
