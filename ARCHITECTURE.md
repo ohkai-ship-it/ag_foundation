@@ -115,7 +115,7 @@ All pipeline components have Protocol interfaces in `interfaces.py` and versione
 | Orchestrator | `Orchestrator` | `V0Orchestrator` | `V1Orchestrator` ✅ | `orchestrator.py` |
 | Executor | `Executor` | `V0Executor` | `V1Executor` ✅ (AF-0116), `V2Executor` ✅ (AF-0124) | `executor.py` |
 | Verifier | `Verifier` | `V0Verifier` | `V1Verifier` ✅ (AF-0115), `V2Verifier` ✅ (AF-0123) | `verifier.py` |
-| Recorder | `Recorder` | `V0Recorder` | `V1Recorder` ✅ (AF-0118) | `recorder.py` |
+| Recorder | `Recorder` | `V0Recorder` | — | `recorder.py` |
 
 > **Current state:** V0 Orchestrator, Executor, Verifier, and Recorder all live in `runtime.py`.
 > AF-0114 extracts them to dedicated files. `runtime.py` becomes the composition root (assembly/wiring only).
@@ -164,7 +164,7 @@ A registry of skills that declare:
 - required permissions (for future safety gating)
 - test harness expectations
 
-#### Current Skill Inventory (Sprint08)
+#### Current Skill Inventory
 
 | Skill | Type | Capability | Used By |
 |-------|------|------------|--------|
@@ -173,6 +173,8 @@ A registry of skills that declare:
 | `web_search` | Search API | Discover URLs from research query | research_v0 |
 | `fetch_web_content` | HTTP | Fetch and extract text from URLs | research_v0 |
 | `synthesize_research` | LLM | Synthesize research report | research_v0 |
+| `emit_result` | Output | Emit structured result to trace | V1Planner plans |
+| `zero_skill` | Test | No-op skill (testing) | test_skill |
 | `fail_skill` | Test | Always fails (testing) | tests |
 | `error_skill` | Test | Always raises exception (testing) | tests |
 
@@ -379,24 +381,24 @@ Each pipeline component evolves through versioned implementations aligned with t
 |---------|----------|:---:|--------|
 | V0Planner | Deterministic registry lookup; requires `--playbook <name>` | No | Current |
 | V1Planner | LLM composes skill sequences from catalog; returns `ExecutionPlan`. Supports multi-output plans (multiple `emit_result` steps) with accumulated chaining. | **Yes** | Sprint 11 ✅ |
-| V2Planner | LLM uses skills AND playbooks as building blocks | **Yes** | Future (AF-0103) |
-| V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | **Yes** | Future (AF-0104) |
+| V2Planner | LLM uses skills AND playbooks as building blocks | **Yes** | Sprint 13 ✅ |
+| V3Planner | Judges feasibility, identifies capability gaps, offers partial plans | **Yes** | Sprint 15 ✅ (ADR-0009) |
 
 #### Executor Evolution
 
 | Version | Behavior | LLM? | Sprint |
 |---------|----------|:---:|--------|
 | V0Executor | Calls `skill.execute()`, returns result unchecked | No | Current |
-| V1Executor | Validates output against `SkillInfo.output_schema`; bounded retry (re-invoke skill) on schema mismatch | No | Planned (AF-0116) |
-| V2Executor | LLM-powered output repair: on schema validation failure, asks LLM to fix malformed JSON instead of full skill re-invocation. Cheaper than retry. | **Yes** | Future |
+| V1Executor | Validates output against `SkillInfo.output_schema`; bounded retry (re-invoke skill) on schema mismatch | No | Sprint 14 ✅ (AF-0116) |
+| V2Executor | LLM-powered output repair: on schema validation failure, asks LLM to fix malformed JSON instead of full skill re-invocation. Cheaper than retry. | **Yes** | Sprint 15 ✅ (AF-0124) |
 
 #### Verifier Evolution
 
 | Version | Behavior | LLM? | Sprint |
 |---------|----------|:---:|--------|
 | V0Verifier | End-of-run error scan; no step awareness (BUG-0017) | No | Current |
-| V1Verifier | Step-aware: respects required/optional, per-step pass/fail evidence, rich verification data | No | Planned (AF-0115) |
-| V2Verifier | LLM-powered semantic verification: evaluates relevance, completeness, consistency, acceptance criteria | **Yes** | Future |
+| V1Verifier | Step-aware: respects required/optional, per-step pass/fail evidence, rich verification data | No | Sprint 13 ✅ (AF-0115) |
+| V2Verifier | LLM-powered semantic verification: evaluates relevance, completeness, consistency, acceptance criteria | **Yes** | Sprint 15 ✅ (AF-0123) |
 
 **V2Verifier is the strongest LLM candidate in the pipeline.** Schema validation is mechanical;
 *meaning* validation requires intelligence. Examples:
@@ -413,7 +415,7 @@ then LLM evaluation (V2) adds semantic checks. If the LLM verifier is unavailabl
 | Version | Behavior | LLM? | Sprint |
 |---------|----------|:---:|--------|
 | V0Orchestrator | Linear fire-and-forget loop; verification once at end | No | Current |
-| V1Orchestrator | Per-step verification loop; calls Verifier after each step; respects required/optional | No | Planned (AF-0117) |
+| V1Orchestrator | Per-step verification loop; calls Verifier after each step; respects required/optional | No | Sprint 14 ✅ (AF-0117) |
 | V2Orchestrator | Replanning on failure: Verifier failure → Planner replan → retry (Gate C) | Indirect (calls Planner) | Future |
 
 #### Recorder Evolution
@@ -485,14 +487,15 @@ Example modes:
 - **Structured** (schema + validators)
 - **Safe-action** (extra confirmations/policy checks)
 
-### 5.3 Current Playbook Inventory (Sprint08)
+### 5.3 Current Playbook Inventory
 
 | Name | Stability | Skills Used | Purpose |
 |------|-----------|-------------|---------|
 | `summarize_v0` | experimental | load_documents, summarize_docs | Summarize documents from workspace |
-| `research_v0` | experimental | load_documents, web_search, fetch_web_content, synthesize_research | Research pipeline: load local context + discover/fetch/synthesize web sources |
+| `research_v0` | experimental | web_search, fetch_web_content, synthesize_research | Research pipeline: discover, fetch, synthesize |
 | `default_v0` | test | (echo-style) | Testing playbook execution |
 | `delegate_v0` | test | (echo-style) | Testing multi-step delegation |
+| `test_skill` | test | zero_skill | Testing skill execution |
 
 ### 5.4 Current Autonomy Boundaries (Sprint 11)
 
@@ -793,12 +796,12 @@ Event Adapter replaces the CLI Adapter in step (1) and emits `EventSpec -> TaskS
 
 ### 11.2 Known Gaps (Implementation Debt)
 
-Post-Sprint12, these gaps are known and tracked for roadmap sequencing:
+Post-Sprint15, remaining gaps:
 
-- **Verifier ignores optional steps (BUG-0017).** V0Verifier contradicts orchestrator when optional steps fail. Fix: AF-0115 (V1 Verifier).
-- **Output schema validation missing.** Skill outputs not validated against declared schemas. Fix: AF-0116 (V1 Executor).
-- **Pipeline components in single file.** Orchestrator/Executor/Verifier/Recorder all in `runtime.py`. Fix: AF-0114 (extraction).
-- **Verification runs once at end, not per-step.** Architecture diagram shows per-step verification but runtime doesn't do it. Fix: AF-0117 (V1 Orchestrator).
-- **Verification evidence empty.** `Verifier.evidence` dict always `{}`. Fix: AF-0118 (V1 Recorder).
+- ~~**Verifier ignores optional steps (BUG-0017).**~~ Fixed: V1Verifier (AF-0115).
+- ~~**Output schema validation missing.**~~ Fixed: V1Executor (AF-0116).
+- ~~**Pipeline components in single file.**~~ Fixed: AF-0114 (extraction to dedicated files).
+- ~~**Verification runs once at end, not per-step.**~~ Fixed: V1Orchestrator (AF-0117).
+- **Verification evidence incomplete.** V1Recorder (AF-0118) not yet implemented. V0Recorder persists traces but lacks structured verification evidence and retry history.
 - Policy hook depth (permission/confirmation/budget) requires stronger runtime enforcement.
 - Plugin architecture for skills/playbooks is deferred until autonomy readiness gates are stable.

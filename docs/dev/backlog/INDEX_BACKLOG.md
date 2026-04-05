@@ -1,5 +1,5 @@
 # INDEX_BACKLOG
-# Version number: v1.3-pre (will be finalized by AF-0136 at S16 close)
+# Version number: v1.3
 <!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
@@ -23,6 +23,7 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 ## Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Link |
 |---:|:--:|:--|---|---|---|---|
+| AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
 
 ---
 ## Sprints *IN DESCENDING ORDER*
@@ -44,8 +45,7 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 | 5 | AF-0133 | P1 | DONE | Copilot instructions: ToDo discipline | Process / Tooling | Jacob | [✅](items/AF0133_DONE_copilot_todo_discipline.md) |
 | 6 | AF-0134 | P1 | DONE | Streamline INDEX files | Process / Docs | Jacob | [✅](items/AF0134_DONE_streamline_index_files.md) |
 | 7 | AF-0138 | P1 | DONE | v1.3 transition brief | Process / Docs | Jacob | [✅](items/AF0138_DONE_v1_3_transition_brief.md) |
-| 8 | AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
-| 9 | AF-0136 | P1 | READY | Governance docs consolidation | Process / Docs | Jacob | [🔗](items/AF0136_READY_governance_docs_consolidation.md) |
+| 8 | AF-0136 | P1 | DONE | Governance docs consolidation | Process / Docs | Jacob | [✅](items/AF0136_DONE_governance_docs_consolidation.md) |
 
 ### Sprint 15 Scope (llm_intelligence_layer)
 | Order | ID | Priority | Status | Title | Area | Owner | Filename |

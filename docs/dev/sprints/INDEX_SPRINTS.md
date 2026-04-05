@@ -1,5 +1,5 @@
 # INDEX_SPRINTS
-# Version number: v0.5-pre (will be finalized by AF-0136 at S16 close)
+# Version number: v1.3
 <!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**

@@ -1,5 +1,5 @@
 # S##_DESCRIPTION — Sprint## — <sprint_name>
-# Version number: v0.2
+# Version number: v1.3
 # Status: PLANNED | DONE | REJECTED
 
 > **FOUNDATION GOVERNANCE**

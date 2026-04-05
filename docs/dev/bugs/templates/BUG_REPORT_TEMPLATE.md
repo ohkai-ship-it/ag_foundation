@@ -1,5 +1,5 @@
 # BUG REPORT — BUG#### — <three_word_description>
-# Version number: v0.2
+# Version number: v1.3
 # Models:
 
 > **FOUNDATION GOVERNANCE**

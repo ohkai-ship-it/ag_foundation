@@ -1,5 +1,5 @@
 # S##_REVIEW — Sprint## — <sprint_name>
-# Version number: v0.2
+# Version number: v1.3
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:

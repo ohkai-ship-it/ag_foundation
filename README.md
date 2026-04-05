@@ -30,7 +30,7 @@ pip install -e ".[llm]"
 ag --help
 ag --version
 
-# Tests should pass (173 tests, 89% coverage)
+# Tests should pass (794 tests, 86% coverage)
 pytest -q
 ```
 
@@ -61,24 +61,45 @@ ag doctor
 
 ```
 ag_foundation/
-├── src/ag/                 # Main package
-│   ├── cli/                # CLI adapter (Typer)
-│   ├── core/               # Core runtime modules
-│   │   ├── interfaces.py   # Protocols: Normalizer, Planner, etc.
-│   │   ├── playbooks.py    # Playbook definitions (echo, delegate_v0)
-│   │   ├── run_trace.py    # RunTrace, Step, Subtask models
-│   │   └── runtime.py      # V0 runtime implementation
-│   ├── providers/          # LLM provider abstraction
-│   │   ├── base.py         # LLMProvider Protocol, ChatMessage, errors
-│   │   ├── registry.py     # Provider registry
-│   │   ├── openai.py       # OpenAI adapter
-│   │   └── stubs.py        # Anthropic/Local stubs (fail fast)
-│   ├── storage/            # Persistence layer (SQLite + filesystem)
-│   ├── skills/             # Skills/plugins registry
-│   └── config.py           # Configuration contract
-├── tests/                  # Test suite (173 tests)
-├── docs/dev/               # Development documentation
-└── pyproject.toml          # Project configuration
+├── src/ag/                     # Main package
+│   ├── cli/                    # CLI adapter (Typer)
+│   │   └── main.py
+│   ├── core/                   # Core runtime (modular pipeline)
+│   │   ├── interfaces.py       # Protocols: Normalizer, Planner, Orchestrator, etc.
+│   │   ├── task_spec.py        # TaskSpec schema
+│   │   ├── planner.py          # V0–V3 Planner implementations
+│   │   ├── orchestrator.py     # V0/V1 Orchestrator
+│   │   ├── executor.py         # V0–V2 Executor
+│   │   ├── verifier.py         # V0–V2 Verifier
+│   │   ├── recorder.py         # V0/V1 Recorder
+│   │   ├── runtime.py          # Composition root (wiring)
+│   │   ├── run_trace.py        # RunTrace, Step, VerifierStatus models
+│   │   ├── playbook.py         # Playbook, PlaybookStep
+│   │   ├── execution_plan.py   # ExecutionPlan
+│   │   └── schema_verifier.py  # SchemaValidator (repair loop)
+│   ├── providers/              # LLM provider abstraction
+│   │   ├── base.py             # LLMProvider Protocol, ChatMessage, errors
+│   │   ├── registry.py         # Provider registry
+│   │   ├── openai.py           # OpenAI adapter
+│   │   └── stubs.py            # Anthropic/Local stubs (fail fast)
+│   ├── skills/                 # Skills/plugins registry
+│   │   ├── base.py             # Skill ABC
+│   │   ├── registry.py         # Skill registry
+│   │   ├── load_documents.py   # File I/O skill
+│   │   ├── web_search.py       # Web search skill
+│   │   ├── fetch_web_content.py # HTTP fetch skill
+│   │   ├── synthesize_research.py # LLM synthesis skill
+│   │   ├── emit_result.py      # Result emission skill
+│   │   └── zero_skill.py       # No-op skill (testing)
+│   ├── storage/                # Persistence layer
+│   │   ├── interfaces.py       # RunStore, ArtifactStore protocols
+│   │   ├── sqlite_store.py     # SQLite implementation
+│   │   ├── plan_store.py       # Plan persistence
+│   │   └── workspace.py        # Workspace management
+│   └── config.py               # Configuration contract
+├── tests/                      # Test suite (794 tests)
+├── docs/dev/                   # Development documentation
+└── pyproject.toml              # Project configuration
 ```
 
 ## LLM Providers
@@ -106,10 +127,12 @@ python -c "from ag.providers import get_provider; print(get_provider('openai'))"
 
 Playbooks define execution flow. Available playbooks:
 
-| Name | Steps | Description |
-|------|-------|-------------|
-| `echo` | 4 | Simple linear flow (normalize→plan→execute→verify) |
-| `delegate_v0` | 6 | Multi-step delegation (normalize→plan→execute×2→verify→finalize) |
+| Name | Skills Used | Description |
+|------|-------------|-------------|
+| `summarize_v0` | load_documents, summarize_docs | Summarize documents from workspace |
+| `research_v0` | web_search, fetch_web_content, synthesize_research | Research pipeline: discover, fetch, synthesize |
+| `default_v0` | (echo-style) | Testing playbook execution |
+| `delegate_v0` | (echo-style) | Testing multi-step delegation |
 
 ## Configuration
 
@@ -121,38 +144,34 @@ See [src/ag/config.py](src/ag/config.py) for the configuration contract and envi
 
 ```bash
 # Run tests
-pytest
+pytest -W error
 
 # Run tests with coverage
-pytest --cov=ag
-
-# Run only unit tests (skip integration)
-pytest -m "not integration"
-
-# Run integration tests (requires OPENAI_API_KEY)
-pytest -m integration
-
-# Type checking
-mypy src/ag
+pytest --cov=src/ag --cov-report=term-missing
 
 # Linting
-ruff check src/ag tests
+ruff check src tests
+
+# Format check
+ruff format --check src tests
 ```
 
 ## Documentation
 
-- [Architecture](docs/dev/cornerstone/ARCHITECTURE.md)
-- [CLI Reference](docs/dev/cornerstone/CLI_REFERENCE.md)
-- [Project Plan](docs/dev/cornerstone/PROJECT_PLAN.md)
-- [Sprint Log](docs/dev/sprints/SPRINT_LOG.md)
+- [Architecture](ARCHITECTURE.md)
+- [CLI Reference](CLI_REFERENCE.md)
+- [Foundation Manual](docs/dev/foundation/FOUNDATION_MANUAL.md)
+- [Sprint Manual](docs/dev/foundation/SPRINT_MANUAL.md)
+- [Folder Structure](docs/dev/foundation/FOLDER_STRUCTURE_0.3.md)
 
 ## Current Status
 
-- **Sprint 02 Complete** (2026-02-26)
-  - Provider abstraction + OpenAI adapter
-  - Delegation playbook v0 (multi-step)
-  - CLI global options
-  - 173 tests, 89% coverage
+- **Sprint 16 — governance_simplification** (2026-04-04)
+  - Governance System Version v1.3
+  - Modular pipeline: V0–V3 Planner, V0/V1 Orchestrator, V0–V2 Executor/Verifier, V0/V1 Recorder
+  - 7 skills, 4 playbooks
+  - HITL framework (15 gates)
+  - 794 tests, 86% coverage
 
 ## License
 
