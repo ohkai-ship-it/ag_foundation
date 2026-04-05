@@ -29,11 +29,11 @@
 ## 1) Metadata
 - **Sprint:** Sprint16
 - **Name:** governance_simplification
-- **Dates:** 2026-04-04 → TBD
+- **Dates:** 2026-04-04 → 2026-04-05
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** In Progress
+- **State:** DONE
 
 ---
 

@@ -44,7 +44,7 @@ Each sprint folder:
 | Sprint 13 | Closed | [Sprint13_intelligent_pipeline](documentation/Sprint13_intelligent_pipeline/) |
 | Sprint 14 | Closed | [Sprint14_pipeline_trace_hardening](documentation/Sprint14_pipeline_trace_hardening/) |
 | Sprint 15 | Closed | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
-| Sprint 16 | In Progress | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
+| Sprint 16 | Closed | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
 
 ---
 

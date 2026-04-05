@@ -23,6 +23,8 @@
 | BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
 | BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
 | BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |
+| BUG-0025 | P2 | OPEN | Leftover READY duplicates (5 AF files) | Process | [🔗](reports/BUG0025_leftover_ready_duplicates.md) |
+| BUG-0026 | P2 | OPEN | PR template version gap (v0.2 → v1.3) | Docs | [🔗](reports/BUG0026_pr_template_version_gap.md) |
 
 ---
 
