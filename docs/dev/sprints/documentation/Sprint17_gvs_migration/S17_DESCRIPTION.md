@@ -1,6 +1,6 @@
 # S17_DESCRIPTION — Sprint17 — gvs_migration
 # Version number: v1.3
-# Status: PLANNED
+# Status: IN PROGRESS
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -33,9 +33,9 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **Status:** PLANNED
+- **Status:** IN PROGRESS
 - **Models:**
-- **Started:**
+- **Started:** 2026-04-05
 - **Completed:**
 
 ---

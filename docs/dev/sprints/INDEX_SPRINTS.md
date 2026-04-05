@@ -45,7 +45,8 @@ Each sprint folder:
 | Sprint 14 | Closed | [Sprint14_pipeline_trace_hardening](documentation/Sprint14_pipeline_trace_hardening/) |
 | Sprint 15 | Closed | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
 | Sprint 16 | Closed | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
-| Sprint 17 | Planned | [Sprint17_gvs_migration](documentation/Sprint17_gvs_migration/) |
+<!-- GVS EXTRACTION POINT: Sprint 16 governance work migrated to convergent/GVS as Sprint 01 -->
+| Sprint 17 | In Progress | [Sprint17_gvs_migration](documentation/Sprint17_gvs_migration/) |
 
 ---
 
