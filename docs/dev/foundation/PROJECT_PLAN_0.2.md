@@ -379,6 +379,17 @@ Exit criteria:
 | Gate C: Goals-Only Preparation | Prepare for dynamic composition | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | ✅ Passed (Sprint 15) |
 | Gate D: Full Agent | Autonomous end-to-end execution | mature policy engine (budgets, risk scoring), adaptive mid-run replanning, broad skill catalog, RAG/retrieval interface, internal API layer | ⏳ Not started |
 
+------------------------------------------------------------------------
+
+# Governance Extraction Milestone (Post-Sprint 16)
+
+- **Sprint 16:** Governance simplification completed (8 AFs: AF-0129 through AF-0138)
+- **Post-Sprint 16:** GVS extracted to standalone project (`convergent/`)
+- ag_foundation now consumes GVS v1.3 as an external governance dependency
+- Governance rules, templates, and sprint manuals live in `convergent/gvs_version_fixed/version1.3/`
+- Future governance improvements are tracked in the GVS project, not here
+- Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
+
 Gate rule:
 No sprint may claim autonomy progression while a P0 gate condition is unmet.
 

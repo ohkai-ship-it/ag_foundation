@@ -30,6 +30,8 @@
 | ADR-0009 | ACCEPTED | V3Planner feasibility design | [🔗](files/ADR009_ACCEPTED_v3planner_feasibility_design.md) |
 | ADR-0010 | ACCEPTED | Governance simplification | [🔗](files/ADR010_governance_simplification.md) |
 
+<!-- GVS EXTRACTION POINT: ADR-0010 migrated to convergent/GVS as ADR-0001 -->
+
 ---
 
 ## How to use

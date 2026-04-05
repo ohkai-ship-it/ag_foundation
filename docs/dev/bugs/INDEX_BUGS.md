@@ -26,6 +26,8 @@
 | BUG-0025 | P2 | OPEN | Leftover READY duplicates (5 AF files) | Process | [🔗](reports/BUG0025_leftover_ready_duplicates.md) |
 | BUG-0026 | P2 | OPEN | PR template version gap (v0.2 → v1.3) | Docs | [🔗](reports/BUG0026_pr_template_version_gap.md) |
 
+<!-- GVS EXTRACTION POINT: BUG-0025, BUG-0026 migrated to convergent/GVS as BUG-0001, BUG-0002 -->
+
 ---
 
 ## FIXED bugs

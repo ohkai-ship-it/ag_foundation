@@ -5,6 +5,12 @@
 This document is a deterministic step-by-step operational script.
 It contains zero ambiguity. Follow each step exactly.
 
+> **Governance System Extraction (effective after Sprint 16)**
+> This manual was extracted into the standalone GVS project (`convergent/`) after Sprint 16.
+> The authoritative version lives in `convergent/gvs_version_fixed/`.
+> This copy is retained as historical record.
+> Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
+
 > **HITL Framework:** All human-in-the-loop gates, rights, and the constitutional principle
 > are defined in FOUNDATION_MANUAL §10. This manual references specific gates (G1–G15)
 > where applicable.

@@ -11,6 +11,13 @@ It replaces and consolidates:
 
 All rules herein are non-negotiable unless explicitly escalated and approved.
 
+> **Governance System Extraction (effective after Sprint 16)**
+> The governance system (GVS) was extracted into a standalone project (`convergent/`) after Sprint 16.
+> From Sprint 17 onwards, ag_foundation consumes GVS as a fixed-version dependency.
+> The authoritative governance rules live in `gvs_version_fixed/version1.3/`.
+> This file is retained as historical record.
+> Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
+
 ---
 
 ## 1. Core Invariants (Non-Negotiable)

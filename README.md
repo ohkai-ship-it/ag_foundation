@@ -164,9 +164,21 @@ ruff format --check src tests
 - [Sprint Manual](docs/dev/foundation/SPRINT_MANUAL.md)
 - [Folder Structure](docs/dev/foundation/FOLDER_STRUCTURE_0.3.md)
 
+## Governance
+
+ag_foundation uses the **Governance System (GVS)** framework for sprint-based development.
+
+- **Governance rules:** `convergent/gvs_version_fixed/version1.3/`
+- **Governance development:** `convergent/gvs_development/`
+- **Extraction plan:** [GVS Project Plan](docs/dev/additional/GVS_PROJECT_PLAN_0.1.md)
+
+The governance system was extracted from this project after Sprint 16 into a standalone project.
+Historical governance docs remain in `docs/dev/` for reference.
+
 ## Current Status
 
-- **Sprint 16 — governance_simplification** (2026-04-04)
+- **Sprint 17 — gvs_migration** (2026-04-05)
+  - GVS extraction to standalone project
   - Governance System Version v1.3
   - Modular pipeline: V0–V3 Planner, V0/V1 Orchestrator, V0–V2 Executor/Verifier, V0/V1 Recorder
   - 7 skills, 4 playbooks
