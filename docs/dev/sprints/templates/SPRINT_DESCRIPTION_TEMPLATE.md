@@ -1,5 +1,6 @@
-# SPRINT DESCRIPTION — Sprint## — <three_word_description>
+# S##_DESCRIPTION — Sprint## — <sprint_name>
 # Version number: v0.2
+# Status: PLANNED | DONE | REJECTED
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -11,13 +12,12 @@
 > - Workspace isolation
 > - CI discipline (ruff + pytest -W error + coverage)
 > - 1 PR = 1 sprint
-> - INDEX update rule (status ↔ filename integrity)
+> - INDEX update rule
 
 > **Folder naming (required):** `/docs/dev/sprints/documentation/Sprint##_three_word_description/`
 > **Files (required):**
-> - `S##_DESCRIPTION.md` (this file; includes plan + report)
-> - `S##_REVIEW_01.md` (created by Jeff+Kai; executed by Jacob)
-> - `S##_PR_01.md` (PR checklist for sprint finalization)
+> - `S##_DESCRIPTION.md` (this file — planning artifact, stable during sprint)
+> - `S##_REVIEW.md` (outcomes artifact, written at sprint close)
 
 ---
 
@@ -25,14 +25,19 @@
 - **Sprint:** Sprint##
 - **Name:** <three_word_description>
 - **Dates:** YYYY-MM-DD → YYYY-MM-DD
+- **Branch:**
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **State:** Draft | Ready | In Progress | In Review | Accepted | Closed
+- **Status:** PLANNED
+- **Models:**
+- **Started:**
+- **Completed:**
 
 ---
 
 ## 2) Sprint goal
+
 One sentence, outcome-focused.
 
 ---
@@ -40,7 +45,6 @@ One sentence, outcome-focused.
 ## 3) Scope (what we intend to ship)
 
 ### Must-have (P0)
-- AF#### — <title> (Owner: ...)
 - AF#### — <title> (Owner: ...)
 
 ### Should-have (P1)
@@ -51,102 +55,77 @@ One sentence, outcome-focused.
 
 ---
 
-## 4) Sprint start checklist (ritual)
+## 4) Execution sequence
+
+*(Optional: dependency diagram or ordered list showing AF execution order)*
+
+---
+
+## 5) Sprint start checklist (ritual)
+
 ### Jeff + Kai
-- [ ] Create AFs (Status = Ready)
+- [ ] Create AFs (Status = READY)
 - [ ] Create this sprint description file
 - [ ] Define sprint ID + sprint name
 
 ### Jacob
-- [ ] Read sprint description
-- [ ] Check AFs in `/docs/dev/backlog/items/`
+- [ ] Read this sprint description
+- [ ] Read all AF files in scope
 - [ ] Ask clarifying questions in chat (no writing required)
 - [ ] Create branch
-- [ ] Create sprint folder
-- [ ] Update INDEX files (ritual at sprint start):  
-  - `/docs/dev/backlog/INDEX_BACKLOG.md`  
-  - `/docs/dev/bugs/INDEX_BUGS.md`  
-  - `/docs/dev/decisions/INDEX_DECISIONS.md`  
-  - `/docs/dev/sprints/INDEX_SPRINTS.md`
-- [ ] Confirm with Kai before starting implementation
+- [ ] Update INDEX files (ritual at sprint start):
+  - `/docs/dev/backlog/INDEX_BACKLOG.md`
+  - `/docs/dev/bugs/INDEX_BUGS.md`
+  - `/docs/dev/decisions/INDEX_DECISIONS.md`
+  - `/docs/dev/sprints/INDEX_SPRINTS.md` (Sprint ## → In Progress)
+- [ ] Confirm with Kai before starting implementation (G1 + G3)
 
-> **INDEX update rule (strict):**  
-> 1) Update when any AF/BUG/ADR/SPRINT status changes  
+> **INDEX update rule (strict):**
+> 1) Update when any AF/BUG/ADR/SPRINT status changes
 > 2) Also update as a ritual at sprint start
 
 ---
 
-## 5) PR plan
+## 6) PR plan
+
 > Rule: **1 commit per AF, 1 PR per sprint.**
 > All AFs are committed separately to the sprint branch. The branch is merged to main via one PR at sprint close.
 
-- Branch: `feat/sprint##-<description>`
-- Commit plan:
+- Branch: `<type>/sprint##-<description>`
+- Commit plan (in execution order):
   - AF#### — <title>
   - AF#### — <title>
 
 ---
 
-## 6) Definition of Done (Sprint-level)
-- [ ] All P0 items are merged
-- [ ] Each merged AF has its completion section filled
-- [ ] Evidence captured for behavior changes (tests + RunTrace ID(s))
-- [ ] Review completed (ACCEPT or ACCEPT WITH FOLLOW-UPS)
-- [ ] Repo hygiene executed (per checklist)
-- [ ] Indices updated and consistent
+## 7) Definition of Done (Sprint-level)
+- [ ] All P0 items merged and CI passes
+- [ ] All shipped AFs have completion sections filled
+- [ ] Review completed (`S##_REVIEW.md` filled, decision recorded)
+- [ ] Repo hygiene executed
+- [ ] INDEX files updated and consistent
 
 ---
 
-## 7) Risks & mitigations
+## 8) Risks & mitigations
 - Risk: ...
   - Mitigation: ...
 
 ---
 
-## 8) Dependencies
+## 9) Dependencies
 - Internal: ...
 - External: ...
 
 ---
 
-# Sprint report section (fill at sprint end)
-
-## 9) Outcome summary
-- Shipped:
-  - ...
-- Not shipped:
-  - ...
+## 10) Key references
+- AF files: `docs/dev/backlog/items/AF####_*.md`
+- FOUNDATION_MANUAL: `docs/dev/foundation/FOUNDATION_MANUAL.md`
+- SPRINT_MANUAL: `docs/dev/foundation/SPRINT_MANUAL.md`
 
 ---
 
-## 10) Completed work
-- ✅ AF#### — <title> (PR #...)
-- ✅ AF#### — <title> (PR #...)
+## 11) Implementation Notes
 
----
-
-## 11) Not completed / carried over
-- ⏭️ AF#### — <title> (reason + next step)
-
----
-
-## 12) Evidence
-- Review file(s):
-  - `S##_REVIEW_01.md`
-- Representative RunTrace IDs:
-  - `run_...`
-- Test summary:
-  - `pytest ...` (PASS/FAIL)
-
----
-
-## 13) Learnings
-- What worked:
-- What to improve:
-
----
-
-## 14) Next sprint candidate slice
-- P0:
-- P1:
-- P2:
+*(Space for mid-sprint decisions, observations, and notes. This section may be updated during the sprint.)*

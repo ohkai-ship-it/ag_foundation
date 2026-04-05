@@ -1,12 +1,12 @@
 # AF-0130 — Drop Redundant Sprint Artifacts
 # Version number: v0.2
 # Created: 2026-04-04
-# Started:
-# Completed:
-# Status: READY
+# Started: 2026-04-05T10:30:00+02:00
+# Completed: 2026-04-05T11:00:00+02:00
+# Status: DONE
 # Priority: P1
 # Area: Process / Docs
-# Models:
+# Models: Claude Opus 4 (Copilot)
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -26,7 +26,7 @@
 ## Metadata
 - **ID:** AF-0130
 - **Type:** Process
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Process / Docs
 - **Owner:** Jacob
@@ -60,9 +60,9 @@
 ---
 
 ## Acceptance Criteria
-- [ ] `SPRINT_DESCRIPTION_TEMPLATE.md` is a pure planning artifact: metadata, goal, scope, start checklist, PR plan, work items, implementation notes — no close/review section
-- [ ] `SPRINT_REVIEW_TEMPLATE.md` (new) exists with: work items table, review decision (ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED), rationale, follow-ups, PR link
-- [ ] `SPRINT_REVIEW_TEMPLATE.md` includes Sprint Cognitive Health section (seven fields):
+- [x] `SPRINT_DESCRIPTION_TEMPLATE.md` is a pure planning artifact: metadata, goal, scope, start checklist, PR plan, work items, implementation notes — no close/review section
+- [x] `SPRINT_REVIEW_TEMPLATE.md` (new) exists with: work items table, review decision (ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED), rationale, follow-ups, PR link
+- [x] `SPRINT_REVIEW_TEMPLATE.md` includes Sprint Cognitive Health section (seven fields):
   - Collapse events (INCOMPLETE_IMPL follow-ups)
   - Drift events (AF spec revised mid-implementation)
   - Repair events
@@ -70,14 +70,14 @@
   - Negative test coverage added
   - LLM avoidance events
   - Integration coverage (E2E result)
-- [ ] `SPRINT_REVIEW_TEMPLATE.md` includes Learnings section (optional, 2–3 bullets)
-- [ ] `SPRINT_PR_TEMPLATE.md` and old `REVIEW_TEMPLATE.md` moved to `docs/dev/sprints/templates/archived/`
-- [ ] SPRINT_MANUAL §6–§8 updated — no references to S##_PR_01 or S##_REVIEW_01 creation
-- [ ] SPRINT_MANUAL §8: sprint close ritual creates `S##_REVIEW.md`, fills it, then makes review decision
-- [ ] SPRINT_MANUAL §8 includes review decision rules: ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED
-- [ ] SPRINT_MANUAL §8 includes quickfix budget rule (30 min cumulative, human-overridable)
+- [x] `SPRINT_REVIEW_TEMPLATE.md` includes Learnings section (optional, 2–3 bullets)
+- [x] `SPRINT_PR_TEMPLATE.md` and old `REVIEW_TEMPLATE.md` moved to `docs/dev/sprints/templates/archived/`
+- [x] SPRINT_MANUAL §6–§8 updated — no references to S##_PR_01 or S##_REVIEW_01 creation
+- [x] SPRINT_MANUAL §8: sprint close ritual creates `S##_REVIEW.md`, fills it, then makes review decision
+- [x] SPRINT_MANUAL §8 includes review decision rules: ACCEPTED / ACCEPT WITH FOLLOW-UPS / REJECTED
+- [x] SPRINT_MANUAL §8 includes quickfix budget rule (30 min cumulative, human-overridable)
 - [ ] Sprint 17 (first sprint under new rules) uses the new template pair (description + review)
-- [ ] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
+- [x] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
 - [ ] AI functionality check: N/A (no AI functionality)
 
 ---
@@ -173,8 +173,12 @@ One sentence, outcome-focused.
 
 ## Completion
 
-*(fill when Status = DONE)*
-- **Review decision:**
-- **Rationale:**
-- **Follow-ups:**
-- **PR link:**
+- **Review decision:** Pending sprint review
+- **Rationale:** SPRINT_DESCRIPTION_TEMPLATE simplified to pure planning artifact. SPRINT_REVIEW_TEMPLATE created with cognitive health, review decisions, learnings. SPRINT_PR_TEMPLATE and REVIEW_TEMPLATE archived. SPRINT_MANUAL §6-§8 updated (no S##_PR_01/REVIEW_01 refs, review decisions documented, quickfix budget rule added).
+- **Follow-ups:** None
+- **PR link:** (sprint PR at close)
+
+### Docs Impact Check
+- README: N/A
+- CLI_REFERENCE: N/A
+- ARCHITECTURE.md: N/A
