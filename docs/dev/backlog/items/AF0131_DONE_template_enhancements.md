@@ -1,12 +1,12 @@
 # AF-0131 — Template Enhancements: Time, Model, Docs Impact & Decision Capture
 # Version number: v0.2
 # Created: 2026-04-04
-# Started:
-# Completed:
-# Status: READY
+# Started: 2026-04-05T11:00:00+02:00
+# Completed: 2026-04-05T11:30:00+02:00
+# Status: DONE
 # Priority: P1
 # Area: Process / Docs
-# Models:
+# Models: Claude Opus 4 (Copilot)
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -25,7 +25,7 @@
 ## Metadata
 - **ID:** AF-0131
 - **Type:** Process
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P1
 - **Area:** Process / Docs
 - **Owner:** Jacob
@@ -63,20 +63,20 @@ Four gaps in the current template set:
 ---
 
 ## Acceptance Criteria
-- [ ] `BACKLOG_ITEM_TEMPLATE.md` includes `Started:`, `Completed:`, `Models:` fields
-- [ ] `SPRINT_DESCRIPTION_TEMPLATE.md` includes `Started:`, `Completed:`, `Models:` fields (coordinate with AF-0130 if running concurrently)
-- [ ] `BUG_REPORT_TEMPLATE.md` includes `Models:` field
-- [ ] `ADR_TEMPLATE.md` includes `Models:` field
-- [ ] `BACKLOG_ITEM_TEMPLATE.md` includes Docs Impact Check as a standard acceptance criterion
-- [ ] `BACKLOG_ITEM_TEMPLATE.md` includes AI Functionality Check (conditional — N/A if no AI functionality delivered)
-- [ ] `BACKLOG_ITEM_TEMPLATE.md` includes Decision Record section (marked "if applicable")
-- [ ] Format convention documented: ISO 8601 (e.g. `2026-04-04T14:30:00+02:00`)
-- [ ] Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`
-- [ ] `gov.py new-af` convention documented: `Started:` left blank; filled by agent when picking up the AF; `Completed:` filled when AC met, before commit
-- [ ] Bug status vocabulary: `BUG_REPORT_TEMPLATE.md` updated to exactly 3 values (OPEN / FIXED / DROPPED); IN_PROGRESS and VERIFIED removed; `INDEX_BUGS.md` status legend updated (coordinate with AF-0134)
-- [ ] Sprint `State:` → `Status:` renamed in `SPRINT_DESCRIPTION_TEMPLATE.md`; exactly 3 values (PLANNED / DONE / REJECTED); old values removed; `INDEX_SPRINTS.md` legend updated (coordinate with AF-0134)
-- [ ] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
-- [ ] AI functionality check: N/A (no AI functionality)
+- [x] `BACKLOG_ITEM_TEMPLATE.md` includes `Started:`, `Completed:`, `Models:` fields
+- [x] `SPRINT_DESCRIPTION_TEMPLATE.md` includes `Started:`, `Completed:`, `Models:` fields (coordinate with AF-0130 if running concurrently)
+- [x] `BUG_REPORT_TEMPLATE.md` includes `Models:` field
+- [x] `ADR_TEMPLATE.md` includes `Models:` field
+- [x] `BACKLOG_ITEM_TEMPLATE.md` includes Docs Impact Check as a standard acceptance criterion
+- [x] `BACKLOG_ITEM_TEMPLATE.md` includes AI Functionality Check (conditional — N/A if no AI functionality delivered)
+- [x] `BACKLOG_ITEM_TEMPLATE.md` includes Decision Record section (marked "if applicable")
+- [x] Format convention documented: ISO 8601 (e.g. `2026-04-04T14:30:00+02:00`)
+- [x] Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`
+- [x] `gov.py new-af` convention documented: `Started:` left blank; filled by agent when picking up the AF; `Completed:` filled when AC met, before commit
+- [x] Bug status vocabulary: `BUG_REPORT_TEMPLATE.md` updated to exactly 3 values (OPEN / FIXED / DROPPED); IN_PROGRESS and VERIFIED removed; `INDEX_BUGS.md` status legend updated (coordinate with AF-0134)
+- [x] Sprint `State:` → `Status:` renamed in `SPRINT_DESCRIPTION_TEMPLATE.md`; exactly 3 values (PLANNED / DONE / REJECTED); old values removed; `INDEX_SPRINTS.md` legend updated (coordinate with AF-0134)
+- [x] Docs impact checked: README / CLI_REFERENCE / ARCHITECTURE (updated or N/A)
+- [x] AI functionality check: N/A (no AI functionality)
 
 ---
 
@@ -127,8 +127,12 @@ Four gaps in the current template set:
 
 ## Completion
 
-*(fill when Status = DONE)*
-- **Review decision:**
-- **Rationale:**
-- **Follow-ups:**
-- **PR link:**
+- **Review decision:** Pending sprint review
+- **Rationale:** All 4 templates updated: BACKLOG_ITEM_TEMPLATE has Started/Completed/Models fields, Docs Impact Check, AI Functionality Check, Decision Record section. SPRINT_DESCRIPTION_TEMPLATE (via AF-0130) has timing/model fields and Status vocabulary. BUG_REPORT_TEMPLATE has Models field and simplified status (3 values). ADR_TEMPLATE has Models field. Timing conventions documented in template header.
+- **Follow-ups:** INDEX_BUGS and INDEX_SPRINTS legend updates coordinated with AF-0134.
+- **PR link:** (sprint PR at close)
+
+### Docs Impact Check
+- README: N/A
+- CLI_REFERENCE: N/A
+- ARCHITECTURE.md: N/A
