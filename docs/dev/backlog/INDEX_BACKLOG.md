@@ -40,9 +40,11 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 ### Sprint 17 Scope (gvs_migration)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0141 | P0 | READY | GVS v1.3 export clean | Process / Governance | Jacob | [🔗](items/AF0141_READY_gvs_v1_3_export_clean.md) |
-| 2 | AF-0142 | P1 | READY | ag_foundation GVS handoff docs | Process / Docs | Jacob | [🔗](items/AF0142_READY_ag_foundation_gvs_handoff_docs.md) |
+| 1 | AF-0141 | P0 | DONE | GVS v1.3 export clean | Process / Governance | Jacob | [✅](items/AF0141_READY_gvs_v1_3_export_clean.md) |
+| 2 | AF-0142 | P1 | DONE | ag_foundation GVS handoff docs | Process / Docs | Jacob | [✅](items/AF0142_READY_ag_foundation_gvs_handoff_docs.md) |
 <!-- AF-0139 (GVS folder structure seed) carried over to convergent/GVS workspace for execution in GVS Sprint 1 -->
+
+<!-- GVS EXTRACTION POINT: Governance AFs (AF-0129–AF-0141) migrated to convergent/GVS. See GVS_PROJECT_PLAN_0.1.md -->
 
 ### Sprint 16 Scope (governance_simplification)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |

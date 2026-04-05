@@ -1,15 +1,9 @@
-# SPRINT EXECUTION PLAYBOOK
+﻿# SPRINT EXECUTION PLAYBOOK
 # Version: v1.3
 # Effective date: 2026-04-04
 
 This document is a deterministic step-by-step operational script.
 It contains zero ambiguity. Follow each step exactly.
-
-> **Governance System Extraction (effective after Sprint 16)**
-> This manual was extracted into the standalone GVS project (`convergent/`) after Sprint 16.
-> The authoritative version lives in `convergent/gvs_version_fixed/`.
-> This copy is retained as historical record.
-> Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
 
 > **HITL Framework:** All human-in-the-loop gates, rights, and the constitutional principle
 > are defined in FOUNDATION_MANUAL §10. This manual references specific gates (G1–G15)
@@ -89,15 +83,15 @@ Update `S##_DESCRIPTION.md` with branch name in the PR plan section.
 Filenames are **immutable** — they never change after creation. Status is tracked in internal metadata and INDEX rows, not in filenames.
 
 ```
-AF files:  AF0140_three_word_description.md
-BUG files: BUG0025_provider_timeout_error.md
-ADR files: ADR010_governance_simplification.md
+AF files:  AF0012_three_word_description.md
+BUG files: BUG0001_provider_timeout_error.md
+ADR files: ADR001_governance_simplification.md
 ```
 
 Status lives in exactly **2 places**: internal `Status:` field + INDEX row.
 Status changes require exactly **2 edits**, zero renames.
 
-> **Legacy files (pre-Sprint 16):** Some files have a status token in the filename (e.g., `AF0047_READY_feature_description.md`). These keep their original names — do not rename them. For legacy files, the filename token, internal `Status:` field, and INDEX row must all match. See FOUNDATION_MANUAL §7.7 — Historical Record Immutability.
+> **Legacy files (pre-Sprint 01):** Some files have a status token in the filename (e.g., `AF0047_READY_feature_description.md`). These keep their original names — do not rename them. For legacy files, the filename token, internal `Status:` field, and INDEX row must all match. See FOUNDATION_MANUAL §7.7 — Historical Record Immutability.
 
 ### 2.2 Creating New AF File
 1. Copy template from `/docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
@@ -574,4 +568,4 @@ ag runs list --workspace <ws>           # List runs
 - HITL Framework: FOUNDATION_MANUAL §10
 - Historical Record Immutability: FOUNDATION_MANUAL §7.7
 - Folder structure: `/docs/dev/foundation/FOLDER_STRUCTURE_0.3.md`
-- Governance simplification decision: `/docs/dev/decisions/files/ADR010_governance_simplification.md`
+- Governance simplification decision: `/docs/dev/decisions/files/ADR001_governance_simplification.md`
