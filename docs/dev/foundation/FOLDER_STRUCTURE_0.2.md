@@ -22,14 +22,16 @@
 │
 ├── backlog/
 │   ├── items/
-│   │   └── AF####_<Status>_<desc>.md
+│   │   └── AF####_<desc>.md           (new convention: no status token)
+│   │   └── AF####_<Status>_<desc>.md  (legacy: existing files keep status token)
 │   ├── templates/
 │   │   └── BACKLOG_ITEM_TEMPLATE.md
 │   └── INDEX_BACKLOG.md
 │
 ├── bugs/
 │   ├── reports/
-│   │   └── BUG####_<Status>_<desc>.md
+│   │   └── BUG####_<desc>.md           (new convention: no status token)
+│   │   └── BUG####_<Status>_<desc>.md  (legacy: existing files keep status token)
 │   ├── templates/
 │   │   └── BUG_REPORT_TEMPLATE.md
 │   └── INDEX_BUGS.md
@@ -77,22 +79,24 @@
 
 ## Naming Conventions
 
-| Artifact | Pattern |
-|----------|---------|
-| Backlog items | `AF####_<Status>_<three_word_description>.md` |
-| Bug reports | `BUG####_<Status>_<three_word_description>.md` |
-| ADRs | `ADR###_<three_word_description>.md` |
-| Sprint folders | `Sprint##_<three_word_description>/` |
-| Sprint files | `S##_DESCRIPTION.md`, `S##_REVIEW_01.md`, `S##_PR_01.md` |
+| Artifact | New convention (Sprint 16+) | Legacy convention (pre-Sprint 16) |
+|----------|----------------------------|-----------------------------------|
+| Backlog items | `AF####_<three_word_description>.md` | `AF####_<Status>_<three_word_description>.md` |
+| Bug reports | `BUG####_<three_word_description>.md` | `BUG####_<Status>_<three_word_description>.md` |
+| ADRs | `ADR###_<three_word_description>.md` | (same — ADRs never had status tokens) |
+| Sprint folders | `Sprint##_<three_word_description>/` | (same) |
+| Sprint files | `S##_DESCRIPTION.md`, `S##_REVIEW_01.md`, `S##_PR_01.md` | (same) |
+
+**Both conventions coexist.** Existing files keep their current names. New files use the new convention (no status token in filename). Status is tracked in internal metadata + INDEX row only.
 
 ---
 
 ## Status Values
 
-**Backlog:** `Proposed | Ready | In progress | Blocked | Done | Dropped`
+**Backlog:** `PROPOSED | READY | BLOCKED | DONE | DROPPED`
 
-**Bugs:** `Open | In progress | Fixed | Verified | Dropped`
+**Bugs:** `OPEN | FIXED | DROPPED`
 
-**ADRs:** `Proposed | Accepted | Superseded | Deprecated`
+**ADRs:** `PROPOSED | ACCEPTED | SUPERSEDED | DEPRECATED`
 
-**Sprints:** `Draft | Ready | In Progress | In Review | Accepted | Closed`
+**Sprints:** `PLANNED | DONE | REJECTED`
