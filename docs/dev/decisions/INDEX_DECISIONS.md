@@ -1,17 +1,18 @@
 # INDEX_DECISIONS
-# Version number: v0.4
+# Version number: v0.4-pre (will be finalized by AF-0136 at S16 close)
+<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
-> Filename status must match internal status.
+> Status must match between internal file metadata and INDEX row.
 > Update required:
 > - at sprint start ritual
 > - whenever status changes
 > See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
 
 > **Location:** `/docs/dev/decisions/INDEX_DECISIONS.md`
-> **Naming (required):** `ADR###_<STATUS>_<three_word_description>.md` in `/docs/dev/decisions/files/`
-> **Linking convention:** Filename column uses clickable links: `[🔗](files/filename)`
+> **Naming:** See SPRINT_MANUAL §2 for naming conventions (legacy and new).
+> **Linking convention (new entries):** Link column is the sole file reference: `[🔗](files/filename)`
 
 ---
 

@@ -5,6 +5,10 @@
 This document is a deterministic step-by-step operational script.
 It contains zero ambiguity. Follow each step exactly.
 
+> **HITL Framework:** All human-in-the-loop gates, rights, and the constitutional principle
+> are defined in FOUNDATION_MANUAL §10. This manual references specific gates (G1–G15)
+> where applicable.
+
 ---
 
 ## 0. Pre-Sprint Read Phase
@@ -76,32 +80,46 @@ Update `S##_DESCRIPTION.md` with branch name in the PR plan section.
 
 ### 2.1 Creating New AF File
 1. Copy template from `/docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
-2. Save to `/docs/dev/backlog/items/AF####_<STATUS>_<three_word_description>.md`
-3. Fill all metadata fields
-4. Ensure internal `Status:` field matches filename status
+2. Save to `/docs/dev/backlog/items/AF####_<three_word_description>.md`
+3. Fill all metadata fields (including internal `Status:` field)
+4. Update INDEX_BACKLOG.md with new entry
 
-### 2.2 Naming Convention Enforcement
+### 2.2 Naming Convention
+
+**New files (created after Sprint 16):** Immutable filenames without status tokens.
 ```
-Filename:  AF0047_READY_feature_description.md
-Internal:  Status: READY
+AF files:  AF0129_eliminate_filename_status.md
+BUG files: BUG0025_provider_timeout_error.md
+ADR files: ADR010_governance_simplification.md   (unchanged)
 ```
+Status lives in exactly **2 places**: internal file metadata + INDEX row.
+Status changes require exactly **2 edits** (metadata + INDEX), zero renames.
 
-**These MUST match. Mismatch is a blocking defect.**
+**Legacy files (created before Sprint 16):** Keep their current names with status tokens.
+```
+AF0047_READY_feature_description.md   ← existing, do NOT rename
+BUG0019_FIXED_orchestrator_drops.md   ← existing, do NOT rename
+```
+For legacy files, filename status, internal `Status:` field, and INDEX row must still match.
 
-### 2.3 Renaming on Status Change
-When status changes:
-1. Rename file:
-   ```
-   AF0047_READY_feature_description.md → AF0047_IN_PROGRESS_feature_description.md
-   ```
+Both conventions coexist. INDEX files link to whichever convention each file uses.
+
+> Historical files follow their original convention and must not be renamed or restructured (see FOUNDATION_MANUAL §7.7 — Historical Record Immutability).
+
+### 2.3 Status Changes
+
+**New-convention files:** Update internal `Status:` field + INDEX row. No rename needed.
+
+**Legacy files (status token in filename):** When status changes:
+1. Rename file to update status token
 2. Update internal `Status:` field to match
-3. Update INDEX_BACKLOG.md entry
+3. Update INDEX entry
 4. Verify no broken links in other documents
 5. Commit all changes together
 
 ### 2.4 Bug Report Creation
 1. Copy template from `/docs/dev/bugs/templates/BUG_REPORT_TEMPLATE.md`
-2. Save to `/docs/dev/bugs/reports/BUG####_<STATUS>_<three_word_description>.md`
+2. Save to `/docs/dev/bugs/reports/BUG####_<three_word_description>.md`
 3. Fill all metadata fields
 4. Update `/docs/dev/bugs/INDEX_BUGS.md`
 
@@ -129,13 +147,15 @@ INDEX files MUST be updated when:
 ### 3.2 Update Procedure
 For each trigger event:
 1. Open respective INDEX file
-2. Locate the correct table section
+2. Locate the correct table section (sprint table for AFs/bugs, ADR table for decisions)
 3. Insert/update row with:
    - Correct ID
    - Current status
-   - Accurate file path
-4. Verify row is in correct status table (e.g., "Active backlog" vs "Done")
-5. Confirm filename path matches actual file location
+   - Link column: sole file reference (`[🔗](path/to/file)` or `[✅](path/to/file)`)
+4. For status changes: update the Status cell in place — no row moves between sections
+5. Confirm link resolves to actual file location
+
+> **Historical entries (Sprint ≤ 15):** Keep original format (Filename column, Active/Done splits). Do not restructure.
 
 ### 3.3 Commit Rule
 INDEX update must be committed:
@@ -307,7 +327,7 @@ This is the intended workflow:
 - [ ] Evidence captured and documented
 - [ ] AF completion section filled
 - [ ] INDEX files updated
-- [ ] No filename ↔ status mismatches
+- [ ] `S##_REVIEW.md` created and filled (see §8)
 
 ---
 
@@ -315,8 +335,9 @@ This is the intended workflow:
 
 ### 7.1 Immediately After Merge
 1. Update AF status to `DONE`:
-   - Rename file: `AF####_IN_PROGRESS_desc.md` → `AF####_DONE_desc.md`
    - Update internal `Status:` field to `DONE`
+   - **Legacy files only:** Also rename file to update status token
+   - **New-convention files:** No rename needed (filename is immutable)
 
 2. Fill completion section (if not already done):
    - All metadata filled
@@ -325,19 +346,18 @@ This is the intended workflow:
    - Evidence captured
 
 3. Update INDEX_BACKLOG.md:
-   - Move entry from "Active" table to "Done" table
+   - Update Status column to `DONE`
    - Verify file path is correct
 
 ### 7.2 Verification
-- [ ] AF filename shows `Done`
-- [ ] AF internal status shows `Done`
+- [ ] AF internal status shows `DONE`
+- [ ] **Legacy files only:** AF filename status token shows `DONE`
 - [ ] INDEX shows correct status and path
-- [ ] No stale `Proposed` or `In progress` entries for this AF
+- [ ] No stale `PROPOSED` or `READY` entries for this AF
 
 ### 7.3 Sprint State Update
-Update `S##_DESCRIPTION.md`:
-- Move AF from "in progress" to "completed" section
-- Add PR reference
+Update `S##_DESCRIPTION.md` Status field.
+Add PR reference to `S##_REVIEW.md`.
 
 ---
 
@@ -362,7 +382,7 @@ pytest --cov=src/ag --cov-report=term-missing
 ### 8.2 Index Consistency Check
 For each INDEX file:
 - [ ] All entries have valid file paths
-- [ ] All statuses match filename statuses
+- [ ] All statuses match (legacy files: filename ↔ internal; new files: internal ↔ INDEX)
 - [ ] No duplicate entries
 - [ ] No orphaned entries (file exists but not in index)
 - [ ] No phantom entries (in index but file doesn't exist)
@@ -386,27 +406,43 @@ ls docs/dev/sprints/documentation/
 Cross-reference each file against respective INDEX.
 
 ### 8.4 Status Mismatch Scan
-For each AF/BUG file:
+**Legacy files only** (files with status token in filename, created before Sprint 16):
 1. Extract status from filename
 2. Read internal Status field
 3. Confirm match
 4. If mismatch: FIX IMMEDIATELY
 
-### 8.5 Sprint Description Update
-Update `S##_DESCRIPTION.md`:
-- Fill "Sprint report section" completely
-- Document all shipped items
-- Document all not-shipped items with reasons
-- Include evidence (RunTrace IDs, test summaries)
-- Include learnings
+**New-convention files** (immutable filenames, no status token): Skip — no filename status to mismatch.
 
-### 8.6 Final State
+### 8.5 Sprint Review (S##_REVIEW.md)
+
+At sprint close, create `S##_REVIEW.md` from `SPRINT_REVIEW_TEMPLATE.md`:
+1. Fill work items table (all AFs with final status)
+2. Fill Sprint Cognitive Health section
+3. Fill Learnings (optional)
+4. Wait for human review decision (G5)
+
+**Review decisions:**
+
+| Decision | Action |
+|---|---|
+| **ACCEPTED** | Close sprint. Merge PR. |
+| **ACCEPT WITH FOLLOW-UPS** | Create follow-up AFs. Close sprint. Merge PR. |
+| **REJECTED** | Sprint status → `REJECTED`. Branch preserved. No merge. Record rationale + learnings. |
+
+**Quickfix budget:** 30 min **total cumulative** for in-sprint fixes before close. Human-overridable ad hoc.
+
+### 8.6 Sprint Description Update
+Update `S##_DESCRIPTION.md`:
+- Status field → `DONE` (or `REJECTED`)
+- Fill `Completed:` timestamp
+
+### 8.7 Final State
 - [ ] All P0 items merged
 - [ ] All completion sections filled
 - [ ] All indices consistent
-- [ ] Sprint description complete
-- [ ] Review file created/updated
-- [ ] Sprint status updated to `Closed`
+- [ ] `S##_REVIEW.md` complete with review decision
+- [ ] Sprint status updated to `DONE`
 
 ---
 

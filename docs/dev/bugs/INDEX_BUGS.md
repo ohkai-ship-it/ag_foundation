@@ -1,18 +1,19 @@
 # INDEX_BUGS
-# Version number: v0.5
+# Version number: v0.5-pre (will be finalized by AF-0136 at S16 close)
+<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
-> Filename status must match internal status.
+> Status must match between internal file metadata and INDEX row.
 > Update required:
 > - at sprint start ritual
 > - whenever status changes
 > See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
 
 > **Location:** `/docs/dev/bugs/INDEX_BUGS.md`
-> **Naming (required):** `BUG####_<STATUS>_<three_word_description>.md` in `/docs/dev/bugs/reports/`
-> Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
-> **Linking convention:** Filename column uses clickable links: `[🔗](reports/filename)`
+> **Naming:** See SPRINT_MANUAL §2 for naming conventions (legacy and new).
+> Status values: `OPEN | FIXED | DROPPED`
+> **Linking convention (new entries):** Link column is the sole file reference: `[🔗](reports/filename)`
 
 ---
 

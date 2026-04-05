@@ -123,8 +123,9 @@ AF-0129 defines the new filename convention. AF-0134 must use both conventions i
 1. **INDEX_BACKLOG.md** — Header metadata updated (Foundation Rule text, Naming reference, Linking convention). Sprint 16/17 and unprioritized backlog tables use `Link` column. Historical sprints untouched.
 2. **INDEX_BUGS.md** — Header metadata updated (simplified status values, naming reference, linking convention). Table content preserved.
 3. **INDEX_DECISIONS.md** — Header metadata updated (naming reference, linking convention). Table content preserved.
-4. **SPRINT_MANUAL.md §3.2** — Index Update Protocol updated: Link column as sole file reference, status changes in place (no row moves), historical entries note added.
-5. **test_documentation_drift.py** — No changes needed (tests don't validate INDEX structure).
+4. **INDEX_SPRINTS.md** — Header metadata updated. Structure section fixed: removed stale `S##_PR_01.md` and `S##_REVIEW_01.md` references, replaced with current `S##_REVIEW.md` convention per AF-0130.
+5. **SPRINT_MANUAL.md §3.2** — Index Update Protocol updated: Link column as sole file reference, status changes in place (no row moves), historical entries note added.
+6. **test_documentation_drift.py** — No changes needed (tests don't validate INDEX structure).
 
 ### Test results
 - `pytest tests/test_documentation_drift.py -W error` — 10/10 passed

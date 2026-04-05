@@ -54,6 +54,7 @@ Reduce sprint ceremony overhead from 30–50 min/sprint to ~10 min/sprint by eli
 - AF-0132 — HITL framework in governance docs (Owner: Jacob)
 - AF-0133 — Copilot instructions: ToDo discipline (Owner: Jacob)
 - AF-0134 — Streamline INDEX files (Owner: Jacob) *(depends on AF-0129)*
+- AF-0138 — v1.3 transition brief (Owner: Jacob) *(depends on AF-0134; before AF-0136)*
 - AF-0136 — Governance docs consolidation (Owner: Jacob) *(depends on all)*
 
 ### Nice-to-have (P2)
@@ -66,14 +67,14 @@ Reduce sprint ceremony overhead from 30–50 min/sprint to ~10 min/sprint by eli
 ```
               ┌─ AF-0129 (filenames) ─────┐
               │                            ├─→ AF-0134 (INDEX) ─→ AF-0135 (gov.py) ─┐
-              ├─ AF-0130 (artifacts) ──────┘                                         │
- Start ──→    ├─ AF-0131 (templates) ─────────────────────────────────────────────────┼─→ AF-0136 (docs)
-              ├─ AF-0132 (HITL) ──────────────────────────────────────────────────────┘
-              └─ AF-0133 (Copilot) ───────────────────────────────────────────────────┘
+              ├─ AF-0130 (artifacts) ──────┘         │                               │
+ Start ──→    ├─ AF-0131 (templates) ────────────────┼─→ AF-0138 (transition brief) ─┼─→ AF-0136 (docs)
+              ├─ AF-0132 (HITL) ─────────────────────┘                               │
+              └─ AF-0133 (Copilot) ──────────────────────────────────────────────────┘
 ```
 
 **Parallelizable (Phase 1):** AF-0129, AF-0130, AF-0131, AF-0132, AF-0133 — no mutual dependencies.
-**Sequential:** AF-0134 waits on AF-0129. AF-0135 waits on AF-0129 + AF-0134. AF-0136 waits on all.
+**Sequential:** AF-0134 waits on AF-0129. AF-0135 waits on AF-0129 + AF-0134. AF-0138 waits on AF-0134. AF-0136 waits on all.
 
 ---
 
@@ -116,6 +117,7 @@ Reduce sprint ceremony overhead from 30–50 min/sprint to ~10 min/sprint by eli
   - AF-0132 — HITL framework in governance docs
   - AF-0133 — Copilot instructions: ToDo discipline
   - AF-0134 — Streamline INDEX files
+  - AF-0138 — v1.3 transition brief
   - AF-0135 — Governance automation script gov.py *(if time permits)*
   - AF-0136 — Governance docs consolidation
 
@@ -133,7 +135,7 @@ Reduce sprint ceremony overhead from 30–50 min/sprint to ~10 min/sprint by eli
 
 ## 8) Key references
 - Governance plan (APPROVED): `docs/dev/additional/GOVERNANCE_SIMPLIFICATION_PLAN_0.1.md`
-- AF files: `docs/dev/backlog/items/AF012[9]_READY_*.md` through `AF0136_READY_*.md`
+- AF files: `docs/dev/backlog/items/AF012[9]_READY_*.md` through `AF0138_READY_*.md`
 - FOUNDATION_MANUAL: `docs/dev/foundation/FOUNDATION_MANUAL.md`
 - SPRINT_MANUAL: `docs/dev/foundation/SPRINT_MANUAL.md`
 
