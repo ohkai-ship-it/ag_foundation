@@ -55,6 +55,90 @@ class TestCLIHelp:
         assert "0.1.0" in result.stdout
 
 
+class TestDoctorDiagnostics:
+    """Tests for AF-0145: ag doctor diagnostic expansion."""
+
+    def test_doctor_fresh_workspace(self, monkeypatch, tmp_path):
+        """Doctor runs on fresh workspace (no DB) — reports 'no database'."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "no database" in result.output.lower()
+
+    def test_doctor_existing_db(self, monkeypatch, tmp_path):
+        """Doctor with existing DB reports integrity OK."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        # Create a DB by saving a run
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        store.save(_make_run_trace("ws_default"))
+        store.close()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "integrity ok" in result.output.lower()
+
+    def test_doctor_provider_key_valid_format(self, monkeypatch):
+        """Provider key format check works for valid format."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-abcdefghijklmnopqrstuvwxyz123456")
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "valid format" in result.output.lower()
+
+    def test_doctor_provider_key_invalid_format(self, monkeypatch):
+        """Provider key format check works for invalid format."""
+        monkeypatch.setenv("OPENAI_API_KEY", "bad-key")
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "unexpected format" in result.output.lower()
+
+    def test_doctor_provider_key_not_set(self, monkeypatch):
+        """Provider key not set — shows warning."""
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "not set" in result.output.lower()
+
+    def test_doctor_artifact_path_exists(self, monkeypatch, tmp_path):
+        """Artifact path check works for existing directory."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "Artifact Storage" in result.output
+
+    def test_doctor_no_workspace_yet(self, monkeypatch, tmp_path):
+        """Doctor handles missing workspace gracefully."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        # Don't create any workspace
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "no workspace yet" in result.output.lower()
+
+    def test_doctor_shows_new_sections(self):
+        """Doctor output includes all 3 new diagnostic sections."""
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "Database Integrity" in result.output
+        assert "Provider Credentials" in result.output
+        assert "Artifact Storage" in result.output
+
+
 class TestManualModeGate:
     """Test manual mode dev gate enforcement."""
 

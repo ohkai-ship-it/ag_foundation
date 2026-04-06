@@ -2799,6 +2799,74 @@ def doctor(
     console.print(f"  Default workspace: {get_default_workspace()}")
     console.print()
 
+    # AF-0145: SQLite database integrity check
+    console.print("[bold cyan]Database Integrity[/bold cyan]")
+    default_ws_name = get_default_workspace()
+    from ag.storage import Workspace
+
+    default_ws = Workspace(default_ws_name)
+    db_path = default_ws.db_path
+    if not default_ws.exists():
+        console.print(f"  SQLite ({default_ws_name}): [dim]no workspace yet[/dim]")
+    elif not db_path.exists():
+        console.print(f"  SQLite ({default_ws_name}): [dim]no database yet[/dim]")
+    else:
+        import sqlite3
+
+        try:
+            conn = sqlite3.connect(str(db_path))
+            try:
+                result = conn.execute("PRAGMA integrity_check").fetchone()
+                if result and result[0] == "ok":
+                    console.print(f"  SQLite ({default_ws_name}): [green]✓ integrity ok[/green]")
+                else:
+                    msg = result[0] if result else "unknown error"
+                    console.print(
+                        f"  SQLite ({default_ws_name}): [red]✗ integrity failed: {msg}[/red]"
+                    )
+                    issues.append(f"SQLite integrity check failed: {msg}")
+            finally:
+                conn.close()
+        except Exception as e:
+            console.print(f"  SQLite ({default_ws_name}): [red]✗ cannot open: {e}[/red]")
+            issues.append(f"Cannot open SQLite database: {e}")
+    console.print()
+
+    # AF-0145: Provider credential format check
+    console.print("[bold cyan]Provider Credentials[/bold cyan]")
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    if openai_key is None:
+        console.print("  OPENAI_API_KEY:    [dim]not set[/dim]")
+        warnings.append("OPENAI_API_KEY not set — LLM features will not work")
+    elif openai_key.startswith("sk-") and len(openai_key) > 20:
+        console.print("  OPENAI_API_KEY:    [green]✓ set, valid format[/green]")
+    else:
+        console.print("  OPENAI_API_KEY:    [yellow]○ set, unexpected format[/yellow]")
+        warnings.append("OPENAI_API_KEY has unexpected format (expected sk-... with 20+ chars)")
+    console.print()
+
+    # AF-0145: Artifact storage path check
+    console.print("[bold cyan]Artifact Storage[/bold cyan]")
+    if not default_ws.exists():
+        console.print(f"  Runs dir ({default_ws_name}): [dim]no workspace yet[/dim]")
+    else:
+        runs_dir = default_ws.runs_path
+        if runs_dir.exists():
+            console.print(f"  Runs dir ({default_ws_name}): [green]✓ exists[/green]")
+            # Test writability
+            try:
+                test_file = runs_dir / ".ag_doctor_test"
+                test_file.touch()
+                test_file.unlink()
+                console.print("  Writable:          [green]✓ yes[/green]")
+            except Exception as e:
+                console.print(f"  Writable:          [red]✗ no ({e})[/red]")
+                issues.append(f"Artifact storage not writable: {e}")
+        else:
+            console.print(f"  Runs dir ({default_ws_name}): [yellow]○ not created yet[/yellow]")
+            warnings.append(f"Runs directory does not exist: {runs_dir}")
+    console.print()
+
     # Check config resolution order
     console.print("[bold cyan]Config Resolution Order[/bold cyan]")
     console.print("  1. TaskSpec (runtime)")
