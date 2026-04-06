@@ -14,7 +14,7 @@
 ## Sprint Reference
 - **Sprint:** Sprint18
 - **Name:** cli_ux_polish
-- **PR:** #TBD
+- **PR:** #13
 - **Models:** Claude Opus 4 (Copilot)
 
 ---
