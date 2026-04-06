@@ -1,6 +1,9 @@
 # ADR### — <three_word_description>
-# Version number: v1.3
+# Convergent version: v1.3.1
+# Created: dd.mm.yyyy, hh:mm:ss
 # Models:
+
+> **Model format:** `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`.
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:

@@ -33,10 +33,10 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **Status:** IN PROGRESS
+- **Status:** DONE
 - **Models:**
 - **Started:** 2026-04-05
-- **Completed:**
+- **Completed:** 2026-04-05
 
 ---
 

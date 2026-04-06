@@ -1,5 +1,6 @@
-# Folder Structure — /docs/dev
-# Version: v1.3
+﻿# Folder Structure — /docs/dev
+# Convergent version: v1.3.1
+# File version: v1.3
 # Effective date: 2026-04-04
 # Supersedes: FOLDER_STRUCTURE_0.2.md
 
@@ -92,7 +93,7 @@
 
 Two naming conventions coexist. New files use immutable filenames (no status token). Legacy files keep their original names (status token in filename). Both are valid.
 
-| Artifact | New convention (Sprint 16+) | Legacy convention (pre-Sprint 16) |
+| Artifact | New convention (Sprint 01+) | Legacy convention (pre-Sprint 01) |
 |----------|----------------------------|-----------------------------------|
 | Backlog items | `AF####_<three_word_description>.md` | `AF####_<Status>_<three_word_description>.md` |
 | Bug reports | `BUG####_<three_word_description>.md` | `BUG####_<Status>_<three_word_description>.md` |
@@ -120,6 +121,8 @@ Each sprint has one folder under `documentation/` containing:
 
 ## Status Values
 
+> Canonical status values are defined in FOUNDATION_MANUAL §7.6. The values below must match.
+
 **Backlog:** `PROPOSED | READY | BLOCKED | DONE | DROPPED`
 
 **Bugs:** `OPEN | FIXED | DROPPED`
@@ -132,4 +135,4 @@ Each sprint has one folder under `documentation/` containing:
 
 ## Governance System Version
 
-All governance INDEX files and templates carry **Governance System Version (GSV) v1.3** as of Sprint 16. See ADR-0010.
+All governance INDEX files and templates carry **Governance System Version (GSV) v1.3** as of Sprint 01. See ADR-0001.

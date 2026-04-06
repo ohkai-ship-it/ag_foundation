@@ -518,6 +518,9 @@ Transitioning from playbook-driven to **guided autonomy**:
 - Human approval required before execution (guided mode)
 - Policy hooks enforce confirmation for high-impact actions
 
+**Known limitation — workspace isolation is incomplete (AF-0148):**
+The "workspace isolation" constraint is aspirational. Currently `ag ws list` exposes all workspaces globally, error messages leak implicitly-resolved workspace names (BUG-0011), and all workspaces share `~/.ag/workspaces/` with no access scoping. AF-0148 tracks the design work to address cross-workspace leakage.
+
 #### How to Add a Playbook
 
 1. Create playbook file: `src/ag/playbooks/{name}_v0.py`

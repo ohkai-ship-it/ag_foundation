@@ -1,4 +1,4 @@
-# S##_REVIEW — Sprint## — <sprint_name>
+# S18_REVIEW — Sprint18 — cli_ux_polish
 # Convergent version: v1.3.1
 
 > **FOUNDATION GOVERNANCE**
@@ -7,14 +7,14 @@
 > `/docs/dev/foundation/SPRINT_MANUAL.md`
 >
 > This is the **outcomes** artifact. Written at sprint close.
-> Planning lives in `S##_DESCRIPTION.md`.
+> Planning lives in `S18_DESCRIPTION.md`.
 
 ---
 
 ## Sprint Reference
-- **Sprint:** Sprint##
-- **Name:** <sprint_name>
-- **PR:** #<number>
+- **Sprint:** Sprint18
+- **Name:** cli_ux_polish
+- **PR:** #TBD
 - **Models:**
 
 ---
@@ -23,8 +23,9 @@
 
 | ID | Title | Status | Notes |
 |---:|---|:--:|---|
-| AF-#### | <title> | DONE / DROPPED | |
-| AF-#### | <title> | DONE / DROPPED | |
+| AF-0147 | `ag playbooks show` command | | |
+| AF-0144 | `ag runs list` filter expansion | | |
+| AF-0145 | `ag doctor` diagnostic expansion | | |
 
 ---
 

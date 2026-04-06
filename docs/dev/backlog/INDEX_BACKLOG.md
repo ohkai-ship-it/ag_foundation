@@ -1,6 +1,7 @@
 # INDEX_BACKLOG
-# Version number: v1.3
-<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
+# Convergent version: v1.3.1
+
+> **Legacy note:** Entries from sprints prior to v1.3 retain pre-v1.3 format. See FOUNDATION_MANUAL §7.7.
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -23,19 +24,33 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 ## Backlog (unprioritized) *KEEP ALWAYS ON TOP*
 | ID | Priority | Status | Title | Area | Owner | Link |
 |---:|:--:|:--|---|---|---|---|
-| AF-0135 | P2 | READY | Governance automation script (gov.py) | Process / Tooling | Jacob | [🔗](items/AF0135_READY_governance_automation_script.md) |
-| AF-0140 | P0 | DONE | GVS convergent folder creation | Process / Governance | Kai | [✅](items/AF0140_DONE_gvs_convergent_folder_creation.md) |
-| AF-0143 | P0 | READY | HITL active approval gates | Process / Governance | Jacob | [🔗](items/AF0143_READY_hitl_active_approval_gates.md) |
+| AF-0146 | P2 | PROPOSED | `ag artifacts list --category` filter | CLI / Artifacts | | [🔗](items/AF0146_READY_artifacts_category_filter.md) |
+| AF-0148 | P2 | PROPOSED | Workspace isolation design | CLI / Storage / Architecture | | [🔗](items/AF0148_PROPOSED_workspace_isolation_design.md) |
+<!-- AF-0146 deferred from S18: needs category taxonomy + trace/storage design first -->
+<!-- AF-0148 replaces BUG-0011: symptom was error message leak, root cause is cross-workspace leakage -->
 
 ---
 ## Sprints *IN DESCENDING ORDER*
+
+### Sprint 18 Scope (cli_ux_polish)
+| Order | ID | Priority | Status | Title | Area | Owner | Link |
+|:--:|---:|:--:|:--|---|---|---|---|
+| 1 | AF-0147 | P2 | READY | `ag playbooks show` command | CLI / Playbooks | Jacob | [🔗](items/AF0147_READY_playbooks_show_command.md) |
+| 2 | AF-0144 | P2 | READY | `ag runs list` filter expansion | CLI / UX | Jacob | [🔗](items/AF0144_READY_runs_list_filter_expansion.md) |
+| 3 | AF-0145 | P2 | READY | `ag doctor` diagnostic expansion | CLI / Diagnostics | Jacob | [🔗](items/AF0145_READY_doctor_diagnostic_expansion.md) |
 
 ### Sprint XX Scope (skill_catalog_expansion)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |
 |:--:|---:|:--:|:--|---|---|---|---|
 | 1 | AF-0127 | P1 | READY | LangChain skill adapter | Skills / Plugin Architecture | Jacob | [🔗](items/AF0127_READY_langchain_skill_adapter.md) |
 | 2 | AF-0128 | P1 | READY | First LangChain tool batch | Skills / Capability Expansion | Jacob | [🔗](items/AF0128_READY_first_langchain_tool_batch.md) |
-| 3 | AF-0137 | P1 | PROPOSED | Chat session gate: context refresh at session boundaries | Process / Governance | Jeff + Kai | [🔗](items/AF0137_PROPOSED_chat_session_gate.md) |
+<!-- AF-0135 (gov.py) and AF-0137 (chat session gate) carried over to convergent/GVS -->
+
+### Pre-Sprint 17 (standalone)
+| ID | Priority | Status | Title | Area | Owner | Link |
+|---:|:--:|:--|---|---|---|---|
+| AF-0140 | P0 | DONE | GVS convergent folder creation | Process / Governance | Kai | [✅](items/AF0140_DONE_gvs_convergent_folder_creation.md) |
+| AF-0143 | P0 | DONE | HITL active approval gates | Process / Governance | Jacob | [✅](items/AF0143_READY_hitl_active_approval_gates.md) |
 
 ### Sprint 17 Scope (gvs_migration)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |

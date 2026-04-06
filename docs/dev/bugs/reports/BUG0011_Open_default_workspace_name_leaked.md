@@ -19,12 +19,14 @@
 
 ## Metadata
 - **ID:** BUG0011
-- **Status:** OPEN
+- **Status:** DROPPED
 - **Severity:** P2
 - **Area:** CLI
 - **Reported by:** Kai
 - **Date:** 2026-03-05
-- **Related backlog item(s):** (none)
+- **Dropped:** 2026-04-06
+- **Drop reason:** Symptom of broader cross-workspace leakage. Replaced by AF-0148 (workspace isolation design).
+- **Related backlog item(s):** AF-0148
 - **Related ADR(s):** (none)
 - **Related PR(s):** (none)
 

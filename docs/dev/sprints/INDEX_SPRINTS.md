@@ -1,6 +1,7 @@
 # INDEX_SPRINTS
-# Version number: v1.3
-<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
+# Convergent version: v1.3.1
+
+> **Legacy note:** Entries from sprints prior to v1.3 retain pre-v1.3 format. See FOUNDATION_MANUAL §7.7.
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -46,7 +47,8 @@ Each sprint folder:
 | Sprint 15 | Closed | [Sprint15_llm_intelligence_layer](documentation/Sprint15_llm_intelligence_layer/) |
 | Sprint 16 | Closed | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
 <!-- GVS EXTRACTION POINT: Sprint 16 governance work migrated to convergent/GVS as Sprint 01 -->
-| Sprint 17 | In Progress | [Sprint17_gvs_migration](documentation/Sprint17_gvs_migration/) |
+| Sprint 17 | Closed | [Sprint17_gvs_migration](documentation/Sprint17_gvs_migration/) |
+| Sprint 18 | Planned | [Sprint18_cli_ux_polish](documentation/Sprint18_cli_ux_polish/) |
 
 ---
 
