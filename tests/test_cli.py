@@ -783,6 +783,84 @@ class TestPlaybooksListCommand:
         assert stability_map.get("research_v0") == "experimental"
 
 
+class TestPlaybooksShow:
+    """Tests for AF-0147: ag playbooks show command."""
+
+    def test_playbooks_show_research_v0(self):
+        """ag playbooks show research_v0 displays correct detail."""
+        result = runner.invoke(app, ["playbooks", "show", "research_v0"])
+        assert result.exit_code == 0
+        assert "research_v0" in result.output
+        assert "Steps" in result.output
+        # Check header fields
+        assert "Version" in result.output
+        assert "Reasoning" in result.output
+        # Check step names appear
+        assert "load_local" in result.output or "search_web" in result.output
+
+    def test_playbooks_show_summarize_v0(self):
+        """ag playbooks show summarize_v0 displays correct detail."""
+        result = runner.invoke(app, ["playbooks", "show", "summarize_v0"])
+        assert result.exit_code == 0
+        assert "summarize_v0" in result.output
+        assert "Steps" in result.output
+
+    def test_playbooks_show_unknown_error(self):
+        """ag playbooks show nonexistent gives clean error (exit code 1)."""
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent"])
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+        assert "ag playbooks list" in result.output
+
+    def test_playbooks_show_json(self):
+        """ag playbooks show --json returns valid JSON with all fields."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "research_v0", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "research_v0"
+        assert "version" in data
+        assert "description" in data
+        assert "reasoning_modes" in data
+        assert "budgets" in data
+        assert "steps" in data
+        assert isinstance(data["steps"], list)
+        assert len(data["steps"]) > 0
+        # Check step structure
+        step = data["steps"][0]
+        assert "order" in step
+        assert "name" in step
+        assert "skill" in step
+        assert "type" in step
+        assert "required" in step
+
+    def test_playbooks_show_json_unknown_error(self):
+        """ag playbooks show --json with unknown playbook returns JSON error."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent", "--json"])
+        assert result.exit_code == 1
+        data = json.loads(result.output)
+        assert data["error"] == "not_found"
+
+    def test_playbooks_show_step_order(self):
+        """Step order matches playbook definition."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "research_v0", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        orders = [s["order"] for s in data["steps"]]
+        assert orders == list(range(1, len(orders) + 1))
+
+    def test_playbooks_show_alias_resolution(self):
+        """ag playbooks show with alias (no _v0 suffix) works."""
+        result = runner.invoke(app, ["playbooks", "show", "research"])
+        assert result.exit_code == 0
+        assert "research_v0" in result.output
+
+
 class TestRunsListPagination:
     """Tests for AF-0088: runs list pagination."""
 
@@ -962,11 +1040,11 @@ class TestCLIStubs:
         assert result.exit_code == 1
         assert "not implemented" in result.output.lower()
 
-    def test_playbooks_show_stub(self):
-        """ag playbooks show <name> exits with code 1."""
-        result = runner.invoke(app, ["playbooks", "show", "some-playbook"])
+    def test_playbooks_show_unknown(self):
+        """ag playbooks show <unknown> exits with code 1."""
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent-playbook"])
         assert result.exit_code == 1
-        assert "not implemented" in result.output.lower()
+        assert "not found" in result.output.lower()
 
     def test_playbooks_validate_stub(self):
         """ag playbooks validate <path> exits with code 1."""
@@ -1007,7 +1085,6 @@ class TestCLIStubs:
             ["skills", "test", "--json", "x"],
             ["skills", "enable", "--json", "x"],
             ["skills", "disable", "--json", "x"],
-            ["playbooks", "show", "--json", "x"],
             ["playbooks", "validate", "--json", "x"],
             ["playbooks", "set-default", "--json", "x"],
             ["config", "list", "--json"],

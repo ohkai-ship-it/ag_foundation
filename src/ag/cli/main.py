@@ -2546,8 +2546,105 @@ def playbooks_show(
     name: Annotated[str, typer.Argument(help="Playbook name")],
     json_output: Annotated[bool, typer.Option("--json", help="Output as JSON")] = False,
 ) -> None:
-    """Show playbook details (stub)."""
-    _not_implemented("ag playbooks show", json_mode=json_output)
+    """Show playbook details."""
+    from ag.playbooks.registry import get_playbook, get_playbook_info
+
+    playbook = get_playbook(name)
+    if playbook is None:
+        if json_output:
+            error_data = {
+                "error": "not_found",
+                "command": "ag playbooks show",
+                "message": f"Playbook '{name}' not found",
+            }
+            print(json.dumps(error_data, indent=2))
+        else:
+            err_console.print(
+                f"[red]Error:[/red] Playbook '{name}' not found. "
+                f"Use 'ag playbooks list' to see available playbooks."
+            )
+        raise typer.Exit(code=1)
+
+    info = get_playbook_info(name) or {}
+
+    if json_output:
+        steps_data = []
+        for i, step in enumerate(playbook.steps, 1):
+            step_dict: dict[str, object] = {
+                "order": i,
+                "name": step.name,
+                "skill": step.skill_name,
+                "type": step.step_type.value,
+                "required": step.required,
+            }
+            steps_data.append(step_dict)
+
+        output = {
+            "name": playbook.name,
+            "version": playbook.version,
+            "description": playbook.description or "",
+            "reasoning_modes": [m.value for m in playbook.reasoning_modes],
+            "budgets": {
+                "max_steps": playbook.budgets.max_steps,
+                "max_tokens": playbook.budgets.max_tokens,
+                "max_duration_seconds": playbook.budgets.max_duration_seconds,
+            },
+            "stability": info.get("stability", "unknown"),
+            "source": info.get("source", "unknown"),
+            "steps": steps_data,
+        }
+        print(json.dumps(output, indent=2))
+        return
+
+    # Rich display
+    console.print(f"[bold cyan]Playbook:[/bold cyan] {playbook.name}")
+    console.print(f"  [bold]Version:[/bold]   {playbook.version}")
+    if playbook.description:
+        console.print(f"  [bold]Description:[/bold] {playbook.description}")
+    console.print(
+        f"  [bold]Reasoning:[/bold]  {', '.join(m.value for m in playbook.reasoning_modes)}"
+    )
+    console.print(f"  [bold]Stability:[/bold]  {info.get('stability', 'unknown')}")
+    console.print(f"  [bold]Source:[/bold]     {info.get('source', 'unknown')}")
+
+    # Budgets
+    budgets = playbook.budgets
+    budget_parts = []
+    if budgets.max_steps is not None:
+        budget_parts.append(f"max_steps={budgets.max_steps}")
+    if budgets.max_tokens is not None:
+        budget_parts.append(f"max_tokens={budgets.max_tokens}")
+    if budgets.max_duration_seconds is not None:
+        budget_parts.append(f"max_duration={budgets.max_duration_seconds}s")
+    if budget_parts:
+        console.print(f"  [bold]Budgets:[/bold]    {', '.join(budget_parts)}")
+    else:
+        console.print("  [bold]Budgets:[/bold]    (none)")
+
+    console.print()
+
+    # Steps table
+    if playbook.steps:
+        table = Table(title="Steps")
+        table.add_column("#", style="dim", justify="right")
+        table.add_column("Name", style="cyan")
+        table.add_column("Skill")
+        table.add_column("Type", style="dim")
+        table.add_column("Required")
+
+        for i, step in enumerate(playbook.steps, 1):
+            required_display = "[green]yes[/green]" if step.required else "[dim]no[/dim]"
+            table.add_row(
+                str(i),
+                step.name,
+                step.skill_name or "—",
+                step.step_type.value,
+                required_display,
+            )
+
+        console.print(table)
+    else:
+        console.print("[dim]No steps defined.[/dim]")
 
 
 @playbooks_app.command("validate")
