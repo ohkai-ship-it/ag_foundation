@@ -1299,6 +1299,12 @@ def runs_list(
     status: Optional[str] = typer.Option(
         None, "--status", "-s", help="Filter by status (success/failure)."
     ),
+    playbook: Optional[str] = typer.Option(
+        None, "--playbook", "-p", help="Filter by playbook name."
+    ),
+    mode: Optional[str] = typer.Option(
+        None, "--mode", "-m", help="Filter by execution mode (manual/llm)."
+    ),
     workspace: Optional[str] = typer.Option(None, "--workspace", "-w", help="Filter by workspace."),
     json_output: bool = typer.Option(False, "--json", help="Output JSON."),
 ) -> None:
@@ -1332,6 +1338,18 @@ def runs_list(
         if status:
             status_filter = status.lower()
             runs = [r for r in runs if r.final.value == status_filter]
+
+        # AF-0144: Filter by playbook name
+        if playbook:
+            runs = [r for r in runs if r.playbook.name == playbook]
+
+        # AF-0144: Filter by execution mode (manual or llm)
+        if mode:
+            mode_filter = mode.lower()
+            if mode_filter == "manual":
+                runs = [r for r in runs if r.mode == ExecutionMode.MANUAL]
+            elif mode_filter == "llm":
+                runs = [r for r in runs if r.mode != ExecutionMode.MANUAL]
 
         if resolved_json:
             output = {

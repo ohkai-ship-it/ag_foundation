@@ -974,6 +974,189 @@ class TestRunsListPagination:
         assert "--limit" in result.stdout
 
 
+class TestRunsListFilters:
+    """Tests for AF-0144: runs list --playbook and --mode filters."""
+
+    def _create_runs(self, tmp_path, specs):
+        """Helper: create runs with specific playbook/mode combos.
+
+        specs: list of (playbook_name, mode) tuples
+        """
+        from ag.core.run_trace import FinalStatus, RunTraceBuilder, VerifierStatus
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+        store = SQLiteRunStore(tmp_path)
+        for pb_name, exec_mode in specs:
+            trace = (
+                RunTraceBuilder("test-ws", exec_mode, pb_name, "1.0")
+                .verify(VerifierStatus.PASSED)
+                .complete(FinalStatus.SUCCESS)
+                .build()
+            )
+            store.save(trace)
+        store.close()
+
+    def test_filter_by_playbook(self, monkeypatch, tmp_path):
+        """--playbook returns only matching runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("research_v0", ExecutionMode.MANUAL),
+                ("research_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.MANUAL),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--playbook", "research_v0", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 2
+        for run in data["runs"]:
+            assert run["playbook"]["name"] == "research_v0"
+
+    def test_filter_by_mode_manual(self, monkeypatch, tmp_path):
+        """--mode manual returns only manual-mode runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.SUPERVISED),
+                ("default_v0", ExecutionMode.AUTONOMOUS),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--mode", "manual", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 1
+        assert data["runs"][0]["mode"] == "manual"
+
+    def test_filter_by_mode_llm(self, monkeypatch, tmp_path):
+        """--mode llm returns only non-manual runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.SUPERVISED),
+                ("default_v0", ExecutionMode.AUTONOMOUS),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--mode", "llm", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 2
+        for run in data["runs"]:
+            assert run["mode"] in ("supervised", "autonomous")
+
+    def test_combined_filters(self, monkeypatch, tmp_path):
+        """Combined --status --playbook --mode filters work together."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.run_trace import FinalStatus, RunTraceBuilder, VerifierStatus
+        from ag.core.task_spec import ExecutionMode
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+        store = SQLiteRunStore(tmp_path)
+
+        # success + research_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "research_v0", "1.0")
+            .verify(VerifierStatus.PASSED)
+            .complete(FinalStatus.SUCCESS)
+            .build()
+        )
+        # failure + research_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "research_v0", "1.0")
+            .verify(VerifierStatus.FAILED)
+            .complete(FinalStatus.FAILURE)
+            .build()
+        )
+        # success + default_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "default_v0", "1.0")
+            .verify(VerifierStatus.PASSED)
+            .complete(FinalStatus.SUCCESS)
+            .build()
+        )
+        store.close()
+
+        result = runner.invoke(
+            app,
+            [
+                "runs",
+                "list",
+                "--workspace",
+                "test-ws",
+                "--status",
+                "success",
+                "--playbook",
+                "research_v0",
+                "--json",
+            ],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 1
+
+    def test_unknown_playbook_returns_empty(self, monkeypatch, tmp_path):
+        """Unknown playbook filter returns empty list, not an error."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--playbook", "nonexistent", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 0
+
+
 # ---------------------------------------------------------------------------
 # Tests for CLI stubs (AF-0012)
 # ---------------------------------------------------------------------------
