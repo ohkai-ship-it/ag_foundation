@@ -1,9 +1,9 @@
-# Governance System (GVS) — Standalone Project Plan
+﻿# Governance System (GVS) — Standalone Project Plan
 # Version: v0.1
 # Date: 2026-04-05
 # Authors: Kai (human, PM), Jeff (Claude Opus 4.6, Tech Lead)
 # Status: DRAFT
-# Origin: Sprint 16 observations (S16_OBSERVATIONS_0.1.md §4)
+# Origin: Sprint 01 observations (S01_OBSERVATIONS_0.1.md §4)
 
 ---
 
@@ -11,7 +11,7 @@
 
 Extract the governance system currently embedded in ag_foundation's `docs/dev/` tree into a standalone, versioned project. The governance system (GVS) becomes an independent product that ag_foundation — and future projects — consume as a framework for sprint-based, agent-executed software development.
 
-**Why now:** Sprint 16 revealed that governance improvements are blocked by ag_foundation's runtime development overhead. Decoupling lets the governance system iterate on its own cadence while consumers adopt versions at their own pace.
+**Why now:** Sprint 01 revealed that governance improvements are blocked by ag_foundation's runtime development overhead. Decoupling lets the governance system iterate on its own cadence while consumers adopt versions at their own pace.
 
 **Scope:** This plan covers the extraction, architecture, consumer model, and initial roadmap. It does NOT cover ag_foundation's runtime development — that stays in its own project plan.
 
@@ -45,8 +45,8 @@ The governance system exists today as files within ag_foundation:
 | Copilot instructions | `.github/copilot-instructions.md` | — |
 
 **Known issues at extraction time:**
-- BUG-0026: PR template version gap (v0.2 → should be v1.3)
-- PROJECT_PLAN staleness (Sprint 16 not reflected)
+- BUG-0002: PR template version gap (v0.2 → should be v1.3)
+- PROJECT_PLAN staleness (Sprint 01 not reflected)
 - No CHANGELOG for governance version bumps
 - No formal scope change protocol
 - INDEX files need cleanup (ag_foundation content must not leak into GVS development artifacts)
@@ -123,7 +123,7 @@ Agents/                                         # Parent workspace
     │       │   └── PROJECT_PLAN_0.2.md
     │       └── sprints/                        #   INDEX_SPRINTS.md + documentation/ + templates/
     │           ├── INDEX_SPRINTS.md
-    │           ├── documentation/              #     All sprint folders (Sprint04–Sprint16)
+    │           ├── documentation/              #     All sprint folders (Sprint04–Sprint01)
     │           └── templates/
     │               ├── SPRINT_DESCRIPTION_TEMPLATE.md
     │               ├── SPRINT_REVIEW_TEMPLATE.md
@@ -264,7 +264,7 @@ The server/client model eliminates the bootstrap paradox entirely. There is no s
 |---|---|---|
 | 1 | Create `convergent/` folder structure (empty dirs) | Kai |
 | 2 | Copy ag_foundation `docs/dev/` → `gvs_version_fixed/version1.3/` | Kai |
-| 3 | Seed system files, create clean INDEX files, write copilot instructions (AF-0139) | Agent |
+| 3 | Seed system files, create clean INDEX files, write copilot instructions (AF-0011) | Agent |
 | 4 | Write GVS Sprint 1 description (scope = Phase 1 items from §7) | Kai or Agent |
 
 After step 4, the agent opens the project and executes Sprint 1. Everything from that point is governed.
@@ -279,7 +279,7 @@ After step 4, the agent opens the project and executes Sprint 1. Everything from
 
 - [ ] Kai: Create `convergent/` folder structure (empty dirs)
 - [ ] Kai: Copy ag_foundation `docs/dev/` → `gvs_version_fixed/version1.3/`
-- [ ] **AF-0139:** Agent seeds `hidden_layer/` with v1.3 system files, creates clean INDEX files in `user/`, writes copilot instructions
+- [ ] **AF-0011:** Agent seeds `hidden_layer/` with v1.3 system files, creates clean INDEX files in `user/`, writes copilot instructions
 - [ ] Write GVS Sprint 1 description
 
 ### Phase 1 — v1.4 Development (GVS Sprints 1–3)
@@ -289,9 +289,9 @@ After step 4, the agent opens the project and executes Sprint 1. Everything from
 - [ ] Implement hidden_layer/user folder structure in governance spec
 - [ ] Clean up INDEX files (no ag_foundation-specific content)
 - [ ] Create CHANGELOG (retroactive v1.0–v1.3 entries)
-- [ ] Fix BUG-0026 (PR template version gap)
-- [ ] Codify versioning conventions (from S16_OBSERVATIONS §3)
-- [ ] Codify scope change protocol (from S16_OBSERVATIONS §5)
+- [ ] Fix BUG-0002 (PR template version gap)
+- [ ] Codify versioning conventions (from S01_OBSERVATIONS §3)
+- [ ] Codify scope change protocol (from S01_OBSERVATIONS §5)
 - [ ] Add phase-anchored approval gates to SPRINT_MANUAL
 - [ ] Add `external_inputs/` folder specification
 - [ ] Write CONSUMER_QUICKSTART guide
@@ -364,9 +364,9 @@ After step 4, the agent opens the project and executes Sprint 1. Everything from
 
 ## 10. Immediate Next Steps
 
-1. **Complete S16 review Section B** — prerequisite for sprint close
-2. **Close Sprint 16** — all S16 work must be committed and closed before extraction
+1. **Complete S01 review Section B** — prerequisite for sprint close
+2. **Close Sprint 01** — all S01 work must be committed and closed before extraction
 3. **Kai: Create convergent/ folder structure + copy v1.3 server** — manual step
-4. **AF-0139: Seed gvs_development/version1.4/** — agent populates hidden_layer/, clean INDEX files, copilot instructions
+4. **AF-0011: Seed gvs_development/version1.4/** — agent populates hidden_layer/, clean INDEX files, copilot instructions
 5. **Write GVS Sprint 1 description** — scope from Phase 1 items in §7
 6. **Agent: Execute GVS Sprint 1** — first governed sprint under v1.3 rules

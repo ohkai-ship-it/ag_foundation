@@ -1,4 +1,4 @@
-# Folder Structure — /docs/dev
+﻿# Folder Structure — /docs/dev
 # Version: v0.2
 # Effective date: 2026-03-04
 
@@ -79,7 +79,7 @@
 
 ## Naming Conventions
 
-| Artifact | New convention (Sprint 16+) | Legacy convention (pre-Sprint 16) |
+| Artifact | New convention (Sprint 01+) | Legacy convention (pre-Sprint 01) |
 |----------|----------------------------|-----------------------------------|
 | Backlog items | `AF####_<three_word_description>.md` | `AF####_<Status>_<three_word_description>.md` |
 | Bug reports | `BUG####_<three_word_description>.md` | `BUG####_<Status>_<three_word_description>.md` |

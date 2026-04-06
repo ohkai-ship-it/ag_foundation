@@ -1,6 +1,6 @@
 # S##_DESCRIPTION — Sprint## — <sprint_name>
-# Version number: v1.3
-# Status: PLANNED | DONE | REJECTED
+# Convergent version: v1.3.1
+# Status: PLANNED | DONE | REJECTED (see FOUNDATION_MANUAL §7.6)
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:

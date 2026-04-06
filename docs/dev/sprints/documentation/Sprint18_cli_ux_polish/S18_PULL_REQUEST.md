@@ -13,10 +13,10 @@
 > - INDEX update required if statuses change
 
 ## Sprint work items
-- **Sprint:** Sprint##
-- **Backlog items:** AF####, AF####, ...
-- **Bugs:** BUG#### (optional)
-- **ADRs:** ADR### (optional)
+- **Sprint:** Sprint18
+- **Backlog items:** AF-0147, AF-0144, AF-0145
+- **Bugs:** (none)
+- **ADRs:** (none)
 
 ## Summary
 What changed and why (2–5 bullets).
@@ -78,5 +78,8 @@ List important files/folders touched (especially under `/docs/dev`).
   - [ ] `/docs/dev/sprints/INDEX_SPRINTS.md`
 
 ## Completion reference
-- Backlog file: `/docs/dev/backlog/items/AF####_<three_word_description>.md` (new convention) or `AF####_<STATUS>_<three_word_description>.md` (legacy)
-- Completion section: included at bottom of the backlog file (required for merge)
+- Backlog files:
+  - `/docs/dev/backlog/items/AF0147_READY_playbooks_show_command.md`
+  - `/docs/dev/backlog/items/AF0144_READY_runs_list_filter_expansion.md`
+  - `/docs/dev/backlog/items/AF0145_READY_doctor_diagnostic_expansion.md`
+- Completion section: included at bottom of each backlog file (required for merge)

@@ -1,6 +1,7 @@
 # INDEX_DECISIONS
-# Version number: v1.3
-<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
+# Convergent version: v1.3.1
+
+> **Legacy note:** Entries from sprints prior to v1.3 retain pre-v1.3 format. See FOUNDATION_MANUAL §7.7.
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.

@@ -1,4 +1,4 @@
-# GOVERNANCE SIMPLIFICATION PLAN
+﻿# GOVERNANCE SIMPLIFICATION PLAN
 # Version: v0.1
 # Date: 2026-04-03
 # Authors: Kai (human), Jacob (Claude Opus 4, Copilot)
@@ -104,28 +104,28 @@ These are preserved exactly as-is:
 
 | Order | ID | Priority | Title | Phase | Dependencies |
 |:--:|---:|:--:|---|:--:|---|
-| 1 | AF-0129 | P0 | Eliminate filename-status coupling | 1 | — |
-| 2 | AF-0130 | P1 | Drop redundant sprint artifacts | 2 | — |
-| 3 | AF-0131 | P1 | Template enhancements: time, model, docs impact & decision capture | 4 | — |
-| 4 | AF-0132 | P1 | HITL framework in governance docs | 5 | — |
-| 5 | AF-0133 | P1 | Copilot instructions: ToDo discipline | 6 | — |
-| 6 | AF-0134 | P1 | Streamline INDEX files | 3 | AF-0129 |
-| 7 | AF-0135 | P2 | Governance automation script (`gov.py`) | 7 | AF-0129, AF-0134 |
-| 8 | AF-0136 | P1 | Governance docs consolidation (SPRINT_MANUAL, ADR-0010, README) | 8 | All above |
+| 1 | AF-0001 | P0 | Eliminate filename-status coupling | 1 | — |
+| 2 | AF-0002 | P1 | Drop redundant sprint artifacts | 2 | — |
+| 3 | AF-0003 | P1 | Template enhancements: time, model, docs impact & decision capture | 4 | — |
+| 4 | AF-0004 | P1 | HITL framework in governance docs | 5 | — |
+| 5 | AF-0005 | P1 | Copilot instructions: ToDo discipline | 6 | — |
+| 6 | AF-0006 | P1 | Streamline INDEX files | 3 | AF-0001 |
+| 7 | AF-0007 | P2 | Governance automation script (`gov.py`) | 7 | AF-0001, AF-0006 |
+| 8 | AF-0008 | P1 | Governance docs consolidation (SPRINT_MANUAL, ADR-0001, README) | 8 | All above |
 
 ### Execution Sequence
 
 ```
-              ┌─ AF-0129 (filenames) ─────┐
-              │                            ├─→ AF-0134 (INDEX) ─→ AF-0135 (gov.py) ─┐
-              ├─ AF-0130 (artifacts) ──────┘                                         │
- Start ──→    ├─ AF-0131 (templates) ─────────────────────────────────────────────────┼─→ AF-0136 (docs)
-              ├─ AF-0132 (HITL) ──────────────────────────────────────────────────────┘
-              └─ AF-0133 (Copilot) ───────────────────────────────────────────────────┘
+              ┌─ AF-0001 (filenames) ─────┐
+              │                            ├─→ AF-0006 (INDEX) ─→ AF-0007 (gov.py) ─┐
+              ├─ AF-0002 (artifacts) ──────┘                                         │
+ Start ──→    ├─ AF-0003 (templates) ─────────────────────────────────────────────────┼─→ AF-0008 (docs)
+              ├─ AF-0004 (HITL) ──────────────────────────────────────────────────────┘
+              └─ AF-0005 (Copilot) ───────────────────────────────────────────────────┘
 ```
 
-**Parallelizable:** AF-0129 through AF-0133 have no mutual dependencies.
-**Sequential:** AF-0134 depends on AF-0129. AF-0135 depends on AF-0129 + AF-0134. AF-0136 depends on all.
+**Parallelizable:** AF-0001 through AF-0005 have no mutual dependencies.
+**Sequential:** AF-0006 depends on AF-0001. AF-0007 depends on AF-0001 + AF-0006. AF-0008 depends on all.
 
 ---
 
@@ -133,14 +133,14 @@ These are preserved exactly as-is:
 
 ---
 
-### AF-0129 — Eliminate Filename-Status Coupling
+### AF-0001 — Eliminate Filename-Status Coupling
 **Priority:** P0 | **Phase:** 1 | **Dependencies:** None | **Area:** Process / Docs
 
 #### Problem
 Every status change requires **3 synchronized edits**: (1) rename file to change status token, (2) update internal `Status:` metadata field, (3) update INDEX row. This is the #1 source of bugs (BUG-0022, BUG-0023) and the biggest ceremony time sink. The SPRINT_MANUAL §2.2, §2.3, §7.1, §8.4 all exist to manage this coupling.
 
 #### Goal
-- **New files** use immutable filenames without status tokens: `AF0129_eliminate_filename_status.md`
+- **New files** use immutable filenames without status tokens: `AF0001_eliminate_filename_status.md`
 - **Existing files** keep their current names — no retroactive renames. Evolution is visible in the file system.
 - Status lives in exactly **2 places**: internal file metadata + INDEX row
 - Status changes require exactly **2 edits** (file metadata + INDEX), zero renames
@@ -178,7 +178,7 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
 
 ---
 
-### AF-0130 — Drop Redundant Sprint Artifacts
+### AF-0002 — Drop Redundant Sprint Artifacts
 **Priority:** P1 | **Phase:** 2 | **Dependencies:** None | **Area:** Process / Docs
 
 #### Problem
@@ -263,7 +263,7 @@ Every status change requires **3 synchronized edits**: (1) rename file to change
 
 ---
 
-### AF-0131 — Template Enhancements: Time, Model, Docs Impact & Decision Capture
+### AF-0003 — Template Enhancements: Time, Model, Docs Impact & Decision Capture
 **Priority:** P1 | **Phase:** 4 | **Dependencies:** None | **Area:** Process / Docs
 
 #### Problem
@@ -298,7 +298,7 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
    - **Alternatives considered:** What else was possible?
    - **Rationale:** Why this choice?
    ```
-   This captures decisions *where the work happens*. Full ADRs (separate files) are reserved for cross-cutting decisions per the criteria defined in AF-0136.
+   This captures decisions *where the work happens*. Full ADRs (separate files) are reserved for cross-cutting decisions per the criteria defined in AF-0008.
 4. **Sprint description template** — add:
    - `Started:` / `Completed:` datetimes
    - `Models:` list
@@ -316,14 +316,14 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
    - `OPEN` — reported, not yet fixed (covers all pre-fix states)
    - `FIXED` — fix committed and CI passes
    - `DROPPED` — no longer relevant
-   Remove `IN_PROGRESS` (same rationale as D21) and `VERIFIED` (never occurred as a distinct status in S01–S15; CI gate + HITL G4 cover verification without a separate status gate). Update `INDEX_BUGS.md` status legend (coordinate with AF-0134).
-10. **Sprint status vocabulary** — update `SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0130):
+   Remove `IN_PROGRESS` (same rationale as D21) and `VERIFIED` (never occurred as a distinct status in S01–S15; CI gate + HITL G4 cover verification without a separate status gate). Update `INDEX_BUGS.md` status legend (coordinate with AF-0006).
+10. **Sprint status vocabulary** — update `SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0002):
     - Rename `State:` → `Status:` for consistency with all other governance files
     - Canonical 3 values: `PLANNED | DONE | REJECTED`
     - `PLANNED` — description written, sprint not yet started
     - `DONE` — merged and closed (covers ACCEPTED and ACCEPT WITH FOLLOW-UPS outcomes; detail lives in `S##_REVIEW.md`)
     - `REJECTED` — rejected at review, branch preserved per D3
-    Remove `Draft`, `Ready`, `In Progress`, `In Review`, `Accepted`, `Closed`. Update `INDEX_SPRINTS.md` legend (coordinate with AF-0134).
+    Remove `Draft`, `Ready`, `In Progress`, `In Review`, `Accepted`, `Closed`. Update `INDEX_SPRINTS.md` legend (coordinate with AF-0006).
 
 #### Acceptance Criteria
 - [ ] All four templates include `Started:`, `Completed:`, and `Models:` fields
@@ -338,7 +338,7 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
 
 #### Files Touched
 - `docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
-- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0130)
+- `docs/dev/sprints/templates/SPRINT_DESCRIPTION_TEMPLATE.md` (coordinate with AF-0002)
 - `docs/dev/bugs/templates/BUG_REPORT_TEMPLATE.md`
 - `docs/dev/decisions/templates/ADR_TEMPLATE.md`
 
@@ -347,7 +347,7 @@ Timing data relies solely on git timestamps, which miss workflow disruptions (co
 
 ---
 
-### AF-0132 — HITL Framework in Governance Docs
+### AF-0004 — HITL Framework in Governance Docs
 **Priority:** P1 | **Phase:** 5 | **Dependencies:** None | **Area:** Process / Governance
 
 #### Problem
@@ -386,7 +386,7 @@ Human decision points and rights are implicit, scattered across SPRINT_MANUAL se
 
 ---
 
-### AF-0133 — Copilot Instructions: ToDo List Discipline
+### AF-0005 — Copilot Instructions: ToDo List Discipline
 **Priority:** P1 | **Phase:** 6 | **Dependencies:** None | **Area:** Process / Tooling
 
 #### Problem
@@ -399,7 +399,7 @@ No standardized task tracking per AF during implementation. Copilot creates ad h
 #### Changes
 1. Create or update `.github/copilot-instructions.md` with:
    - ToDo list discipline: create a ToDo checklist for each AF
-   - Title format: `AF-0129: Eliminate Filename-Status Coupling`
+   - Title format: `AF-0001: Eliminate Filename-Status Coupling`
    - Mark in-progress before starting, completed immediately after finishing
 2. Include any other project-specific Copilot instructions discovered during implementation
 
@@ -416,8 +416,8 @@ No standardized task tracking per AF during implementation. Copilot creates ad h
 
 ---
 
-### AF-0134 — Streamline INDEX Files
-**Priority:** P1 | **Phase:** 3 | **Dependencies:** AF-0129 (naming convention must be settled) | **Area:** Process / Docs
+### AF-0006 — Streamline INDEX Files
+**Priority:** P1 | **Phase:** 3 | **Dependencies:** AF-0001 (naming convention must be settled) | **Area:** Process / Docs
 
 #### Problem
 INDEX files are cluttered with redundant columns (Filename duplicates the link) and require moving rows between Active/Done sections on every status change. With ~115 rows in INDEX_BACKLOG, this is increasingly error-prone.
@@ -457,11 +457,11 @@ INDEX files are cluttered with redundant columns (Filename duplicates the link) 
 
 ---
 
-### AF-0135 — Governance Automation Script (`gov.py`)
-**Priority:** P2 | **Phase:** 7 | **Dependencies:** AF-0129, AF-0134 | **Area:** Process / Tooling
+### AF-0007 — Governance Automation Script (`gov.py`)
+**Priority:** P2 | **Phase:** 7 | **Dependencies:** AF-0001, AF-0006 | **Area:** Process / Tooling
 
 #### Problem
-All ceremony is manual. Even with simplified naming (AF-0129) and streamlined INDEX (AF-0134), creating a new AF or updating a status involves multiple file edits.
+All ceremony is manual. Even with simplified naming (AF-0001) and streamlined INDEX (AF-0006), creating a new AF or updating a status involves multiple file edits.
 
 #### Goal
 - Optional CLI helper that automates the most common governance operations
@@ -473,7 +473,7 @@ All ceremony is manual. Even with simplified naming (AF-0129) and streamlined IN
 
 | Command | Action |
 |---|---|
-| `gov.py new-af 0129 "Description" --priority P1 --sprint 16` | Creates AF file from template + adds INDEX row + sets `Started:` timestamp |
+| `gov.py new-af 0129 "Description" --priority P1 --Sprint 01` | Creates AF file from template + adds INDEX row + sets `Started:` timestamp |
 | `gov.py new-bug 0025 "Description" --severity P1` | Creates bug file from template + adds INDEX row |
 | `gov.py status af 0129 DONE` | Updates internal `Status:` field + INDEX row + sets `Completed:` if DONE |
 | `gov.py check` | Validates: all INDEX links resolve, all internal statuses match INDEX, no orphans, no phantoms. Warns on cognitive health thresholds: collapse events > 2, agent-initiated gates = "none" for 2 consecutive sprints, or LLM avoidance events > 0 |
@@ -489,7 +489,7 @@ All ceremony is manual. Even with simplified naming (AF-0129) and streamlined IN
 - [ ] `python scripts/gov.py status` updates both file and INDEX correctly
 - [ ] Script has `--help` for all subcommands
 - [ ] Zero external dependencies
-- [ ] `gov.py check` produces no false positives on legacy-format filenames (pre-AF-0129 convention)
+- [ ] `gov.py check` produces no false positives on legacy-format filenames (pre-AF-0001 convention)
 
 #### Files Touched
 - `scripts/gov.py` (new)
@@ -499,15 +499,15 @@ All ceremony is manual. Even with simplified naming (AF-0129) and streamlined IN
 
 ---
 
-### AF-0136 — Governance Docs Consolidation
-**Priority:** P1 | **Phase:** 8 | **Dependencies:** All above (AF-0129 through AF-0135) | **Area:** Process / Docs
+### AF-0008 — Governance Docs Consolidation
+**Priority:** P1 | **Phase:** 8 | **Dependencies:** All above (AF-0001 through AF-0007) | **Area:** Process / Docs
 
 #### Problem
 After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README) reference old conventions. They need a consolidation pass to reflect the new reality.
 
 #### Goal
 - All governance docs internally consistent with new rules
-- ADR-0010 records the governance simplification decision for traceability
+- ADR-0001 records the governance simplification decision for traceability
 - README reflects actual project state (currently 3 phases stale)
 - Sprint close ritual includes living reference docs sweep
 - ADR creation criteria formalized (inline vs. full ADR)
@@ -536,7 +536,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
      - Scope: docs-only changes. Any change touching `src/`, `tests/`, or `scripts/` requires a sprint.
      - Must be merged to main before next sprint branch is created.
 2. **FOLDER_STRUCTURE_0.3.md** (new) — updated naming conventions, simplified sprint folder structure
-3. **ADR-0010** — "Governance Simplification" decision record:
+3. **ADR-0001** — "Governance Simplification" decision record:
    - Context: 15 sprints of evidence, ceremony overhead data
    - Decision: eliminate filename-status coupling, drop PR/review docs, add HITL, add time/model logging
    - Consequences: reduced overhead, simpler onboarding, automation opportunity
@@ -552,7 +552,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 #### Acceptance Criteria
 - [ ] No references to old naming convention (`AF####_<STATUS>_desc.md`) in SPRINT_MANUAL
 - [ ] No references to S##_PR_01 or S##_REVIEW_01 creation in SPRINT_MANUAL
-- [ ] ADR-0010 exists with ACCEPTED status in INDEX_DECISIONS
+- [ ] ADR-0001 exists with ACCEPTED status in INDEX_DECISIONS
 - [ ] FOLDER_STRUCTURE_0.3.md exists and is internally consistent
 - [ ] README project structure matches reality
 - [ ] SPRINT_MANUAL §8 includes living reference docs sweep checklist
@@ -564,8 +564,8 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 #### Files Touched
 - `docs/dev/foundation/SPRINT_MANUAL.md` (rewrite affected sections)
 - `docs/dev/foundation/FOLDER_STRUCTURE_0.3.md` (new)
-- `docs/dev/decisions/files/ADR010_governance_simplification.md` (new)
-- `docs/dev/decisions/INDEX_DECISIONS.md` (add ADR-0010 row; bump to v1.3)
+- `docs/dev/decisions/files/ADR001_governance_simplification.md` (new)
+- `docs/dev/decisions/INDEX_DECISIONS.md` (add ADR-0001 row; bump to v1.3)
 - `docs/dev/backlog/INDEX_BACKLOG.md` (bump to v1.3)
 - `docs/dev/sprints/INDEX_SPRINTS.md` (bump to v1.3)
 - `docs/dev/bugs/INDEX_BUGS.md` (bump to v1.3)
@@ -591,7 +591,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D7 | Model field format: `<Model Name> (<Platform>)` | E.g. `Claude Opus 4 (Copilot)` — traceable across tools |
 | D8 | Historical files (S01–S15) untouched | No retroactive cleanup; clean break going forward |
 | D9 | Deployable template kit: separate follow-up sprint | Validate improvements first by running a real sprint under new rules |
-| D10 | Governance System Version (GSV): all governance INDEX files and templates share one version number, bumped together on any sprint that includes structural governance changes | Supersedes per-file versioning; a single GSV makes clear which governance generation is in use. Rule: GSV bumps on structural change (new fields, new sections, changed conventions); content-only changes (status updates, new rows) do not bump. After S16: v1.3 |
+| D10 | Governance System Version (GSV): all governance INDEX files and templates share one version number, bumped together on any sprint that includes structural governance changes | Supersedes per-file versioning; a single GSV makes clear which governance generation is in use. Rule: GSV bumps on structural change (new fields, new sections, changed conventions); content-only changes (status updates, new rows) do not bump. After S01: v1.3 |
 | D11 | This sprint runs under **old rules** | Can't reliably use rules you're still writing; next sprint validates new rules |
 | D12 | Autonomy gates stay as-is; genericized in deployable sprint | Current project needs them; others may not — defer to template kit |
 | D13 | Docs Impact Check in AF template | ~30 sec cost per AF; prevents documentation drift (README 3 phases stale, inventory docs 1 month stale) |
@@ -601,7 +601,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 | D17 | Inter-sprint planning commits via housekeeping branch + minimal PR | Docs-only; no sprint apparatus needed; must merge before next sprint starts |
 | D18 | Sprint Cognitive Health section in sprint description template | Captures 7 failure mode signals from existing artifacts; enables longitudinal analysis without external tooling; `gov.py check` warns on threshold violations |
 | D19 | LLM Avoidance and Partial Wiring added to Cognitive Health in v0.1, not deferred | Both failure modes empirically confirmed across 15 sprints (planner went 10 sprints without an LLM call; partial wiring was the largest single bug category). Instrument immediately to get data from first sprint under new rules rather than waiting for a v0.2 iteration |
-| D20 | Governance System Version (GSV) v1.3 assigned to all governance docs after S16 | Unifies per-file versioning (INDEX_BACKLOG v1.2, INDEX_SPRINTS v0.5, templates v0.2) into a single system version. Starting from S16 close, GSV tracks governance generations — one number tells you which ruleset is in effect |
+| D20 | Governance System Version (GSV) v1.3 assigned to all governance docs after S01 | Unifies per-file versioning (INDEX_BACKLOG v1.2, INDEX_SPRINTS v0.5, templates v0.2) into a single system version. Starting from S01 close, GSV tracks governance generations — one number tells you which ruleset is in effect |
 | D21 | `IN_PROGRESS` removed from status vocabulary — 5 canonical values only | IN_PROGRESS duplicates information already visible from git history and active agent context. Status is for human-visible gates, not agent workflow state. The 5 remaining values map to human decisions: PROPOSED (needs approval) → READY (approved) → DONE (complete). BLOCKED is a non-terminal waiting state — after human approval it can move to any other status. Only DONE and DROPPED are true terminals. || D22 | MECE description/review split: `S##_DESCRIPTION.md` = planning artifact, `S##_REVIEW.md` = outcomes artifact | A mutating file that serves as both plan and outcomes record is worse at both jobs. Clean separation lets each file be written once with a stable purpose — plan at kickoff, review at close. Cognitive health and review decision belong in REVIEW; goal and scope belong in DESCRIPTION |
 | D23 | Bug status simplified to 3 values: OPEN / FIXED / DROPPED | VERIFIED was never used as a distinct terminal status in S01–S15 — CI gate + HITL G4 cover verification without a separate status gate. IN_PROGRESS removed for same reason as D21 |
 | D24 | Sprint status normalised to 3 values: PLANNED / DONE / REJECTED; `State:` field renamed to `Status:` | State/Status inconsistency eliminated. Six prior values (Draft / Ready / In Progress / In Review / Accepted / Closed) collapsed to three human-visible resting points. ACTIVE removed — same category as IN_PROGRESS: agent workflow state, not a governance gate |
@@ -618,7 +618,7 @@ After Phases 1–7, the governance docs (SPRINT_MANUAL, FOLDER_STRUCTURE, README
 - HITL framework
 - Copilot instructions
 - Automation script (`gov.py`)
-- ADR-0010
+- ADR-0001
 - README update
 
 ### Out of Scope
@@ -676,7 +676,7 @@ After validating the improvements by running the next coding sprint under new ru
 
 ### Deferred AF: Abstract Project-Specific Reference Docs
 
-**Problem:** The Docs Impact Check (AF-0131) and sprint-close sweep (AF-0136) reference project-specific docs like `CLI_REFERENCE.md`. Not every project has a CLI — this hard-coded list prevents reuse by other teams.
+**Problem:** The Docs Impact Check (AF-0003) and sprint-close sweep (AF-0008) reference project-specific docs like `CLI_REFERENCE.md`. Not every project has a CLI — this hard-coded list prevents reuse by other teams.
 
 **Goal:**
 - Define a **Reference Docs Registry** — an opt-in mechanism where each project declares which living reference docs it maintains

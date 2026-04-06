@@ -1,15 +1,10 @@
-# SPRINT EXECUTION PLAYBOOK
-# Version: v1.3
+﻿# SPRINT EXECUTION PLAYBOOK
+# Convergent version: v1.3.1
+# File version: v1.3
 # Effective date: 2026-04-04
 
 This document is a deterministic step-by-step operational script.
 It contains zero ambiguity. Follow each step exactly.
-
-> **Governance System Extraction (effective after Sprint 16)**
-> This manual was extracted into the standalone GVS project (`convergent/`) after Sprint 16.
-> The authoritative version lives in `convergent/gvs_version_fixed/`.
-> This copy is retained as historical record.
-> Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
 
 > **HITL Framework:** All human-in-the-loop gates, rights, and the constitutional principle
 > are defined in FOUNDATION_MANUAL §10. This manual references specific gates (G1–G15)
@@ -20,6 +15,9 @@ It contains zero ambiguity. Follow each step exactly.
 ## 0. Pre-Sprint Read Phase
 
 ### 0.1 Mandatory Reads (Before Any Action)
+
+> **Path convention:** All `/docs/dev/` paths in this manual are relative to the consumer project root. The actual governance folder location may vary per project (see FOUNDATION_MANUAL §3.1).
+
 Read these documents completely before starting:
 1. `/docs/dev/foundation/FOUNDATION_MANUAL.md`
 2. Sprint description file (`S##_DESCRIPTION.md`)
@@ -89,15 +87,15 @@ Update `S##_DESCRIPTION.md` with branch name in the PR plan section.
 Filenames are **immutable** — they never change after creation. Status is tracked in internal metadata and INDEX rows, not in filenames.
 
 ```
-AF files:  AF0140_three_word_description.md
-BUG files: BUG0025_provider_timeout_error.md
-ADR files: ADR010_governance_simplification.md
+AF files:  AF0012_three_word_description.md
+BUG files: BUG0001_provider_timeout_error.md
+ADR files: ADR001_governance_simplification.md
 ```
 
 Status lives in exactly **2 places**: internal `Status:` field + INDEX row.
 Status changes require exactly **2 edits**, zero renames.
 
-> **Legacy files (pre-Sprint 16):** Some files have a status token in the filename (e.g., `AF0047_READY_feature_description.md`). These keep their original names — do not rename them. For legacy files, the filename token, internal `Status:` field, and INDEX row must all match. See FOUNDATION_MANUAL §7.7 — Historical Record Immutability.
+> **Legacy files (pre-Sprint 01):** Some files have a status token in the filename (e.g., `AF####_READY_feature_description.md`). These keep their original names — do not rename them. For legacy files, the filename token, internal `Status:` field, and INDEX row must all match. See FOUNDATION_MANUAL §7.7 — Historical Record Immutability.
 
 ### 2.2 Creating New AF File
 1. Copy template from `/docs/dev/backlog/templates/BACKLOG_ITEM_TEMPLATE.md`
@@ -121,7 +119,7 @@ Status changes require exactly **2 edits**, zero renames.
 
 Update internal `Status:` field + INDEX row. No rename needed.
 
-**Legacy files only** (status token in filename): also rename the file to update the token. Commit all changes together.
+**Legacy files** (status token in filename): the filename token is historical and does not change. Update internal `Status:` field + INDEX row only. See FOUNDATION_MANUAL §7.7 — Historical Record Immutability.
 
 ---
 
@@ -274,12 +272,16 @@ In AF completion section, include:
 
 ## 6. PR Creation Protocol
 
-> **GitHub PR is the canonical PR artifact.** No separate PR document is created.
+> **GitHub PR is the canonical PR artifact.** The PR template (`sprints/templates/PULL_REQUEST_TEMPLATE.md`)
+> is filled out as `S##_PULL_REQUEST.md` in the sprint documentation folder. This file is the source
+> document — its content is used verbatim as the GitHub PR body (e.g. `gh pr create --body-file
+> S##_PULL_REQUEST.md`). One source, one output, identical wording.
+>
 > PRs are created ONLY at sprint close, not during the sprint.
 
 ### 6.0 When to Create a PR (CRITICAL)
 
-- **During sprint:** Commit work directly to feature branch (multiple commits per AF is fine)
+- **During sprint:** Commit work directly to feature branch (1 commit per AF — see §1)
 - **At sprint close:** Create ONE PR to merge feature branch → main
 - **PR scope:** One PR covers all sprint work items
 
@@ -322,20 +324,66 @@ Workflow:
 - [ ] Evidence captured and documented
 - [ ] AF completion section filled
 - [ ] INDEX files updated
-- [ ] `S##_REVIEW.md` created and filled (see §8)
+- [ ] `S##_REVIEW.md` created and filled on the branch (see §8.6)
 
 ---
 
-## 7. Post-Merge Ritual
+## 6A. Mid-Sprint Scope Changes
 
-### 7.1 Immediately After Merge
-1. Update each AF's internal `Status:` field to `DONE`
-2. Update each AF's INDEX_BACKLOG row to `DONE`
-3. **Legacy files only:** Also rename file to update status token
-4. Fill completion section (if not already done):
+When the sprint plan changes during execution, follow this lightweight protocol. The goal is traceability — after sprint close, anyone reading the sprint description can see what changed and why.
+
+### 6A.1 Trigger Conditions
+A scope change occurs when any of these happen mid-sprint:
+- AF added to sprint scope
+- AF deferred or dropped from sprint scope
+- AF goal or acceptance criteria substantially rewritten
+- Bug promoted into sprint scope
+
+### 6A.2 Proposal
+State the change and rationale in 1–3 sentences in chat. No formal document needed.
+
+Example: *"AF-0015 should be added to Sprint 01 — it's a 5-minute fix and blocks AF-0011. Propose adding it at position 5."*
+
+### 6A.3 Human Approval Gate
+The PM must explicitly approve before any files are touched. This is a mandatory HITL gate (see FOUNDATION_MANUAL §10, G1/G2).
+
+### 6A.4 Impact Checklist
+After approval, update all affected files:
+
+- [ ] **AF file** — create new AF, or edit existing (update status, goal, acceptance criteria)
+- [ ] **INDEX_BACKLOG** — add/move/reorder rows in sprint scope table
+- [ ] **Sprint description** — update scope section, execution order, commit plan, references
+- [ ] **Dependent AF files** — update dependency references if affected
+- [ ] **Sprint review inputs** — note scope change for S##_REVIEW.md
+
+### 6A.5 Change Log Entry
+Append a timestamped entry to the sprint description's "Scope Changes" section:
+
+```
+### Scope Changes
+- 2026-04-06 — Added AF-0015 (reason: blocks AF-0011, trivial fix). Approved by Kai.
+- 2026-04-07 — Deferred AF-0012 to Sprint 02 (reason: CHANGELOG needs all other AFs done first). Approved by Kai.
+```
+
+If the sprint description template does not have a "Scope Changes" section, add one before the "Risks & mitigations" section.
+
+---
+
+## 7. Pre-Merge Status Finalization
+
+> **Sequence (CRITICAL):** All status updates and review artifacts are committed
+> on the sprint branch BEFORE the PR is created and merged. Nothing happens
+> after merge — the branch is complete when the PR is opened.
+
+### 7.1 Final Commits on Branch (Before PR)
+1. Update each AF’s internal `Status:` field to `DONE`
+2. Update each AF’s INDEX_BACKLOG row to `DONE`
+3. Fill completion section:
    - Acceptance criteria marked
    - Files changed listed
-   - Evidence captured
+   - Evidence captured (verification checklist for docs-only)
+4. Create `S##_REVIEW.md` on the branch (see §8.6)
+5. Update `S##_DESCRIPTION.md` status field
 
 ### 7.2 Verification
 - [ ] AF internal status shows `DONE`
@@ -344,8 +392,8 @@ Workflow:
 - [ ] No stale `PROPOSED` or `READY` entries for completed AFs
 
 ### 7.3 Sprint State Update
-Update `S##_DESCRIPTION.md` Status field.
-Add PR reference to `S##_REVIEW.md`.
+Update `S##_DESCRIPTION.md` Status field on the branch.
+Add PR reference to `S##_REVIEW.md` on the branch.
 
 ---
 
@@ -405,7 +453,7 @@ Mark each as **Updated** or **N/A** in the sprint review.
 
 ### 8.6 Sprint Review (S##_REVIEW.md)
 
-At sprint close, create `S##_REVIEW.md` from `SPRINT_REVIEW_TEMPLATE.md`:
+At sprint close, create `S##_REVIEW.md` from `SPRINT_REVIEW_TEMPLATE.md` **on the sprint branch** (before the PR is opened):
 1. Fill work items table (all AFs with final status)
 2. Fill Sprint Cognitive Health section (see §8.8)
 3. Fill Learnings (optional)
@@ -574,4 +622,4 @@ ag runs list --workspace <ws>           # List runs
 - HITL Framework: FOUNDATION_MANUAL §10
 - Historical Record Immutability: FOUNDATION_MANUAL §7.7
 - Folder structure: `/docs/dev/foundation/FOLDER_STRUCTURE_0.3.md`
-- Governance simplification decision: `/docs/dev/decisions/files/ADR010_governance_simplification.md`
+- Governance simplification decision: `/docs/dev/decisions/files/ADR001_governance_simplification.md`

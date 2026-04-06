@@ -1,5 +1,6 @@
 # FOUNDATION OPERATING MANUAL
-# Version: v1.0
+# Convergent version: v1.3.1
+# File version: v1.0
 # Effective date: 2026-03-04
 
 This document is the **single source of truth** for engineering execution in ag_foundation.
@@ -10,13 +11,6 @@ It replaces and consolidates:
 - REPO_HYGIENE.md
 
 All rules herein are non-negotiable unless explicitly escalated and approved.
-
-> **Governance System Extraction (effective after Sprint 16)**
-> The governance system (GVS) was extracted into a standalone project (`convergent/`) after Sprint 16.
-> From Sprint 17 onwards, ag_foundation consumes GVS as a fixed-version dependency.
-> The authoritative governance rules live in `gvs_version_fixed/version1.3/`.
-> This file is retained as historical record.
-> Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
 
 ---
 
@@ -146,17 +140,18 @@ Config must be:
 | Sprint docs | `/docs/dev/sprints/documentation/Sprint##_desc/` |
 | Sprint templates | `/docs/dev/sprints/templates/` |
 | Sprint index | `/docs/dev/sprints/INDEX_SPRINTS.md` |
+| CHANGELOG | `/docs/dev/CHANGELOG.md` (governance root) |
 | Foundation docs | `/docs/dev/foundation/` |
 
 ### 3.2 Naming Conventions (Strict)
 
 **Backlog Items:**
 - File name: `AF####_<STATUS>_<three_word_description>.md`
-- Status values: `PROPOSED | READY | IN_PROGRESS | BLOCKED | DONE | DROPPED`
+- Status values: `PROPOSED | READY | BLOCKED | DONE | DROPPED`
 
 **Bug Reports:**
 - File name: `BUG####_<STATUS>_<three_word_description>.md`
-- Status values: `OPEN | IN_PROGRESS | FIXED | VERIFIED | DROPPED`
+- Status values: `OPEN | FIXED | DROPPED`
 
 **ADRs:**
 - File name: `ADR###_<STATUS>_<three_word_description>.md`
@@ -172,6 +167,31 @@ Config must be:
 - Templates canonical location: respective `/templates/` folders
 - Index files must exist at top of each artifact folder
 - No stray files outside canonical locations
+
+### 3.4 Versioning Conventions
+
+Two version types exist. Every governance file carries at least the convergent version. Foundation documents additionally carry an independent file version.
+
+**Convergent version** — the GVS release version (e.g. `v1.3.1`).
+- Present in ALL governance files as a metadata header field.
+- Bumped only when a new GVS version is released — not by individual AFs.
+- All files updated in batch at release time.
+
+**File version** — the document's own revision counter (e.g. `v0.3`).
+- Present in foundation documents only (`FOUNDATION_MANUAL`, `SPRINT_MANUAL`, `FOLDER_STRUCTURE_*`, `PROJECT_PLAN_*`).
+- Bumped by the AF that edits the document.
+- Minor bump (`v0.2 → v0.3`) for additive changes; major bump (`v0.3 → v1.0`) at PM discretion for structural rewrites.
+
+**Where versions appear:**
+
+| File category | Convergent version | File version | Version in filename |
+|---|:--:|:--:|:--:|
+| Foundation docs | ✅ header | ✅ header | ✅ (e.g. `FOLDER_STRUCTURE_0.3.md`) |
+| INDEX files | ✅ header | — | — |
+| Templates | ✅ header | — | — |
+| AF / BUG / ADR files | ✅ header | — | — |
+| Sprint docs | ✅ header | — | — |
+| Additional files | ✅ header | — | ✅ (new version = new file) |
 
 ---
 
@@ -216,7 +236,7 @@ Every PR must include:
 | Trace schema | Contract tests | Yes |
 
 ### 4.6 Merge Strategy
-- Squash merge preferred
+- Regular merge (no squash) to preserve per-AF commit traceability on main
 - Verify CI passes before merge
 - AF completion section must be filled before merge
 
@@ -404,17 +424,19 @@ Filename columns in index files MUST use clickable markdown links:
 
 ### 7.6 Status Transitions
 
+> **Canonical status values** are defined here. All other documents (FOLDER_STRUCTURE, templates, INDEX headers) must reference this section — not redefine their own sets.
+
 **Backlog Items:**
 ```
-Proposed → Ready → In progress → Done
-                               ↘ Blocked → (resume) → Done
-                               ↘ Dropped
+Proposed → Ready → Done
+                 ↘ Blocked → (resume) → Done
+                 ↘ Dropped
 ```
 
 **Bug Reports:**
 ```
-Open → In progress → Fixed → Verified
-                   ↘ Dropped
+Open → Fixed
+     ↘ Dropped
 ```
 
 **ADRs:**
@@ -425,7 +447,8 @@ Proposed → Accepted → Superseded
 
 **Sprints:**
 ```
-Draft → Ready → In Progress → In Review → Accepted → Closed
+Planned → Done
+       ↘ Rejected
 ```
 
 ### 7.7 Historical Record Immutability
@@ -481,10 +504,14 @@ When behavior changes:
 - Present to human and ask for decision
 
 ### 9.2 If Invariant Conflict Detected
-- **STOP immediately**
-- Document the conflict
-- Escalate to Kai/Jeff with clear summary and proposed resolution
-- Ask for decision before proceeding
+- **STOP immediately** — do not attempt a workaround or partial fix.
+- Document the conflict in a BUG report (`bugs/reports/BUG####_<description>.md`).
+- Post a summary in chat:
+  1. Which invariant(s) conflict
+  2. Where the conflict was found (file, section, line)
+  3. Proposed resolution (2–3 options if ambiguous)
+- **Do not proceed** until explicit human confirmation (G10 — scope-level finding).
+- If no human response within the current session, park the AF as `BLOCKED` and move to the next work item.
 
 ### 9.3 Prohibited Actions
 - No silent shortcuts (undocumented workarounds)
@@ -523,13 +550,22 @@ At every gate, the agent MUST:
 
 A gate is a **checkpoint where the agent drives the conversation**, not a wall where the agent goes silent.
 
+**Approval authority:** The PM (Kai) is the sole approval authority for all gates. No timeout SLA — the agent waits until the PM responds.
+
+#### Active gates (currently referenced in sprint workflows)
+
+| # | Gate | Trigger | Agent Action | Example |
+|:--:|---|---|---|---|
+| G1 | Sprint scope approval | Before any implementation begins | Present scope summary, confirm readiness, ask "May I proceed?" | After reading all AF files and verifying INDEX entries, present the scope table and ask for go-ahead. |
+| G2 | Clarifying questions | Scope is ambiguous or unclear | Present specific questions, propose defaults if possible, ask for answers | AF says "reconcile status values" but two valid sets exist — present both, recommend one, ask PM to decide. |
+| G3 | Pre-implementation confirmation | Scope, INDEX, statuses verified | Present verification results, confirm all clear, ask "Ready to start implementation?" | Sprint start ritual done, checklist passed — present results and ask "Ready to start AF-0009?" |
+| G4 | AF completion approval | After each AF is implemented | Present AF summary (files changed, tests passed, key decisions), ask "Approve and move to next AF?" | AF-0009 done — list files edited, acceptance criteria met, ask for commit approval. |
+| G5 | Review decision | Before sprint close | Present review summary, ask for ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT | All 7 AFs complete, verification passed — present S01_REVIEW summary, ask for sprint decision. |
+
+#### Reserved gates (defined for future use, not yet referenced in workflows)
+
 | # | Gate | Trigger | Agent Action |
 |:--:|---|---|---|
-| G1 | Sprint scope approval | Before any implementation begins | Present scope summary, confirm readiness, ask "May I proceed?" |
-| G2 | Clarifying questions | Scope is ambiguous or unclear | Present specific questions, propose defaults if possible, ask for answers |
-| G3 | Pre-implementation confirmation | Scope, INDEX, statuses verified | Present verification results, confirm all clear, ask "Ready to start implementation?" |
-| G4 | AF completion approval | After each AF is implemented | Present AF summary (files changed, tests passed, key decisions), ask "Approve and move to next AF?" |
-| G5 | Review decision | Before sprint close | Present review summary, ask for ACCEPT / ACCEPT WITH FOLLOW-UPS / REJECT |
 | G6 | Destructive actions | force push, branch deletion, data drops | Describe the destructive action and its impact, ask for explicit confirmation |
 | G7 | Rule exceptions | Agent proposes any deviation from documented rules | Explain the deviation, justify it, ask for approval |
 | G8 | Escalation: blocked work | Tests fail with no clear fix | Present the failure, propose 2–3 options, recommend one, ask for decision |

@@ -1,5 +1,5 @@
 # S##_REVIEW — Sprint## — <sprint_name>
-# Version number: v1.3
+# Convergent version: v1.3.1
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -44,15 +44,17 @@
 
 ---
 
-## Sprint Cognitive Health
+## Sprint Cognitive Health (see SM §8.8)
 
-- **Collapse events** (INCOMPLETE_IMPL follow-ups): [N]
-- **Drift events** (AF spec revised mid-implementation): [N, list AF IDs]
-- **Repair events:** [informal description]
-- **Agent-initiated HITL gates:** [G codes, or "none"]
-- **Negative test coverage added:** [yes / no / partial]
-- **LLM avoidance events:** [N, list AF IDs]
-- **Integration coverage:** [pass / partial / fail — unit-level vs. component-boundary]
+| Field | Value |
+|-------|-------|
+| **Sprint velocity** | AFs completed / AFs planned |
+| **Ceremony time** | Estimated total time spent on governance overhead |
+| **Blocked time** | Time lost to blockers, unclear scope, or escalations |
+| **Scope changes** | AFs added, deferred, or dropped mid-sprint |
+| **Tool friction** | Any tooling issues (CI, git, templates) that slowed work |
+| **Decision quality** | Were escalations timely? Were decisions clear? |
+| **Carry-forward** | Lessons or patterns to apply in next sprint |
 
 ---
 

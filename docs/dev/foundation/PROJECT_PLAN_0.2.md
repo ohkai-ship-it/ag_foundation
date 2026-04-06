@@ -1,5 +1,6 @@
-# ag_foundation --- Project Plan
-# Version number: v1.0
+﻿# ag_foundation --- Project Plan
+# Convergent version: v1.3.1
+# File version: v1.0
 # Updated: 2026-03-21
 
 ------------------------------------------------------------------------
@@ -332,7 +333,7 @@ Exit status:
 
 ------------------------------------------------------------------------
 
-## Sprint 16 --- Skill Catalog Expansion (Phase 3 Start)
+## Sprint 01 --- Skill Catalog Expansion (Phase 3 Start)
 
 Goal: Bridge the gap between pipeline intelligence and task reachability by
 adding the `LangChainSkillAdapter` infrastructure and the first batch of
@@ -379,17 +380,6 @@ Exit criteria:
 | Gate C: Goals-Only Preparation | Prepare for dynamic composition | (1) mature policy engine (budgets, risk scoring, scope boundaries), (2) replanning on step failure (adaptive recovery), (3) feasibility judgment (partial plans, "can't do this" reporting), (4) strategy justification in trace (evidence model), (5) controlled skill/playbook extensibility (V2Planner composition) | ✅ Passed (Sprint 15) |
 | Gate D: Full Agent | Autonomous end-to-end execution | mature policy engine (budgets, risk scoring), adaptive mid-run replanning, broad skill catalog, RAG/retrieval interface, internal API layer | ⏳ Not started |
 
-------------------------------------------------------------------------
-
-# Governance Extraction Milestone (Post-Sprint 16)
-
-- **Sprint 16:** Governance simplification completed (8 AFs: AF-0129 through AF-0138)
-- **Post-Sprint 16:** GVS extracted to standalone project (`convergent/`)
-- ag_foundation now consumes GVS v1.3 as an external governance dependency
-- Governance rules, templates, and sprint manuals live in `convergent/gvs_version_fixed/version1.3/`
-- Future governance improvements are tracked in the GVS project, not here
-- Reference: `docs/dev/additional/GVS_PROJECT_PLAN_0.1.md`
-
 Gate rule:
 No sprint may claim autonomy progression while a P0 gate condition is unmet.
 
@@ -398,7 +388,7 @@ No sprint may claim autonomy progression while a P0 gate condition is unmet.
 # Phase 3 --- Capability Expansion (Gate C Passed — Active)
 
 These areas were deferred until Gate C. Gate C passed in Sprint 15 (2026-03-22).
-Phase 3 is now active, starting with skill catalog expansion in Sprint 16.
+Phase 3 is now active, starting with skill catalog expansion in Sprint 01.
 
 ## Retrieval Interface Layer (RAG)
 - Retriever interface definition
@@ -604,7 +594,7 @@ Analysis is based on the current V3Planner / V2Verifier / V2Executor internals
 
 ### Viable integrations (ordered by priority)
 
-**1. `PydanticOutputParser` / `JsonOutputParser` — high value, Sprint 16/17**
+**1. `PydanticOutputParser` / `JsonOutputParser` — high value, Sprint 01/17**
 
 V2Executor repair currently does `json.loads()` → `model_validate()` manually.
 `PydanticOutputParser` wraps exactly this pattern and adds one critical extra: it
@@ -666,7 +656,7 @@ No functional improvement — a code quality and testability gain. Low urgency.
 `OpenAIEmbeddings` reuses the existing `OpenAIProvider` API key with zero new auth.
 `Chroma` is a local, file-based vector store: no server, naturally workspace-scoped,
 trivially mapped to the run-centered storage layout. `FAISS` is an alternative if
-Chroma is too heavy. These are not Sprint 16/17 work, but the path to RAG is
+Chroma is too heavy. These are not Sprint 01/17 work, but the path to RAG is
 low-friction given the existing OpenAI provider wiring.
 
 ### What does not integrate
@@ -683,7 +673,7 @@ low-friction given the existing OpenAI provider wiring.
 
 | Component | Package | Target |
 |---|---|---|
-| `PydanticOutputParser` | `langchain-core` | Sprint 16 or V2Executor hardening |
+| `PydanticOutputParser` | `langchain-core` | Sprint 01 or V2Executor hardening |
 | `RecursiveCharacterTextSplitter` | `langchain-text-splitters` | Sprint 17 |
 | Rich document loaders (PDF, CSV, DOCX) | `langchain-community` | Sprint 17 |
 | `BaseCallbackHandler` trace integration | `langchain-core` | Sprint 17/18 |

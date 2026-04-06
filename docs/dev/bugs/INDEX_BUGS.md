@@ -1,6 +1,7 @@
 # INDEX_BUGS
-# Version number: v1.3
-<!-- Pre-v1.3 entries retain their original layout — see FOUNDATION_MANUAL §7.7 -->
+# Convergent version: v1.3.1
+
+> **Legacy note:** Entries from sprints prior to v1.3 retain pre-v1.3 format. See FOUNDATION_MANUAL §7.7.
 
 > **FOUNDATION RULE**
 > INDEX integrity is mandatory.
@@ -20,13 +21,21 @@
 ## OPEN bugs
 | ID | Severity | Status | Title | Area | Filename |
 |---:|:--:|:--|---|---|---|
-| BUG-0002 | P2 | OPEN | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
-| BUG-0003 | P2 | OPEN | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
-| BUG-0011 | P2 | OPEN | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |
 | BUG-0025 | P2 | OPEN | Leftover READY duplicates (5 AF files) | Process | [🔗](reports/BUG0025_leftover_ready_duplicates.md) |
 | BUG-0026 | P2 | OPEN | PR template version gap (v0.2 → v1.3) | Docs | [🔗](reports/BUG0026_pr_template_version_gap.md) |
 
 <!-- GVS EXTRACTION POINT: BUG-0025, BUG-0026 migrated to convergent/GVS as BUG-0001, BUG-0002 -->
+
+---
+
+## DROPPED bugs
+| ID | Severity | Status | Title | Area | Filename |
+|---:|:--:|:--|---|---|---|
+| BUG-0002 | P2 | DROPPED | Missing ag run options per CLI reference | CLI | [🔗](reports/BUG0002_OPEN_missing_ag_run.md) |
+| BUG-0003 | P2 | DROPPED | Missing CLI subcommands per reference spec | CLI | [🔗](reports/BUG0003_OPEN_missing_cli_subcommands.md) |
+| BUG-0011 | P2 | DROPPED | Default workspace name leaked in error | CLI | [🔗](reports/BUG0011_OPEN_default_workspace_name_leaked.md) |
+<!-- BUG-0002, BUG-0003 dropped 2026-04-06: Very old, CLI has had multiple revamps since. No longer relevant. -->
+<!-- BUG-0011 dropped 2026-04-06: Symptom of broader cross-workspace leakage. Replaced by AF-0148 (workspace isolation design). -->
 
 ---
 

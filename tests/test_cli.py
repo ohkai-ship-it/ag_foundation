@@ -55,6 +55,90 @@ class TestCLIHelp:
         assert "0.1.0" in result.stdout
 
 
+class TestDoctorDiagnostics:
+    """Tests for AF-0145: ag doctor diagnostic expansion."""
+
+    def test_doctor_fresh_workspace(self, monkeypatch, tmp_path):
+        """Doctor runs on fresh workspace (no DB) — reports 'no database'."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "no database" in result.output.lower()
+
+    def test_doctor_existing_db(self, monkeypatch, tmp_path):
+        """Doctor with existing DB reports integrity OK."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        # Create a DB by saving a run
+        from tests.test_storage import _make_run_trace
+
+        store = SQLiteRunStore(tmp_path)
+        store.save(_make_run_trace("ws_default"))
+        store.close()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "integrity ok" in result.output.lower()
+
+    def test_doctor_provider_key_valid_format(self, monkeypatch):
+        """Provider key format check works for valid format."""
+        monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-abcdefghijklmnopqrstuvwxyz123456")
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "valid format" in result.output.lower()
+
+    def test_doctor_provider_key_invalid_format(self, monkeypatch):
+        """Provider key format check works for invalid format."""
+        monkeypatch.setenv("OPENAI_API_KEY", "bad-key")
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "unexpected format" in result.output.lower()
+
+    def test_doctor_provider_key_not_set(self, monkeypatch):
+        """Provider key not set — shows warning."""
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "not set" in result.output.lower()
+
+    def test_doctor_artifact_path_exists(self, monkeypatch, tmp_path):
+        """Artifact path check works for existing directory."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.storage import Workspace
+
+        ws = Workspace("ws_default", tmp_path)
+        ws.ensure_exists()
+
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "Artifact Storage" in result.output
+
+    def test_doctor_no_workspace_yet(self, monkeypatch, tmp_path):
+        """Doctor handles missing workspace gracefully."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        # Don't create any workspace
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "no workspace yet" in result.output.lower()
+
+    def test_doctor_shows_new_sections(self):
+        """Doctor output includes all 3 new diagnostic sections."""
+        result = runner.invoke(app, ["doctor"])
+        assert result.exit_code == 0
+        assert "Database Integrity" in result.output
+        assert "Provider Credentials" in result.output
+        assert "Artifact Storage" in result.output
+
+
 class TestManualModeGate:
     """Test manual mode dev gate enforcement."""
 
@@ -783,6 +867,84 @@ class TestPlaybooksListCommand:
         assert stability_map.get("research_v0") == "experimental"
 
 
+class TestPlaybooksShow:
+    """Tests for AF-0147: ag playbooks show command."""
+
+    def test_playbooks_show_research_v0(self):
+        """ag playbooks show research_v0 displays correct detail."""
+        result = runner.invoke(app, ["playbooks", "show", "research_v0"])
+        assert result.exit_code == 0
+        assert "research_v0" in result.output
+        assert "Steps" in result.output
+        # Check header fields
+        assert "Version" in result.output
+        assert "Reasoning" in result.output
+        # Check step names appear
+        assert "load_local" in result.output or "search_web" in result.output
+
+    def test_playbooks_show_summarize_v0(self):
+        """ag playbooks show summarize_v0 displays correct detail."""
+        result = runner.invoke(app, ["playbooks", "show", "summarize_v0"])
+        assert result.exit_code == 0
+        assert "summarize_v0" in result.output
+        assert "Steps" in result.output
+
+    def test_playbooks_show_unknown_error(self):
+        """ag playbooks show nonexistent gives clean error (exit code 1)."""
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent"])
+        assert result.exit_code == 1
+        assert "not found" in result.output.lower()
+        assert "ag playbooks list" in result.output
+
+    def test_playbooks_show_json(self):
+        """ag playbooks show --json returns valid JSON with all fields."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "research_v0", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        assert data["name"] == "research_v0"
+        assert "version" in data
+        assert "description" in data
+        assert "reasoning_modes" in data
+        assert "budgets" in data
+        assert "steps" in data
+        assert isinstance(data["steps"], list)
+        assert len(data["steps"]) > 0
+        # Check step structure
+        step = data["steps"][0]
+        assert "order" in step
+        assert "name" in step
+        assert "skill" in step
+        assert "type" in step
+        assert "required" in step
+
+    def test_playbooks_show_json_unknown_error(self):
+        """ag playbooks show --json with unknown playbook returns JSON error."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent", "--json"])
+        assert result.exit_code == 1
+        data = json.loads(result.output)
+        assert data["error"] == "not_found"
+
+    def test_playbooks_show_step_order(self):
+        """Step order matches playbook definition."""
+        import json
+
+        result = runner.invoke(app, ["playbooks", "show", "research_v0", "--json"])
+        assert result.exit_code == 0
+        data = json.loads(result.output)
+        orders = [s["order"] for s in data["steps"]]
+        assert orders == list(range(1, len(orders) + 1))
+
+    def test_playbooks_show_alias_resolution(self):
+        """ag playbooks show with alias (no _v0 suffix) works."""
+        result = runner.invoke(app, ["playbooks", "show", "research"])
+        assert result.exit_code == 0
+        assert "research_v0" in result.output
+
+
 class TestRunsListPagination:
     """Tests for AF-0088: runs list pagination."""
 
@@ -896,6 +1058,189 @@ class TestRunsListPagination:
         assert "--limit" in result.stdout
 
 
+class TestRunsListFilters:
+    """Tests for AF-0144: runs list --playbook and --mode filters."""
+
+    def _create_runs(self, tmp_path, specs):
+        """Helper: create runs with specific playbook/mode combos.
+
+        specs: list of (playbook_name, mode) tuples
+        """
+        from ag.core.run_trace import FinalStatus, RunTraceBuilder, VerifierStatus
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+        store = SQLiteRunStore(tmp_path)
+        for pb_name, exec_mode in specs:
+            trace = (
+                RunTraceBuilder("test-ws", exec_mode, pb_name, "1.0")
+                .verify(VerifierStatus.PASSED)
+                .complete(FinalStatus.SUCCESS)
+                .build()
+            )
+            store.save(trace)
+        store.close()
+
+    def test_filter_by_playbook(self, monkeypatch, tmp_path):
+        """--playbook returns only matching runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("research_v0", ExecutionMode.MANUAL),
+                ("research_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.MANUAL),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--playbook", "research_v0", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 2
+        for run in data["runs"]:
+            assert run["playbook"]["name"] == "research_v0"
+
+    def test_filter_by_mode_manual(self, monkeypatch, tmp_path):
+        """--mode manual returns only manual-mode runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.SUPERVISED),
+                ("default_v0", ExecutionMode.AUTONOMOUS),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--mode", "manual", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 1
+        assert data["runs"][0]["mode"] == "manual"
+
+    def test_filter_by_mode_llm(self, monkeypatch, tmp_path):
+        """--mode llm returns only non-manual runs."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+                ("default_v0", ExecutionMode.SUPERVISED),
+                ("default_v0", ExecutionMode.AUTONOMOUS),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--mode", "llm", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 2
+        for run in data["runs"]:
+            assert run["mode"] in ("supervised", "autonomous")
+
+    def test_combined_filters(self, monkeypatch, tmp_path):
+        """Combined --status --playbook --mode filters work together."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.run_trace import FinalStatus, RunTraceBuilder, VerifierStatus
+        from ag.core.task_spec import ExecutionMode
+        from ag.storage import SQLiteRunStore, Workspace
+
+        ws = Workspace("test-ws", tmp_path)
+        ws.ensure_exists()
+        store = SQLiteRunStore(tmp_path)
+
+        # success + research_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "research_v0", "1.0")
+            .verify(VerifierStatus.PASSED)
+            .complete(FinalStatus.SUCCESS)
+            .build()
+        )
+        # failure + research_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "research_v0", "1.0")
+            .verify(VerifierStatus.FAILED)
+            .complete(FinalStatus.FAILURE)
+            .build()
+        )
+        # success + default_v0 + manual
+        store.save(
+            RunTraceBuilder("test-ws", ExecutionMode.MANUAL, "default_v0", "1.0")
+            .verify(VerifierStatus.PASSED)
+            .complete(FinalStatus.SUCCESS)
+            .build()
+        )
+        store.close()
+
+        result = runner.invoke(
+            app,
+            [
+                "runs",
+                "list",
+                "--workspace",
+                "test-ws",
+                "--status",
+                "success",
+                "--playbook",
+                "research_v0",
+                "--json",
+            ],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 1
+
+    def test_unknown_playbook_returns_empty(self, monkeypatch, tmp_path):
+        """Unknown playbook filter returns empty list, not an error."""
+        monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        from ag.core.task_spec import ExecutionMode
+
+        self._create_runs(
+            tmp_path,
+            [
+                ("default_v0", ExecutionMode.MANUAL),
+            ],
+        )
+
+        result = runner.invoke(
+            app,
+            ["runs", "list", "--workspace", "test-ws", "--playbook", "nonexistent", "--json"],
+            env={"AG_WORKSPACE_DIR": str(tmp_path)},
+        )
+        assert result.exit_code == 0
+        import json
+
+        data = json.loads(result.stdout)
+        assert data["showing"] == 0
+
+
 # ---------------------------------------------------------------------------
 # Tests for CLI stubs (AF-0012)
 # ---------------------------------------------------------------------------
@@ -962,11 +1307,11 @@ class TestCLIStubs:
         assert result.exit_code == 1
         assert "not implemented" in result.output.lower()
 
-    def test_playbooks_show_stub(self):
-        """ag playbooks show <name> exits with code 1."""
-        result = runner.invoke(app, ["playbooks", "show", "some-playbook"])
+    def test_playbooks_show_unknown(self):
+        """ag playbooks show <unknown> exits with code 1."""
+        result = runner.invoke(app, ["playbooks", "show", "nonexistent-playbook"])
         assert result.exit_code == 1
-        assert "not implemented" in result.output.lower()
+        assert "not found" in result.output.lower()
 
     def test_playbooks_validate_stub(self):
         """ag playbooks validate <path> exits with code 1."""
@@ -1007,7 +1352,6 @@ class TestCLIStubs:
             ["skills", "test", "--json", "x"],
             ["skills", "enable", "--json", "x"],
             ["skills", "disable", "--json", "x"],
-            ["playbooks", "show", "--json", "x"],
             ["playbooks", "validate", "--json", "x"],
             ["playbooks", "set-default", "--json", "x"],
             ["config", "list", "--json"],

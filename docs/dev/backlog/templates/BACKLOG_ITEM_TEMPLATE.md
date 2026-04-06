@@ -1,8 +1,8 @@
 # BACKLOG ITEM — AF#### — <three_word_description>
-# Version number: v1.3
-# Created:
-# Started:
-# Completed:
+# Convergent version: v1.3.1
+# Created: dd.mm.yyyy, hh:mm:ss
+# Started: dd.mm.yyyy, hh:mm:ss
+# Completed: dd.mm.yyyy, hh:mm:ss
 # Status:
 # Priority:
 # Area:
@@ -42,7 +42,7 @@
 >
 > **Timing convention:** `Started:` filled when agent begins AF work (not at file creation).
 > `Completed:` filled when AC met, before commit.
-> Format: ISO 8601 (e.g. `2026-04-04T14:30:00+02:00`).
+> Format: `dd.mm.yyyy, hh:mm:ss` (e.g. `06.04.2026, 14:30:00`).
 > Model format: `<Model Name> (<Tool/Platform>)` — e.g. `Claude Opus 4 (Copilot)`.
 
 ---
