@@ -1,6 +1,6 @@
 # S18_DESCRIPTION — Sprint18 — cli_ux_polish
 # Convergent version: v1.3.1
-# Status: IN PROGRESS
+# Status: DONE
 
 > **FOUNDATION GOVERNANCE**
 > This file is governed by:
@@ -32,10 +32,10 @@
 - **Owner (PM):** Kai
 - **Tech lead:** Jeff
 - **Implementer:** Jacob
-- **Status:** IN PROGRESS
+- **Status:** DONE
 - **Models:**
 - **Started:** 2026-04-06
-- **Completed:**
+- **Completed:** 2026-04-06
 
 ---
 

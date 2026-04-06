@@ -1,9 +1,9 @@
 # BACKLOG ITEM — AF0145 — doctor_diagnostic_expansion
 # Convergent version: v1.3.1
 # Created: 2026-04-06
-# Started:
-# Completed:
-# Status: READY
+# Started: 2026-04-06
+# Completed: 2026-04-06
+# Status: DONE
 # Priority: P2
 # Area: CLI / Diagnostics
 # Models:
@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0145
 - **Type:** CLI / Diagnostics
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** CLI / Diagnostics
 - **Owner:** Jacob

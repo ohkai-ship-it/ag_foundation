@@ -48,7 +48,7 @@ Each sprint folder:
 | Sprint 16 | Closed | [Sprint16_governance_simplification](documentation/Sprint16_governance_simplification/) |
 <!-- GVS EXTRACTION POINT: Sprint 16 governance work migrated to convergent/GVS as Sprint 01 -->
 | Sprint 17 | Closed | [Sprint17_gvs_migration](documentation/Sprint17_gvs_migration/) |
-| Sprint 18 | In Progress | [Sprint18_cli_ux_polish](documentation/Sprint18_cli_ux_polish/) |
+| Sprint 18 | Done | [Sprint18_cli_ux_polish](documentation/Sprint18_cli_ux_polish/) |
 
 ---
 

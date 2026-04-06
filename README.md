@@ -30,7 +30,7 @@ pip install -e ".[llm]"
 ag --help
 ag --version
 
-# Tests should pass (794 tests, 86% coverage)
+# Tests should pass (814 tests, 86% coverage)
 pytest -q
 ```
 
@@ -97,7 +97,7 @@ ag_foundation/
 │   │   ├── plan_store.py       # Plan persistence
 │   │   └── workspace.py        # Workspace management
 │   └── config.py               # Configuration contract
-├── tests/                      # Test suite (794 tests)
+├── tests/                      # Test suite (814 tests)
 ├── docs/dev/                   # Development documentation
 └── pyproject.toml              # Project configuration
 ```
@@ -183,7 +183,7 @@ Historical governance docs remain in `docs/dev/` for reference.
   - Modular pipeline: V0–V3 Planner, V0/V1 Orchestrator, V0–V2 Executor/Verifier, V0/V1 Recorder
   - 7 skills, 4 playbooks
   - HITL framework (15 gates)
-  - 794 tests, 86% coverage
+  - 814 tests, 86% coverage
 
 ## License
 

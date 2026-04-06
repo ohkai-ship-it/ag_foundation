@@ -35,9 +35,9 @@ PROPOSED → READY → DONE (or BLOCKED / DROPPED)
 ### Sprint 18 Scope (cli_ux_polish)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |
 |:--:|---:|:--:|:--|---|---|---|---|
-| 1 | AF-0147 | P2 | READY | `ag playbooks show` command | CLI / Playbooks | Jacob | [🔗](items/AF0147_READY_playbooks_show_command.md) |
-| 2 | AF-0144 | P2 | READY | `ag runs list` filter expansion | CLI / UX | Jacob | [🔗](items/AF0144_READY_runs_list_filter_expansion.md) |
-| 3 | AF-0145 | P2 | READY | `ag doctor` diagnostic expansion | CLI / Diagnostics | Jacob | [🔗](items/AF0145_READY_doctor_diagnostic_expansion.md) |
+| 1 | AF-0147 | P2 | DONE | `ag playbooks show` command | CLI / Playbooks | Jacob | [✅](items/AF0147_READY_playbooks_show_command.md) |
+| 2 | AF-0144 | P2 | DONE | `ag runs list` filter expansion | CLI / UX | Jacob | [✅](items/AF0144_READY_runs_list_filter_expansion.md) |
+| 3 | AF-0145 | P2 | DONE | `ag doctor` diagnostic expansion | CLI / Diagnostics | Jacob | [✅](items/AF0145_READY_doctor_diagnostic_expansion.md) |
 
 ### Sprint XX Scope (skill_catalog_expansion)
 | Order | ID | Priority | Status | Title | Area | Owner | Link |

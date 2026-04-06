@@ -1,9 +1,9 @@
 # BACKLOG ITEM — AF0144 — runs_list_filter_expansion
 # Convergent version: v1.3.1
 # Created: 2026-04-06
-# Started:
-# Completed:
-# Status: READY
+# Started: 2026-04-06
+# Completed: 2026-04-06
+# Status: DONE
 # Priority: P2
 # Area: CLI / UX
 # Models:
@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0144
 - **Type:** CLI / UX
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** CLI / UX
 - **Owner:** Jacob

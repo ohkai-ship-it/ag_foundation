@@ -1,9 +1,9 @@
 # BACKLOG ITEM — AF0147 — playbooks_show_command
 # Convergent version: v1.3.1
 # Created: 2026-04-06
-# Started:
-# Completed:
-# Status: READY
+# Started: 2026-04-06
+# Completed: 2026-04-06
+# Status: DONE
 # Priority: P2
 # Area: CLI / Playbooks
 # Models:
@@ -36,7 +36,7 @@
 ## Metadata
 - **ID:** AF-0147
 - **Type:** CLI / Playbooks
-- **Status:** READY
+- **Status:** DONE
 - **Priority:** P2
 - **Area:** CLI / Playbooks
 - **Owner:** Jacob

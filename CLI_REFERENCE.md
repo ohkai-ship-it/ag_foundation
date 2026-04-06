@@ -204,7 +204,7 @@ Workspaces isolate:
 ## `ag runs` — run inspection
 
 ### Synopsis
-- `ag runs list [--limit N] [--status success|failure]`
+- `ag runs list [--limit N] [--status success|failure] [--playbook NAME] [--mode llm|manual] [--all] [--workspace PATH]`
 - `ag runs show <run_id>` (human)
 - `ag runs show <run_id> --json` (machine)
 - `ag runs trace <run_id>` (alias for show, emphasizes trace output)
@@ -310,6 +310,9 @@ Helps validate environment and detect common misconfigurations.
 - storage reachable (sqlite/file system)
 - LLM provider configuration present (only in llm mode)
 - telemetry export configured (if enabled)
+- database integrity — runs `PRAGMA integrity_check` on default workspace SQLite
+- provider credentials — validates `OPENAI_API_KEY` format (`sk-...`, 20+ chars)
+- artifact storage — checks runs directory exists and is writable
 
 ---
 

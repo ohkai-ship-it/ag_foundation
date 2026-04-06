@@ -115,3 +115,31 @@ Specific gaps:
 3. Sprint planning review should include a triage pass: "For each bug in scope, is this a root cause fix or a symptom patch?"
 
 ---
+
+## Note 7 — CI full gate runs pytest twice (redundant full-suite execution)
+
+**Observed by:** Jacob (Implementer, ag_foundation) + Kai (PM, ag_foundation)
+**Date:** 2026-04-06
+**Context:** Sprint 18, AF-0147 commit gate. Jacob ran the full CI gate as documented: `ruff check`, `ruff format --check`, `pytest -W error`, then `pytest --cov=src/ag --cov-report=term-missing`. This ran the full test suite (~794 tests) twice — once for warnings-as-errors, once for coverage.
+
+**Problem:** The CI full gate (FOUNDATION_MANUAL §5.0, SPRINT_MANUAL §4.3) specifies four commands, two of which run the entire test suite independently:
+1. `ruff check src tests`
+2. `ruff format --check src tests`
+3. `pytest -W error`
+4. `pytest --cov=src/ag --cov-report=term-missing`
+
+Commands 3 and 4 are redundant — they both execute the full suite, just with different flags. On a ~794-test codebase this doubles the wall-clock time of the commit gate for no additional signal. The two flags are fully compatible and can be combined:
+```bash
+pytest -W error --cov=src/ag --cov-report=term-missing
+```
+
+**Additionally:** The gate runs before *every* AF commit (1 commit per AF). In a 3-AF sprint, this means 3 × 2 full-suite runs = 6 full runs, when 3 would suffice.
+
+**Impact:** Medium. Wastes ~50% of commit-gate time. Agents follow the documented commands literally, so they will always run the suite twice unless the docs are updated. For larger test suites, this becomes increasingly painful.
+
+**Suggested fix directions:**
+1. **Combine commands 3 and 4** in both FOUNDATION_MANUAL §5.0 and SPRINT_MANUAL §4.3 into a single command: `pytest -W error --cov=src/ag --cov-report=term-missing`
+2. Alternatively, keep them as separate logical checks but note that implementations may combine them: "Steps 3 and 4 may be run as a single command if the test runner supports it"
+3. Consider whether ruff check + ruff format could also be a single command (`ruff check --select ALL` or similar)
+
+---
