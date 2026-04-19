@@ -1,0 +1,47 @@
+# Pass 0.5 — Backlog integrity verification
+# Date: 2026-03-21
+# Executor: Jacob
+
+## Issues found
+
+### CRITICAL: INDEX_BACKLOG.md status mismatches
+
+| ID | INDEX Status | File Status | File Exists | Action Needed |
+|---|---|---|---|---|
+| AF-0094 | READY | DONE | ✓ AF0094_DONE_... | Update INDEX to DONE, fix link |
+| AF-0097 | READY | DONE | ✓ AF0097_DONE_... | Update INDEX to DONE, fix link |
+| AF-0098 | READY | READY | ✓ | Update to DONE (implemented) |
+| AF-0099 | READY | READY | ✓ | Update to DONE (implemented) |
+| AF-0100 | READY | READY | ✓ | Update to DONE (implemented) |
+| AF-0101 | READY | DONE | ✗ DONE_AF0101_... (wrong naming) | Rename file, update INDEX |
+| AF-0102 | IN_PROGRESS | Two files! | ✓ Both exist | Delete _READY, update to DONE |
+| BUG-0015 | OPEN | FIXED | ✓ (in INDEX_BUGS) | Update INDEX_BACKLOG to FIXED |
+
+### AF-0102 duplicate files
+```
+AF0102_IN_PROGRESS_llm_planner_v1_skills.md  <- KEEP (authoritative)
+AF0102_READY_llm_planner_v1_skills.md        <- DELETE (stale duplicate)
+```
+
+### AF-0101 naming convention violation
+```
+Current:  DONE_AF0101_autonomy_level_display.md
+Expected: AF0101_DONE_autonomy_level_display.md
+```
+
+### INDEX_BUGS.md
+- BUG-0015 correctly shows FIXED ✓
+- BUG-0016 may need to be added (plan steps not executed)
+
+## Resolution actions
+
+1. [x] Delete AF0102_READY_llm_planner_v1_skills.md
+2. [x] Rename DONE_AF0101_... to AF0101_DONE_...
+3. [x] Update AF-0094 file link and status in INDEX
+4. [x] Update AF-0097 file link and status in INDEX
+5. [x] Update AF-0098 status to DONE, rename file
+6. [x] Update AF-0099 status to DONE, rename file
+7. [x] Update AF-0100 status to DONE, rename file  
+8. [x] Update AF-0101 status to DONE in INDEX
+9. [x] Update AF-0102 status to DONE, rename file
+10. [x] Update BUG-0015 to FIXED in INDEX_BACKLOG

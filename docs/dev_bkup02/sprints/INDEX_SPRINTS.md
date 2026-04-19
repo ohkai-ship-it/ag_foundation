@@ -1,0 +1,46 @@
+# INDEX_SPRINTS
+# Version number: v0.2
+
+> **FOUNDATION RULE**
+> INDEX integrity is mandatory.
+> Sprint status must be kept current.
+> Update required:
+> - at sprint start ritual
+> - whenever sprint status changes
+> See `/docs/dev/foundation/FOUNDATION_MANUAL.md` → Section 7: Index Discipline.
+
+> **Location:** `/docs/dev/sprints/INDEX_SPRINTS.md`
+> **Rule:** Each sprint gets a folder under `/docs/dev/sprints/documentation/`.
+
+---
+
+## Structure (new)
+Each sprint folder:
+- `/docs/dev/sprints/documentation/Sprint##_three_word_description/`
+  - `S##_DESCRIPTION.md` (plan + report)
+  - `S##_REVIEW_01.md`
+  - `S##_PR_01.md`
+  - `artifacts/` (review outputs, traces, logs)
+
+---
+
+## Sprint status
+| Sprint | Status | Folder |
+|---:|:--:|---|
+| Sprint 00 | Closed | (legacy `/docs/old_dev`) |
+| Sprint 01 | Closed | (legacy `/docs/old_dev`) |
+| Sprint 02 | Closed | (legacy `/docs/old_dev`) |
+| Sprint 02 Hardening | Closed | (legacy `/docs/old_dev`) |
+| Sprint 03 | Closed | (legacy `/docs/old_dev`) |
+| Sprint 04 | Closed | [Sprint04_process_hardening](documentation/Sprint04_process_hardening/) |
+| Sprint 05 | Closed | [Sprint05_High_Pressure_Skills](documentation/Sprint05_High_Pressure_Skills/) |
+| Sprint 06 | In Progress | [Sprint06_skill_foundation](documentation/Sprint06_skill_foundation/) |
+
+---
+
+## Migration notes (legacy → new)
+Legacy sprint tracking files live under `/docs/dev/sprints/` today (e.g., `SPRINT_LOG.md`, `SPRINT_REPORT_*`).  
+During migration, we:
+1) Keep legacy files as historical record under `/docs/dev/`
+2) Start Sprint 04 using the new per-sprint folder model under `/docs/dev/`
+3) Deprecate `SPRINT_LOG.md` (redundant with this index + per-sprint folders)

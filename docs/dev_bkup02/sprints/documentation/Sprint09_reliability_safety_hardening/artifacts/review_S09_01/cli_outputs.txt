@@ -1,0 +1,37 @@
+﻿## Happy-path run
+
+Run completed
+  Run ID: cef9e0ad-bbb0-462b-941f-bcf9bca29211
+  Workspace: skills01
+  Mode: supervised
+  Status: success
+  Verifier: passed
+  Duration: 22388ms
+  Playbook: research_v0@1.1.0
+RunID=cef9e0ad-bbb0-462b-941f-bcf9bca29211
+## Runs list sample
+                                      Runs in workspace 'test-meta-ws'                                       
++-----------------------------------------------------------------------------------------------------------+
+| Run ID                               | Status  | Verifier | Mode   | Model  | Duration | Started          |
+|--------------------------------------+---------+----------+--------+--------+----------+------------------|
+| 9d4e5b1e-2877-4b7f-bc0b-71ac4a1f350e | success | passed   | manual | manual | unknown  | 2026-03-11 13:27 |
+| 067a10c6-24ef-49c8-b699-a207ab435be6 | success | passed   | manual | manual | unknown  | 2026-03-11 13:27 |
+| 2b9893d0-8579-465b-91e4-fee97b74ce42 | success | passed   | manual | manual | unknown  | 2026-03-11 12:08 |
+| 06109f6c-09e8-4b66-b8bf-c80213668eb4 | success | passed   | manual | manual | unknown  | 2026-03-11 12:08 |
+| eb3dfb72-ec4e-4f4f-944a-5ed7e1447d85 | success | passed   | manual | manual | unknown  | 2026-03-11 12:08 |
+| 793c1766-762c-49af-aea0-ef7af69c9ef8 | success | passed   | manual | manual | unknown  | 2026-03-11 12:01 |
+| 6c67a65d-15c0-4f85-98aa-77c72144c3b2 | success | passed   | manual | manual | unknown  | 2026-03-11 11:57 |
+| 9fd5a3fb-cc6c-44e3-9e82-600a0a27131f | success | passed   | manual | manual | unknown  | 2026-03-11 11:41 |
+| 6ec5bbd1-adea-48bf-85fd-159d640c1fe5 | success | passed   | manual | manual | unknown  | 2026-03-11 11:30 |
+| 7e126a81-758d-44c0-90bf-a2346c416334 | success | passed   | manual | manual | unknown  | 2026-03-11 11:23 |
++-----------------------------------------------------------------------------------------------------------+
+## Failure-path invalid playbook
+ag : Error: Playbook 'nonexistent_playbook' not found.
+In Zeile:1 Zeichen:955
++ ... f8; $fout = ag run --playbook nonexistent_playbook 'Test invalid play ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error: Playbook...ook' not found.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Available playbooks: default_v0, delegate_v0, research_v0, summarize_v0
+Run ag playbooks list for details.

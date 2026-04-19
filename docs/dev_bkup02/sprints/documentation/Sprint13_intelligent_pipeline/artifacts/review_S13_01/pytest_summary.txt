@@ -1,0 +1,39 @@
+# Sprint 13 Review - pytest Summary
+# Generated: 2025-03-22
+
+## Command
+pytest -W error -q
+
+## Result
+719 passed, 3 deselected in 129.52s
+
+## Deselections
+- 3 tests deselected (integration tests requiring external services)
+
+## No Warnings
+- Tests run with -W error flag (warnings as errors)
+- Zero warnings detected
+
+## Coverage Areas
+- test_planner.py: V2Planner and V1Orchestrator tests
+- test_runtime.py: V1Verifier tests
+- test_plan.py: Plan CLI tests (flaky test fixed)
+- All other existing tests continue to pass
+
+## New Tests Added in Sprint 13
+### TestV2PlannerPlaybookAwareness (7 tests)
+1. test_v2_planner_includes_playbook_catalog
+2. test_v2_planner_validates_playbook_step_type
+3. test_v2_planner_rejects_invalid_playbook_reference
+4. test_v2_planner_allows_mixed_skill_playbook_plan
+5. test_v2_planner_inherits_v1_validation
+6. test_v2_planner_fallback_without_playbooks
+7. test_v2_planner_builds_v2_playbook_with_playbook_steps
+
+### TestV1OrchestratorMixedPlans (6 tests)
+1. test_v1_orchestrator_expands_playbook_steps
+2. test_v1_orchestrator_preserves_skill_steps
+3. test_v1_orchestrator_handles_mixed_plans
+4. test_v1_orchestrator_inherits_v0_execution
+5. test_v1_orchestrator_raises_on_missing_playbook
+6. test_v1_orchestrator_nested_playbook_depth_limit
