@@ -61,6 +61,7 @@ class TestDoctorDiagnostics:
     def test_doctor_fresh_workspace(self, monkeypatch, tmp_path):
         """Doctor runs on fresh workspace (no DB) — reports 'no database'."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_WORKSPACE", "ws_default")
         from ag.storage import Workspace
 
         ws = Workspace("ws_default", tmp_path)
@@ -73,6 +74,7 @@ class TestDoctorDiagnostics:
     def test_doctor_existing_db(self, monkeypatch, tmp_path):
         """Doctor with existing DB reports integrity OK."""
         monkeypatch.setenv("AG_WORKSPACE_DIR", str(tmp_path))
+        monkeypatch.setenv("AG_WORKSPACE", "ws_default")
         from ag.storage import SQLiteRunStore, Workspace
 
         ws = Workspace("ws_default", tmp_path)
