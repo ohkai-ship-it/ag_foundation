@@ -69,3 +69,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Office documents (binary, problematic in git)
+*.pptx

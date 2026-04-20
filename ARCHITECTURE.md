@@ -49,6 +49,8 @@ This document defines the **core architecture** for ag_foundation: a modular, in
 
 ## 3. Layered architecture
 
+> **Architecture diagram:** [architecture_ag_foundation 06.png](Convergent/docs/additional/Architecture/architecture_ag_foundation%2006.png)
+
 ### 3.1 Interface Layer (Adapters)
 Adapters accept requests/events and **normalize** them into `TaskSpec`.
 
@@ -152,17 +154,65 @@ runtime.py       (imports all, wires together, exports create_runtime())
 ### 3.3 Skills & Tooling Layer (Plugins)
 
 **Core principle: Skills are CAPABILITIES, Playbooks are PROCEDURES.**
+**Autonomy principle: Humans define WHAT, agents decide HOW.**
 
 | Concept | Role | Example |
 |---------|------|--------|
 | **Skill** | Atomic capability — does ONE thing | `load_documents` (file I/O), `summarize_docs` (LLM call) |
 | **Playbook** | Orchestration — sequences capabilities | `summarize_v0` chains load → summarize → emit |
 
-A registry of skills that declare:
-- input/output schemas (Pydantic models)
-- tool dependencies
-- required permissions (for future safety gating)
-- test harness expectations
+#### Skill Framework
+
+Skills use a typed ABC pattern with Pydantic schemas for input/output validation:
+
+```python
+class Skill(ABC, Generic[InputT, OutputT]):
+    name: ClassVar[str]
+    description: ClassVar[str]
+    input_schema: ClassVar[type[SkillInput]]
+    output_schema: ClassVar[type[SkillOutput]]
+    requires_llm: ClassVar[bool] = False
+    policy_flags: ClassVar[list[str]] = []  # AF-0100: confirmation hooks
+
+    @abstractmethod
+    def execute(self, input: InputT, ctx: SkillContext) -> OutputT: ...
+```
+
+**Base schemas:**
+- `SkillInput(BaseModel)` — base input with `prompt` field; subclass for skill-specific params
+- `SkillOutput(BaseModel)` — base output with `success`, `summary`, `error`; subclass for skill-specific data
+- `SkillContext(dataclass)` — runtime context injected into skills: `provider`, `workspace_path`, `config`, `step_number`, `run_id`, `trace_metadata`
+
+**Responsibility boundaries:**
+
+| Decision | Decided By | Rationale |
+|----------|------------|----------|
+| Which skills exist | Human (compile-time) | Security boundary — no runtime skill creation |
+| Skill parameters | Agent (runtime) | Flexibility — agent interprets task |
+| Output content | Agent (schema-bounded) | Creativity within constraints |
+| Resource limits | Human (budget) | Cost control — hard limits enforced |
+
+#### Plugin Architecture (AF-0077)
+
+Skills and playbooks are discoverable via Python entry points:
+
+```toml
+# pyproject.toml
+[project.entry-points."ag.skills"]
+my_skill = "my_package.skills:MySkill"
+
+[project.entry-points."ag.playbooks"]
+my_playbook = "my_package.playbooks:MY_PLAYBOOK"
+```
+
+After `pip install`, skills appear in `ag skills list` and playbooks in `ag playbooks list` automatically.
+
+**Registration sources:** `built-in` (code), `entry-point` (plugin), `test-stub` (tests).
+
+#### Skill Registry
+
+`SkillRegistry` manages typed skills. All skills use the Pydantic-based `Skill[InputT, OutputT]` ABC.
+Legacy v1 (untyped dict→tuple) support has been removed.
 
 #### Current Skill Inventory
 
@@ -181,17 +231,16 @@ A registry of skills that declare:
 #### How to Add a Skill
 
 1. Create skill file: `src/ag/skills/{name}.py`
-2. Define input/output schemas (Pydantic `BaseModel`)
-3. Implement skill class extending `Skill` ABC
-4. Implement `execute(ctx, input) -> SkillResult`
-5. Register in `registry.py` → `create_default_registry()`
-6. Add tests in `tests/test_skill_framework.py`
-
-For detailed skill architecture, see [SKILLS_ARCHITECTURE_0.1.md](docs/dev/additional/SKILLS_ARCHITECTURE_0.1.md).
+2. Define input/output schemas (subclass `SkillInput` / `SkillOutput`)
+3. Implement skill class extending `Skill[MyInput, MyOutput]` ABC
+4. Set class attributes: `name`, `description`, `input_schema`, `output_schema`, `requires_llm`
+5. Implement `execute(input, ctx) -> MyOutput`
+6. Register in `pyproject.toml` entry points or `registry.py` → `create_default_registry()`
+7. Add tests in `tests/test_skill_framework.py`
 
 ### 3.4 Schema Reference
 
-All Pydantic models are documented in [SCHEMA_INVENTORY.md](docs/dev/additional/SCHEMA_INVENTORY.md) (AF-0063).
+All Pydantic models are documented in [SCHEMA_INVENTORY.md](Convergent/docs/additional/SCHEMA_INVENTORY.md) (AF-0063).
 
 Key schema groups:
 - **Task/Run:** TaskSpec, RunTrace, Step, Artifact
@@ -200,7 +249,7 @@ Key schema groups:
 
 ### 3.4.1 Contract Reference
 
-All Protocol interfaces are documented in [CONTRACT_INVENTORY.md](docs/dev/additional/CONTRACT_INVENTORY.md) (AF-0013).
+All Protocol interfaces are documented in [CONTRACT_INVENTORY.md](Convergent/docs/additional/CONTRACT_INVENTORY.md) (AF-0013).
 
 Key protocol groups:
 - **Core Runtime:** Normalizer, Planner, Orchestrator, Executor, Verifier, Recorder
@@ -807,4 +856,3 @@ Post-Sprint15, remaining gaps:
 - ~~**Verification runs once at end, not per-step.**~~ Fixed: V1Orchestrator (AF-0117).
 - **Verification evidence incomplete.** V1Recorder (AF-0118) not yet implemented. V0Recorder persists traces but lacks structured verification evidence and retry history.
 - Policy hook depth (permission/confirmation/budget) requires stronger runtime enforcement.
-- Plugin architecture for skills/playbooks is deferred until autonomy readiness gates are stable.

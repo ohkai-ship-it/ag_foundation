@@ -1,7 +1,0 @@
-﻿{
-    "scenario":  "invalid_playbook",
-    "output":  "Error: Playbook \u0027nonexistent_playbook\u0027 not found.\nAvailable playbooks: default_v0, delegate_v0, research_v0, summarize_v0\nRun ag playbooks list for details.",
-    "workspace":  "skills01",
-    "trace_available":  false,
-    "note":  "CLI rejected invalid playbook before run trace creation"
-}
